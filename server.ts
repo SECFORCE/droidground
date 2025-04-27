@@ -8,6 +8,9 @@ import compression from "compression";
 import serveStatic from "serve-static";
 import { fileURLToPath } from "url";
 
+// Local imports
+import Logger from '@server/utils/logger';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const isTest = process.env.NODE_ENV === "test" || !!process.env.VITE_TEST_BUILD
@@ -94,7 +97,7 @@ const createServer = async (isProd = process.env.NODE_ENV === "production") => {
   
     const port = process.env.PORT || 4242;
     httpServer.listen(Number(port), "0.0.0.0", () => {
-        console.log(`DroidGround is running on http://localhost:${port} in ${isProd ? 'production': 'development'} mode.`);
+      Logger.info(`DroidGround is running on http://localhost:${port} in ${isProd ? 'production': 'development'} mode.`);
     });
 }
 
