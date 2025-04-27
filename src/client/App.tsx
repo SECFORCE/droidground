@@ -206,8 +206,11 @@ const VideoRenderer: React.FC = () => {
 import Logo from '@client/assets/logo.png'
 const Header = () => {
   return (
-    <header className="w-full bg-gray-950 h-16">
-      <img src={Logo} className="h-[70px]" />
+    <header className="w-full bg-gray-950 h-18">
+        <div className="container m-auto h-full flex items-center">
+            <img src={Logo} className="h-14" />
+
+        </div>
     </header>
   )
 }
@@ -215,9 +218,9 @@ const Header = () => {
 export const App = () => {
     return (
       <WebSocketProvider>
-        <div className="min-h-screen">
+        <div className="min-h-screen flex flex-col">
           <Header />
-          <div className="container m-auto">
+          <div className="container m-auto h-full py-4 flex items-center">
             <VideoRenderer />
           </div>
         </div>
