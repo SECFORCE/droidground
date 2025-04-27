@@ -9,6 +9,7 @@ import serveStatic from "serve-static";
 import { fileURLToPath } from "url";
 
 // Local imports
+import { serverApp } from '@server/app.js';
 import Logger from '@server/utils/logger';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -93,6 +94,7 @@ const ssrLoader = async (app: express.Application,  isProd: boolean) => {
 const createServer = async (isProd = process.env.NODE_ENV === "production") => {
     const app = express();
     const httpServer = http.createServer(app);
+    await serverApp(app, httpServer);
     await ssrLoader(app, isProd);
   
     const port = process.env.PORT || 4242;
