@@ -6,6 +6,7 @@ import express from 'express';
 import {Application as ExpressApplication} from 'express'
 import cors from 'cors';
 import { WebSocketServer, WebSocket } from 'ws';
+import '@dotenvx/dotenvx/config'
 
 // '@yume-chan' imports
 import { BIN } from "@yume-chan/fetch-scrcpy-server";
@@ -239,5 +240,5 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
   // A device is needed, otherwise there's nothing to do here
   await ManagerSingleton.getInstance().setAdb();
   setupApi(app);
-  setupWs(httpServer);  
+  setupWs(httpServer);
 }

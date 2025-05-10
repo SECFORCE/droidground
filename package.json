@@ -22,6 +22,7 @@
         "postinstall": "fetch-scrcpy-server 3.1 && npm run build"
     },
     "dependencies": {
+        "@dotenvx/dotenvx": "^1.43.0",
         "@tailwindcss/vite": "^4.1.4",
         "@tanstack/react-router": "^1.120.3",
         "@yume-chan/adb-scrcpy": "^2.0.1",
