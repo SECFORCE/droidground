@@ -5,6 +5,7 @@ import frida from "frida";
 // Local imports
 import Logger from '@server/utils/logger';
 import { ManagerSingleton } from '@server/manager';
+import { RunFridaScriptRequest, StartActivityRequest } from '@shared/api';
 
 
 interface FridaState {
@@ -45,7 +46,8 @@ function onDetached(reason: frida.SessionDetachReason) {
 class APIController {
     startActivity: RequestHandler = async (req, res, _next) => {
         try {
-            const activity = req.body.activity;
+            const body = req.body as StartActivityRequest;
+            const activity = body.activity;
             const adb = await ManagerSingleton.getInstance().getAdb();
           
             const result = await adb.subprocess.noneProtocol.spawnWaitText(`am start -n ${activity}`)
@@ -82,7 +84,8 @@ class APIController {
 
     runFridaScript: RequestHandler = async (req, res, _next) => {
         try {
-            const scriptContent = req.body.script;
+            const body = req.body as RunFridaScriptRequest;
+            const scriptContent = body.script;
             const device = await frida.getUsbDevice();
             current.device = device;
             device.output.connect(onOutput);

@@ -37,3 +37,20 @@ export interface WSMessage {
 
 
 export type WSCallback = (metadata: WSMetadata, binaryBuf: Uint8Array<ArrayBuffer>) => void
+// ADB types
+
+export enum IntentExtraType {
+  STRING = 'string',
+  INT = 'int',
+  LONG = 'long',
+  FLOAT = 'float',
+  BOOL = 'bool',
+  URI = 'uri',
+  COMPONENT = 'component',
+  NULL = 'null'
+}
+export interface IntentExtra {
+  key: string;
+  type: IntentExtraType;
+  value?: string | number | boolean; // undefined if type is 'null'
+}
