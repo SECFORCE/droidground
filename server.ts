@@ -9,7 +9,7 @@ import serveStatic from "serve-static";
 import { fileURLToPath } from "url";
 
 // Local imports
-import { serverApp } from '@server/app.js';
+import { serverApp } from '@server/app';
 import Logger from '@server/utils/logger';
 
 const __filename = fileURLToPath(import.meta.url);

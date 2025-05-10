@@ -1,16 +1,25 @@
+
 import fs from "fs/promises";
 import { v4 as uuidv4 } from 'uuid';
 import { Server as HTTPServer } from 'http'
+import express from 'express';
 import {Application as ExpressApplication} from 'express'
+import cors from 'cors';
 import { WebSocketServer, WebSocket } from 'ws';
+
+// '@yume-chan' imports
 import { BIN } from "@yume-chan/fetch-scrcpy-server";
-import { Adb, AdbServerClient, AdbTransport } from "@yume-chan/adb";
+import { Adb } from "@yume-chan/adb";
 import { DefaultServerPath, ScrcpyCodecOptions, ScrcpyMediaStreamConfigurationPacket, ScrcpyMediaStreamPacket } from "@yume-chan/scrcpy";
 import { AdbScrcpyClient, AdbScrcpyOptions3_1 } from "@yume-chan/adb-scrcpy";
-import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import { ReadableStream, WritableStream } from "@yume-chan/stream-extra";
 import { TinyH264Decoder } from "@yume-chan/scrcpy-decoder-tinyh264";
+
+// Local imports
+import { ManagerSingleton } from '@server/manager';
+import api from '@server/api';
 import { DataMetadata, StreamingPhase, StreamMetadata, WSMessage, WSMessageType, WSMetadata } from "@shared/types";
+
 
 // Local imports
 import Logger from '@server/utils/logger';
@@ -66,9 +75,21 @@ const broadcastForPhase = (websocketClients: Map<string, WebsocketClient>, state
   }
 }
 
-export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer) => {
+const setupApi = async (app: ExpressApplication) => {
+  app.use(
+    cors({
+      exposedHeaders: ['Content-Disposition'],
+    }),
+  );
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  // Load routes
+  app.use('/api/v1', api());
+};
+
+const setupWs = async (httpServer: HTTPServer) => {
   const wss = new WebSocketServer({ server: httpServer });
-  const websocketClients = new Map<string, WebsocketClient>()
+  const websocketClients = new Map<string, WebsocketClient>();
 
   wss.on('connection', (ws: WebSocket) => {
     const id = uuidv4()
@@ -109,27 +130,8 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
     });
   });
 
-  const server: Buffer = await fs.readFile(BIN);
-
-  const connector: AdbServerNodeTcpConnector = new AdbServerNodeTcpConnector({
-      host: "localhost",
-      port: 5037,
-    });
-
-  const client: AdbServerClient = new AdbServerClient(connector);
-
-  const devices: AdbServerClient.Device[] = await client.getDevices();
-  if (devices.length === 0) {
-    Logger.error("No device connected");
-    return;
-  }
-
-  Logger.debug("Listing devices (and using the first one)")
-  Logger.debug(devices)
-  const device = devices[0];
-    
-  const transport: AdbTransport = await client.createTransport(device);
-  const adb: Adb = new Adb(transport);
+  const serverBuffer: Buffer = await fs.readFile(BIN);
+  const adb: Adb = await ManagerSingleton.getInstance().getAdb();
 
   const sync = await adb.sync();
   try {
@@ -137,7 +139,7 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
       filename: DefaultServerPath,
       file: new ReadableStream({
         start(controller) {
-            controller.enqueue(new Uint8Array(server));
+            controller.enqueue(new Uint8Array(serverBuffer));
             controller.close();
         },
       }),
@@ -231,4 +233,11 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
 
   // to stop the server
   //await scrcpyClient.close()
+}
+
+export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer) => {
+  // A device is needed, otherwise there's nothing to do here
+  await ManagerSingleton.getInstance().setAdb();
+  setupApi(app);
+  setupWs(httpServer);  
 }
