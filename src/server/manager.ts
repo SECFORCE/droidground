@@ -6,6 +6,7 @@ import { sleep } from "@shared/helpers";
 
 export class ManagerSingleton {
     private static instance: ManagerSingleton;
+    private serverClient: AdbServerClient | null = null;
     private adb: Adb | null = null;
   
     private constructor() {
@@ -19,15 +20,35 @@ export class ManagerSingleton {
       return ManagerSingleton.instance;
     }
 
-    private async setupAdb(): Promise<Adb> {
+    public async init() {
         const connector: AdbServerNodeTcpConnector = new AdbServerNodeTcpConnector({
             host: "localhost",
             port: 5037,
           });
       
         const client: AdbServerClient = new AdbServerClient(connector);
+        this.serverClient = client;
+        const observer = await client.trackDevices();
+
+        observer.onDeviceAdd((devices) => {
+            for (const device of devices) {
+                console.log("add")
+              console.log(device.serial);
+            }
+        });
+          
+        observer.onDeviceRemove((devices) => {
+            for (const device of devices) {
+                console.log("remove")
+              console.log(device.serial);
+            }
+        })
+    }
+
+    private async setupAdb(): Promise<Adb> {
+        const serverClient = this.serverClient as AdbServerClient;
       
-        const devices: AdbServerClient.Device[] = await client.getDevices();
+        const devices: AdbServerClient.Device[] = await serverClient.getDevices();
         if (devices.length === 0) {
           Logger.error("No device connected");
           throw new Error("No device connected");
@@ -37,7 +58,7 @@ export class ManagerSingleton {
         Logger.debug(devices)
         const device = devices[0];
           
-        const transport: AdbTransport = await client.createTransport(device);
+        const transport: AdbTransport = await serverClient.createTransport(device);
         const adb: Adb = new Adb(transport);
         return adb;
     }

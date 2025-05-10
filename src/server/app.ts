@@ -237,8 +237,11 @@ const setupWs = async (httpServer: HTTPServer) => {
 }
 
 export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer) => {
+  const manager = ManagerSingleton.getInstance();
+
+  await manager.init()
   // A device is needed, otherwise there's nothing to do here
-  await ManagerSingleton.getInstance().setAdb();
+  await manager.setAdb();
   setupApi(app);
   setupWs(httpServer);
 }
