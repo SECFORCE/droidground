@@ -58,6 +58,28 @@ class APIController {
         }
     }
 
+    shutdown: RequestHandler = async (_req, res, _next) => {
+        try {
+            const adb = await ManagerSingleton.getInstance().getAdb();
+            const result = await adb.subprocess.noneProtocol.spawnWaitText(`reboot -p`)
+            res.json({ result: result  }).end();
+        } catch (error: any) {
+            Logger.error('Error shutting down the device:', error);
+            res.status(500).json({ message: 'An error occurred while shutting down the device.' }).end();
+        }
+    }
+
+    reboot: RequestHandler = async (_req, res, _next) => {
+        try {
+            const adb = await ManagerSingleton.getInstance().getAdb();
+            const result = await adb.subprocess.noneProtocol.spawnWaitText(`reboot`)
+            res.json({ result: result  }).end();
+        } catch (error: any) {
+            Logger.error('Error rebooting the device:', error);
+            res.status(500).json({ message: 'An error occurred while rebooting the device.' }).end();
+        }
+    }
+
     dumpLogcat: RequestHandler = async (_req, res, _next) => {
         try {
             const adb = await ManagerSingleton.getInstance().getAdb();

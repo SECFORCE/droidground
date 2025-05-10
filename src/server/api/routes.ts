@@ -19,6 +19,8 @@ export default (app: Router) => {
   });
 
   endpoint.post('/activity', APIController.startActivity)
+  endpoint.post('/shutdown', APIController.shutdown)
+  endpoint.post('/reboot', APIController.reboot)
   endpoint.post('/frida', APIController.runFridaScript)
   endpoint.post('/logcat', APIController.dumpLogcat)
   endpoint.delete('/logcat', APIController.clearLogcat)
