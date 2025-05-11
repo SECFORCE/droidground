@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FaCode } from "react-icons/fa";
+import { PiWarningBold } from "react-icons/pi";
 
 const fridaScriptPlaceholder = `// Dummy Frida script
 setImmediate(function() {
@@ -18,6 +19,10 @@ export const Frida: React.FC = () => {
             </div>
             <div className="card bg-base-300 border border-base-300">
                 <div className="card-body p-4">
+                    <div role="alert" className="alert alert-warning">
+                        <PiWarningBold size={20} />
+                        <span>To get the output you <b>have to use</b> the <pre className="inline">send</pre> function in your <i>Frida</i> script.</span>
+                    </div>
                     <p>Write your script in the editor below and run it!</p>
                     <div className="bg-neutral relative p-0 overflow-hidden">
                         {/* Line Numbers */}

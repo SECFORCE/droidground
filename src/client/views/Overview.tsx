@@ -86,7 +86,7 @@ export const Overview: React.FC = () => {
                 <input type="checkbox" name="bug-report-accordion" className="peer" />
                 <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Bug Report</div>
                 <div className="collapse-content text-sm flex items-center justify-between">
-                <p>Run the <pre className="inline">bugreportz</pre> tool and get the output file</p>
+                <span>Run the <pre className="inline">bugreportz</pre> tool and get the output file</span>
                 <button className="btn btn-info">Run <pre>bugreportz</pre></button>
                 </div>
             </div>
