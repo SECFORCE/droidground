@@ -18,6 +18,8 @@ export default (app: Router) => {
     next();
   });
 
+  endpoint.get('/features', APIController.features)
+  endpoint.get('/info', APIController.info)
   endpoint.post('/activity', APIController.startActivity)
   endpoint.post('/shutdown', APIController.shutdown)
   endpoint.post('/reboot', APIController.reboot)

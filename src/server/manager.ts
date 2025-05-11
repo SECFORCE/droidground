@@ -3,14 +3,37 @@ import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 
 import Logger from '@server/utils/logger';
 import { sleep } from "@shared/helpers";
+import { DroidGroundConfig } from "@shared/types";
 
 export class ManagerSingleton {
     private static instance: ManagerSingleton;
     private serverClient: AdbServerClient | null = null;
     private adb: Adb | null = null;
+    private config: DroidGroundConfig;
   
     private constructor() {
       // private constructor prevents direct instantiation
+        const port = process.env.DROIDGROUND_ADB_PORT ?? '';
+        this.config = {
+            packageName: process.env.DROIDGROUND_APP_PACKAGE_NAME ?? '', // TODO: Handle case where this is not set!
+            adb: {
+                host: process.env.DROIDGROUND_ADB_HOST ?? 'localhost',
+                port: isNaN(port as any) || port.trim().length === 0 ? 5037 : parseInt(port)
+            },
+            features: {
+                appManagerEnabled: !(process.env.DROIDGROUND_APP_MANAGER_DISABLED === 'true'),
+                bugReportEnabled: !(process.env.DROIDGROUND_BUG_REPORT_DISABLED === 'true'),
+                fileBrowserEnabled: !(process.env.DROIDGROUND_FILE_BROWSER_DISABLED === 'true'),
+                fridaEnabled: !(process.env.DROIDGROUND_FRIDA_DISABLED === 'true'),
+                logcatEnabled: !(process.env.DROIDGROUND_LOGCAT_DISABLED === 'true'),
+                rebootEnabled: !(process.env.DROIDGROUND_REBOOT_DISABLED === 'true'),
+                shutdownEnabled: !(process.env.DROIDGROUND_SHUTDOWN_DISABLED === 'true'),
+                startActivityEnabled: !(process.env.DROIDGROUND_START_ACTIVITY_DISABLED === 'true'),
+                startBroadcastReceiverEnabled: !(process.env.DROIDGROUND_START_RECEIVED_DISABLED === 'true'),
+                startServiceEnabled: !(process.env.DROIDGROUND_START_SERVICE_DISABLED === 'true'),
+                terminalEnabled: !(process.env.DROIDGROUND_TERMINAL_DISABLED === 'true'),
+            }
+      }
     }
   
     public static getInstance(): ManagerSingleton {
@@ -22,8 +45,8 @@ export class ManagerSingleton {
 
     public async init() {
         const connector: AdbServerNodeTcpConnector = new AdbServerNodeTcpConnector({
-            host: "localhost",
-            port: 5037,
+            host: this.config.adb.host,
+            port: this.config.adb.port,
           });
       
         const client: AdbServerClient = new AdbServerClient(connector);
@@ -33,14 +56,14 @@ export class ManagerSingleton {
         observer.onDeviceAdd((devices) => {
             for (const device of devices) {
                 console.log("add")
-              console.log(device.serial);
+                console.log(device.serial);
             }
         });
           
         observer.onDeviceRemove((devices) => {
             for (const device of devices) {
                 console.log("remove")
-              console.log(device.serial);
+                console.log(device.serial);
             }
         })
     }
@@ -83,5 +106,9 @@ export class ManagerSingleton {
             await this.setAdb();
         }
         return this.adb as Adb; // We can cast
+    }
+
+    public getConfig(): DroidGroundConfig {
+        return this.config;
     }
 }

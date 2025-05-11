@@ -5,7 +5,9 @@ import frida from "frida";
 // Local imports
 import Logger from '@server/utils/logger';
 import { ManagerSingleton } from '@server/manager';
-import { RunFridaScriptRequest, StartActivityRequest } from '@shared/api';
+import { DeviceInfoResponse, RunFridaScriptRequest, StartActivityRequest } from '@shared/api';
+import { versionNumberToCodename } from '@server/utils/helpers';
+import { capitalize } from '@shared/helpers';
 
 
 interface FridaState {
@@ -44,7 +46,40 @@ function onDetached(reason: frida.SessionDetachReason) {
 }
 
 class APIController {
-    startActivity: RequestHandler = async (req, res, _next) => {
+    features: RequestHandler = async (_req, res) => {
+        try {
+            const droidGroundConfig = ManagerSingleton.getInstance().getConfig()
+            res.json({ features: droidGroundConfig.features }).end();
+        } catch (error: any) {
+            Logger.error('Error getting features config:', error);
+            res.status(500).json({ message: 'An error occurred while getting features config.' }).end();
+        }
+    }
+
+    info: RequestHandler = async (_req, res) => {
+        try {
+            const adb = await ManagerSingleton.getInstance().getAdb();
+            const versionResult = await adb.subprocess.noneProtocol.spawnWaitText('getprop ro.build.version.release');
+            const processorResult = await adb.subprocess.noneProtocol.spawnWaitText('getprop ro.product.cpu.abi');
+            const deviceTypeResult = await adb.subprocess.noneProtocol.spawnWaitText('getprop ro.kernel.qemu');
+            const modelResult = await adb.subprocess.noneProtocol.spawnWaitText('getprop ro.product.model');
+            const manufacturerResult = await adb.subprocess.noneProtocol.spawnWaitText('getprop ro.product.manufacturer');
+            const codename = versionNumberToCodename(versionResult.trim());
+
+            const response: DeviceInfoResponse = {
+                version: `${versionResult.trim()} (${codename})`,
+                deviceType: deviceTypeResult.trim() === '1' ? 'Emulator' : 'Device',
+                architecture: processorResult.trim(),
+                model: `${capitalize(manufacturerResult.trim())} ${modelResult.trim()}`
+            }
+            res.json(response).end();
+        } catch (error: any) {
+            Logger.error('Error getting info:', error);
+            res.status(500).json({ message: 'An error occurred while getting device info.' }).end();
+        }
+    }
+
+    startActivity: RequestHandler = async (req, res) => {
         try {
             const body = req.body as StartActivityRequest;
             const activity = body.activity;
@@ -58,7 +93,7 @@ class APIController {
         }
     }
 
-    shutdown: RequestHandler = async (_req, res, _next) => {
+    shutdown: RequestHandler = async (_req, res) => {
         try {
             const adb = await ManagerSingleton.getInstance().getAdb();
             const result = await adb.subprocess.noneProtocol.spawnWaitText(`reboot -p`)
@@ -69,7 +104,7 @@ class APIController {
         }
     }
 
-    reboot: RequestHandler = async (_req, res, _next) => {
+    reboot: RequestHandler = async (_req, res) => {
         try {
             const adb = await ManagerSingleton.getInstance().getAdb();
             const result = await adb.subprocess.noneProtocol.spawnWaitText(`reboot`)
@@ -91,7 +126,6 @@ class APIController {
         }
     }
 
-
     clearLogcat: RequestHandler = async (_req, res, _next) => {
         try {
             const adb = await ManagerSingleton.getInstance().getAdb();
@@ -103,7 +137,6 @@ class APIController {
         }
     }
 
-
     runFridaScript: RequestHandler = async (req, res, _next) => {
         try {
             const body = req.body as RunFridaScriptRequest;
@@ -112,7 +145,9 @@ class APIController {
             current.device = device;
             device.output.connect(onOutput);
 
-            const pid = await device.spawn(process.env.DROIDGROUND_APP_PACKAGE_NAME as string)
+            const droidGroundConfig = ManagerSingleton.getInstance().getConfig()
+
+            const pid = await device.spawn(droidGroundConfig.packageName)
 
             const session = await device.attach(pid);
             session.detached.connect(onDetached);
