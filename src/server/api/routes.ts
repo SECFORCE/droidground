@@ -3,8 +3,11 @@ import { Router } from 'express';
 
 // Local imports
 import APIController from '@server/api/controller';
+import { ManagerSingleton } from '@server/manager';
+import { checkFeatureEnabled } from './middlewares';
 
 const endpoint = Router(); // Define an Express Router
+const features = ManagerSingleton.getInstance().getConfig().features;
 
 // Endpoint implementation
 export default (app: Router) => {
@@ -20,10 +23,11 @@ export default (app: Router) => {
 
   endpoint.get('/features', APIController.features)
   endpoint.get('/info', APIController.info)
-  endpoint.post('/activity', APIController.startActivity)
-  endpoint.post('/shutdown', APIController.shutdown)
-  endpoint.post('/reboot', APIController.reboot)
-  endpoint.post('/frida', APIController.runFridaScript)
-  endpoint.post('/logcat', APIController.dumpLogcat)
-  endpoint.delete('/logcat', APIController.clearLogcat)
+  endpoint.post('/activity', checkFeatureEnabled(features.startActivityEnabled),  APIController.startActivity)
+  endpoint.post('/shutdown', checkFeatureEnabled(features.shutdownEnabled), APIController.shutdown)
+  endpoint.post('/reboot', checkFeatureEnabled(features.rebootEnabled), APIController.reboot)
+  endpoint.post('/frida', checkFeatureEnabled(features.fridaEnabled), APIController.runFridaScript)
+  endpoint.post('/logcat', checkFeatureEnabled(features.logcatEnabled), APIController.dumpLogcat)
+  endpoint.delete('/logcat', checkFeatureEnabled(features.logcatEnabled), APIController.clearLogcat)
+  endpoint.all('/*all', APIController.genericError)
 };

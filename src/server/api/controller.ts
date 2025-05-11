@@ -168,6 +168,10 @@ class APIController {
             res.status(500).json({ message: 'An error occurred while starting the Frida script.' }).end();
         }
     }
+
+    genericError: RequestHandler = async (_req, res) => {
+        res.status(400).json({ 'message': 'This feature is either missing or disabled.'}).end()
+    }
 }
 
 export default new APIController();
