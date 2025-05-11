@@ -55,9 +55,9 @@ export const Overview: React.FC = () => {
             </div>
             </div>
         </div>
-        <div className="collapse collapse-arrow bg-base-300 border border-base-300 group">
-            <input type="checkbox" name="my-accordion-1" />
-            <div className="collapse-title font-semibold">Actions</div>
+        <div className="collapse collapse-arrow bg-base-300 border border-base-300">
+            <input type="checkbox" name="actions-accordion" className="peer" />
+            <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Actions</div>
             <div className="collapse-content text-sm flex items-center justify-between">
             <p>Open Activity</p>
             <div className="join">
@@ -67,8 +67,8 @@ export const Overview: React.FC = () => {
             </div>
         </div>
         <div className="collapse collapse-arrow bg-base-300 border border-base-300">
-            <input type="checkbox" name="my-accordion-2" />
-            <div className="collapse-title font-semibold">Power Menu</div>
+            <input type="checkbox" name="power-accordion" className="peer" />
+            <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Power Menu</div>
             <div className="collapse-content text-sm flex items-center justify-between">
                 <p>Power options let you shutdown or reboot the device.</p>
                 <div className="flex gap-2">
@@ -78,16 +78,16 @@ export const Overview: React.FC = () => {
             </div>
         </div>
         <div className="collapse collapse-arrow bg-base-300 border border-base-300">
-            <input type="checkbox" name="my-accordion-3"/>
-            <div className="collapse-title font-semibold">Bug Report</div>
+            <input type="checkbox" name="bug-report-accordion" className="peer" />
+            <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Bug Report</div>
             <div className="collapse-content text-sm flex items-center justify-between">
             <p>Run the <pre className="inline">bugreportz</pre> tool and get the output file</p>
             <button className="btn btn-info">Run <pre>bugreportz</pre></button>
             </div>
         </div>
         <div className="collapse collapse-arrow bg-base-300 border border-base-300">
-            <input type="checkbox" name="my-accordion-3" />
-            <div className="collapse-title font-semibold">README</div>
+            <input type="checkbox" name="readme-accordion" className="peer" />
+            <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">README</div>
             <div className="collapse-content text-sm leading-[1.5]">
             <h3 className="text-base font-semibold my-2">What is DroidGround?</h3>
             <p>
