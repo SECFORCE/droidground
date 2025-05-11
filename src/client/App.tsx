@@ -25,7 +25,7 @@ const loadingMessages = [
     'Deploying rootkit...'
   ];
 
-const DefaultRoute = () => {
+const AppRoute = () => {
     const { featuresConfig, deviceInfo } = useAPI();
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -80,14 +80,24 @@ const DefaultRoute = () => {
     }
 
     return (
-        <div className="min-h-screen flex flex-col">
-            <Header />
-            <div className="container m-auto h-full py-4 flex items-start gap-8">
-                <VideoRenderer />
-                <Outlet />
+        <WebSocketProvider>
+            <div className="min-h-screen flex flex-col">
+                <Header />
+                <div className="container m-auto h-full py-4 flex items-start gap-8">
+                    <VideoRenderer />
+                    <Outlet />
+                </div>
             </div>
-        </div>
+        </WebSocketProvider>
     )
+}
+
+const DefaultRoute = () => {
+    return (
+        <APIProvider>
+            <AppRoute />
+        </APIProvider>
+    )   
 }
 
 const ErrorRoute = () => {
