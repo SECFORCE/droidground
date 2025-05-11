@@ -1,4 +1,4 @@
-import { IntentExtra } from "@shared/types";
+import { DroidGroundFeatures, IntentExtra } from "@shared/types";
 
 /***************************
  *         Generic         *
@@ -15,8 +15,17 @@ export interface IGenericErrRes {
  *           API           *
  **************************/
 
+export interface DroidGroundFeaturesResponse extends DroidGroundFeatures {}
+
+export interface DeviceInfoResponse {
+    version: string;
+    architecture: string;
+    deviceType: string;
+    model: string;
+}
+
 export interface RunFridaScriptRequest {
-    script: string
+    script: string;
 }
 
 export interface StartActivityRequest {

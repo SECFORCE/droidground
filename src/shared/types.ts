@@ -1,5 +1,29 @@
 import { ScrcpyVideoStreamMetadata } from "@yume-chan/scrcpy"
 
+export interface DroidGroundFeatures {
+  startActivityEnabled: boolean;
+  startBroadcastReceiverEnabled: boolean;
+  startServiceEnabled: boolean;
+  shutdownEnabled: boolean;
+  rebootEnabled: boolean;
+  bugReportEnabled: boolean;
+  fridaEnabled: boolean;
+  fileBrowserEnabled: boolean;
+  appManagerEnabled: boolean;
+  terminalEnabled: boolean;
+  logcatEnabled: boolean;
+}
+
+export interface DroidGroundConfig {
+  packageName: string;
+  adb: {
+    host: string;
+    port: number;
+  }
+  features: DroidGroundFeatures;
+}
+
+
 export enum WSMessageType {
   STREAM_METADATA = "metadata",
   STREAM_METADATA_ACK = "metadataAck",
@@ -37,8 +61,8 @@ export interface WSMessage {
 
 
 export type WSCallback = (metadata: WSMetadata, binaryBuf: Uint8Array<ArrayBuffer>) => void
-// ADB types
 
+// ADB types
 export enum IntentExtraType {
   STRING = 'string',
   INT = 'int',
