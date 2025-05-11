@@ -11,8 +11,8 @@ import { RESTManagerInstance } from "@client/api/rest"
 import toast from "react-hot-toast"
 
 type APIContextType = {
-  featuresConfig: DroidGroundFeatures | undefined,
-  deviceInfo: DeviceInfoResponse | undefined,
+  featuresConfig: DroidGroundFeatures,
+  deviceInfo: DeviceInfoResponse,
 }
 
 const APIContext = createContext<APIContextType | undefined>(
@@ -36,7 +36,7 @@ const featuresConfig: DroidGroundFeatures = {
 export const APIProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-    const [deviceInfo, setDeviceInfo] = useState<DeviceInfoResponse | undefined>();
+    const [deviceInfo, setDeviceInfo] = useState<DeviceInfoResponse>();
     const [error, setError] = useState<Error | null>(null);
 
     const getInfo = async () => {
@@ -59,7 +59,7 @@ export const APIProvider: React.FC<{ children: ReactNode }> = ({
         <APIContext.Provider
         value={{
             featuresConfig,
-            deviceInfo,
+            deviceInfo: deviceInfo as DeviceInfoResponse,
         }}
         >
         {children}

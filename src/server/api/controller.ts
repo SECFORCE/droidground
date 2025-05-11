@@ -97,8 +97,8 @@ class APIController {
     shutdown: RequestHandler = async (_req, res) => {
         try {
             const adb = await ManagerSingleton.getInstance().getAdb();
-            const result = await adb.subprocess.noneProtocol.spawnWaitText(`reboot -p`)
-            res.json({ result: result  }).end();
+            await adb.subprocess.noneProtocol.spawnWait(`reboot -p`)
+            res.json({ result: "Device shutted down"  }).end();
         } catch (error: any) {
             Logger.error('Error shutting down the device:', error);
             res.status(500).json({ message: 'An error occurred while shutting down the device.' }).end();
@@ -108,8 +108,8 @@ class APIController {
     reboot: RequestHandler = async (_req, res) => {
         try {
             const adb = await ManagerSingleton.getInstance().getAdb();
-            const result = await adb.subprocess.noneProtocol.spawnWaitText(`reboot`)
-            res.json({ result: result  }).end();
+            await adb.subprocess.noneProtocol.spawnWait(`reboot`)
+            res.json({ result: "Device rebooted"  }).end();
         } catch (error: any) {
             Logger.error('Error rebooting the device:', error);
             res.status(500).json({ message: 'An error occurred while rebooting the device.' }).end();

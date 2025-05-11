@@ -5,14 +5,33 @@ import { MdSpaceDashboard } from "react-icons/md";
 import { RESTManagerInstance } from "@client/api/rest";
 import { DeviceInfoResponse } from "@shared/api";
 import { useAPI } from "@client/context/API";
+import toast from "react-hot-toast";
 
 export const Overview: React.FC = () => {
-    const { deviceInfo: d } = useAPI();
-    const deviceInfo = d as DeviceInfoResponse;
+    const { featuresConfig, deviceInfo } = useAPI();
     const [activity, setActivity] = useState<string>('');
+    const isPowerMenuEnabled = featuresConfig.shutdownEnabled || featuresConfig.rebootEnabled;
 
     const startActivity = async () => {
         console.log(activity)
+    }
+
+    const shutdown = async () => {
+        try {
+            await RESTManagerInstance.shutdown();
+        } catch (e) {
+            console.error(e);
+            toast.error("Error while shutting down the device");
+        }
+    }
+
+    const reboot = async () => {
+        try {
+            await RESTManagerInstance.reboot();
+        } catch (e) {
+            console.error(e);
+            toast.error("Error while rebooting the device");
+        }
     }
 
     return (
@@ -71,17 +90,23 @@ export const Overview: React.FC = () => {
                 </div>
                 </div>
             </div>
-            <div className="collapse collapse-arrow bg-base-300 border border-base-300">
-                <input type="checkbox" name="power-accordion" className="peer" />
-                <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Power Menu</div>
-                <div className="collapse-content text-sm flex items-center justify-between">
-                    <p>Power options let you shutdown or reboot the device.</p>
-                    <div className="flex gap-2">
-                    <button className="btn btn-error">Shutdown</button>
-                    <button className="btn btn-info">Reboot</button>
+            {isPowerMenuEnabled && (
+                <div className="collapse collapse-arrow bg-base-300 border border-base-300">
+                    <input type="checkbox" name="power-accordion" className="peer" />
+                    <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Power Menu</div>
+                    <div className="collapse-content text-sm flex items-center justify-between">
+                        <p>Power options let you shutdown or reboot the device.</p>
+                        <div className="flex gap-2">
+                        {featuresConfig.shutdownEnabled && (
+                            <button className="btn btn-error" onClick={shutdown}>Shutdown</button>
+                        )}
+                        {featuresConfig.rebootEnabled && (
+                            <button className="btn btn-info" onClick={reboot}>Reboot</button>
+                        )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
             <div className="collapse collapse-arrow bg-base-300 border border-base-300">
                 <input type="checkbox" name="bug-report-accordion" className="peer" />
                 <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Bug Report</div>
