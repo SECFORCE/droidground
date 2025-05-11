@@ -13,11 +13,11 @@ export class ManagerSingleton {
   
     private constructor() {
       // private constructor prevents direct instantiation
-        const port = process.env.DROIDGROUND_ADB_PORT ?? '';
+        const port = process.env.DG_ADB_PORT ?? '';
         this.config = {
-            packageName: process.env.DROIDGROUND_APP_PACKAGE_NAME ?? '', // TODO: Handle case where this is not set!
+            packageName: process.env.DG_APP_PACKAGE_NAME ?? '', // TODO: Handle case where this is not set!
             adb: {
-                host: process.env.DROIDGROUND_ADB_HOST ?? 'localhost',
+                host: process.env.DG_ADB_HOST ?? 'localhost',
                 port: isNaN(port as any) || port.trim().length === 0 ? 5037 : parseInt(port)
             },
             features: {
@@ -29,7 +29,7 @@ export class ManagerSingleton {
                 rebootEnabled: !(process.env.DROIDGROUND_REBOOT_DISABLED === 'true'),
                 shutdownEnabled: !(process.env.DROIDGROUND_SHUTDOWN_DISABLED === 'true'),
                 startActivityEnabled: !(process.env.DROIDGROUND_START_ACTIVITY_DISABLED === 'true'),
-                startBroadcastReceiverEnabled: !(process.env.DROIDGROUND_START_RECEIVED_DISABLED === 'true'),
+                startBroadcastReceiverEnabled: !(process.env.DROIDGROUND_START_RECEIVER_DISABLED === 'true'),
                 startServiceEnabled: !(process.env.DROIDGROUND_START_SERVICE_DISABLED === 'true'),
                 terminalEnabled: !(process.env.DROIDGROUND_TERMINAL_DISABLED === 'true'),
             }

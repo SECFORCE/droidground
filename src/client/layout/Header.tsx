@@ -6,16 +6,23 @@ import { PAGES } from '@client/config';
 
 interface INavItem {
     label: string,
-    to: string
+    to: string,
+    routeEnabled: boolean,
 }
 
+const fridaRouteEnabled = !(import.meta.env.DROIDGROUND_FRIDA_DISABLED === 'true')
+const fileBrowserRouteEnabled = !(import.meta.env.DROIDGROUND_FILE_BROWSER_DISABLED === 'true')
+const appManagerRouteEnabled = !(import.meta.env.DROIDGROUND_APP_MANAGER_DISABLED === 'true')
+const terminalRouteEnabled = !(import.meta.env.DROIDGROUND_TERMINAL_DISABLED === 'true')
+const logsRouteEnabled = !(import.meta.env.DROIDGROUND_LOGCAT_DISABLED === 'true')
+
 const navItems: INavItem[] = [
-    { label: "Overview", to: PAGES.OVERVIEW },
-    { label: "Frida", to: PAGES.FRIDA },
-    { label: "File Browser", to: PAGES.FILE_BROWSER },
-    { label: "App Manager", to: PAGES.APP_MANAGER },
-    { label: "Terminal", to: PAGES.TERMINAL },
-    { label: "Logs", to: PAGES.LOGS },
+    { label: "Overview", to: PAGES.OVERVIEW, routeEnabled: true },
+    { label: "Frida", to: PAGES.FRIDA, routeEnabled:fridaRouteEnabled },
+    { label: "File Browser", to: PAGES.FILE_BROWSER, routeEnabled: fileBrowserRouteEnabled },
+    { label: "App Manager", to: PAGES.APP_MANAGER, routeEnabled: appManagerRouteEnabled },
+    { label: "Terminal", to: PAGES.TERMINAL, routeEnabled: terminalRouteEnabled },
+    { label: "Logs", to: PAGES.LOGS, routeEnabled: logsRouteEnabled },
 ]
 
 const Navbar: React.FC = () => {
@@ -26,7 +33,7 @@ const Navbar: React.FC = () => {
     return (
         <nav className="px-2 py-1">
         <ul className="relative flex space-x-8 text-sm font-medium">
-            {navItems.map((item) => (
+            {navItems.filter(i => i.routeEnabled).map((item) => (
                 <li
                     key={item.to}
                     className="relative m-0 px-2 cursor-pointer"

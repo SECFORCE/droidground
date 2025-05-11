@@ -1,17 +1,28 @@
 import { http } from '@client/api/axios';
+import { DeviceInfoResponse, DroidGroundFeaturesResponse, IGenericResultRes } from '@shared/api';
 import { AxiosResponse } from 'axios';
 
 // This functions are just used to wrap specific REST API calls
 // Not using try/catch statement here so every specific component
 // can handle the error in his own way
 class RESTManager {
-  async dumpLogcat(): Promise<AxiosResponse<any>> {
-    const res = await http.post<any>("/logcat");
+  async getFeatures(): Promise<AxiosResponse<DroidGroundFeaturesResponse>> {
+    const res = await http.get<DroidGroundFeaturesResponse>("/features");
     return res;
   }
 
-  async clearLogcat(): Promise<AxiosResponse<any>> {
-    const res = await http.delete<any>("/logcat");
+  async getInfo(): Promise<AxiosResponse<DeviceInfoResponse>> {
+    const res = await http.get<DeviceInfoResponse>("/info");
+    return res;
+  }
+
+  async dumpLogcat(): Promise<AxiosResponse<IGenericResultRes>> {
+    const res = await http.post<IGenericResultRes>("/logcat");
+    return res;
+  }
+
+  async clearLogcat(): Promise<AxiosResponse<IGenericResultRes>> {
+    const res = await http.delete<IGenericResultRes>("/logcat");
     return res;
   }
 }

@@ -3,7 +3,7 @@ import { DroidGroundFeatures, IntentExtra } from "@shared/types";
 /***************************
  *         Generic         *
  **************************/
-export interface IGenericMsgRes {
+export interface IGenericResultRes {
   result: string;
 }
 

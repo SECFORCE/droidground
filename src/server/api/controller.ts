@@ -64,6 +64,7 @@ class APIController {
             const deviceTypeResult = await adb.subprocess.noneProtocol.spawnWaitText('getprop ro.kernel.qemu');
             const modelResult = await adb.subprocess.noneProtocol.spawnWaitText('getprop ro.product.model');
             const manufacturerResult = await adb.subprocess.noneProtocol.spawnWaitText('getprop ro.product.manufacturer');
+
             const codename = versionNumberToCodename(versionResult.trim());
 
             const response: DeviceInfoResponse = {
@@ -129,8 +130,8 @@ class APIController {
     clearLogcat: RequestHandler = async (_req, res, _next) => {
         try {
             const adb = await ManagerSingleton.getInstance().getAdb();
-            const result = await adb.subprocess.noneProtocol.spawnWaitText(`logcat -c`)
-            res.json({ result: result  }).end();
+            await adb.subprocess.noneProtocol.spawn(`logcat -c`)
+            res.json({ result: "Logcat cleared"  }).end();
         } catch (error: any) {
             Logger.error('Error clearing logcat:', error);
             res.status(500).json({ message: 'An error occurred while clearing logcat.' }).end();

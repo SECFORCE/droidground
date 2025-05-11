@@ -17,7 +17,7 @@ export const Logs: React.FC = () => {
 
     const clear = async () => {
         try {
-            const res = await RESTManagerInstance.clearLogcat();
+            await RESTManagerInstance.clearLogcat();
             setCurrentLogs([])
         } catch (e) {
             console.error(e)

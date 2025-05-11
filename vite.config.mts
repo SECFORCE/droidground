@@ -19,4 +19,5 @@ export default defineConfig({
       "@yume-chan/scrcpy-decoder-tinyh264 > yuv-canvas",
     ],
   },
+  envPrefix: 'DROIDGROUND'
 });
