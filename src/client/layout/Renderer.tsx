@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import Lottie from "lottie-react";
 import bootData from '@client/assets/boot.json'
 import { useWebSocket } from "@client/context/WebSocket";
+import toast from "react-hot-toast";
 
 
 interface EnhancedStreamMetadata extends ScrcpyVideoStreamMetadata {
@@ -64,6 +65,7 @@ const TinyH264Renderer: React.FC = () => {
         sendMessage(WSMessageType.STREAM_METADATA_ACK)
       } catch (err) {
         console.error(err);
+        toast.error("Error while starting rendering")
       }
     }
 
@@ -148,6 +150,7 @@ const WebCodecsRenderer: React.FC = () => {
         sendMessage(WSMessageType.STREAM_METADATA_ACK)
       } catch (err) {
         console.error(err);
+        toast.error("Error while starting rendering")
       }
     }
 

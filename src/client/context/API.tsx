@@ -8,6 +8,7 @@ import {
 import { DroidGroundFeatures } from "@shared/types"
 import { DeviceInfoResponse } from "@shared/api"
 import { RESTManagerInstance } from "@client/api/rest"
+import toast from "react-hot-toast"
 
 type APIContextType = {
   featuresConfig: DroidGroundFeatures | undefined,
@@ -36,22 +37,24 @@ export const APIProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
     const [deviceInfo, setDeviceInfo] = useState<DeviceInfoResponse | undefined>();
-
+    const [error, setError] = useState<Error | null>(null);
 
     const getInfo = async () => {
         try {
             const res = await RESTManagerInstance.getInfo();
             setDeviceInfo(res.data)
         } catch (e) {
-            console.error(e)
+            setError(e instanceof Error ? e : new Error("Unknown error"));
         }
     }
 
     useEffect(() => {
         getInfo();
     }, []);
-  
 
+    // Throwing during render if an error occurred
+    if (error) throw error;
+  
     return (
         <APIContext.Provider
         value={{

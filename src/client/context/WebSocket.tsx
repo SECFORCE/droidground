@@ -8,6 +8,7 @@ import {
   useState,
 } from "react"
 import { StreamingPhase, WSCallback, WSMessageType } from "@shared/types"
+import toast from "react-hot-toast"
 
 type WebSocketContextType = {
   sendMessage: (message: string) => void
@@ -70,6 +71,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
 
 
         } catch (error) {
+            toast.error("WebSocket message parsing error")
             console.error(`WebSocket message parsing error: ${error}`)
         }
       }

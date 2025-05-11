@@ -1,5 +1,6 @@
 import { RESTManagerInstance } from "@client/api/rest";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { VscOutput } from "react-icons/vsc";
 
 export const Logs: React.FC = () => {
@@ -12,6 +13,7 @@ export const Logs: React.FC = () => {
             setCurrentLogs(res.data.result.split('\n'))
         } catch (e) {
             console.error(e)
+            toast.error("Error while dumping logcat")
         }
     }
 
@@ -21,6 +23,7 @@ export const Logs: React.FC = () => {
             setCurrentLogs([])
         } catch (e) {
             console.error(e)
+            toast.error("Error while clearing logcat")
         }
     }
 

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { RootRoute, Route, RouterProvider } from "@tanstack/react-router";
+import { RouterProvider } from "@tanstack/react-router";
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
 import { WebSocketProvider } from "@client/context/WebSocket";
 import { Header, VideoRenderer } from "@client/layout";
-import { Overview, Frida, NotFound, FileBrowser, AppManager, Terminal, Logs } from "@client/views";
+import { Overview, Frida, NotFound, FileBrowser, AppManager, Terminal, Logs, Error } from "@client/views";
 import { PAGES } from "@client/config";
 import { APIProvider, useAPI } from "./context/API";
 import { sleep } from "@shared/helpers";
 import Logo from '@client/assets/logo.png'
-import { DroidGroundFeatures } from "@shared/types";
+import { Toaster } from "react-hot-toast";
 
 const rootRoute = createRootRoute()
 
@@ -96,11 +96,23 @@ const DefaultRoute = () => {
     return (
         <APIProvider>
             <AppRoute />
+            <Toaster position="bottom-right"/>
         </APIProvider>
     )   
 }
 
-const ErrorRoute = () => {
+const ErrorComponent = () => {
+    return (
+        <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="container m-auto h-full py-4 flex items-start gap-8">
+            <Error />
+        </div>
+    </div>
+    )
+}
+
+const NotFoundRoute = () => {
     return (
         <div className="min-h-screen flex flex-col">
         <Header />
@@ -115,12 +127,13 @@ const defaultRoute = createRoute({
     getParentRoute: () => rootRoute,
     id: 'defaultRoute',
     component: DefaultRoute,
+    errorComponent: ErrorComponent
 })
 
-const errorRoute = createRoute({
+const notFoundRoute = createRoute({
     getParentRoute: () => rootRoute,
     id: 'errorRoute',
-    component: ErrorRoute,
+    component: NotFoundRoute,
 })
 
 const indexRoute = createRoute({
@@ -156,8 +169,8 @@ const logsRoute = createRoute({
     component: Logs,
 })
 
-const notFoundRoute = createRoute({
-    getParentRoute: () => errorRoute,
+const catchAllRoute = createRoute({
+    getParentRoute: () => notFoundRoute,
     path: '*',
     component: NotFound
 });
@@ -179,7 +192,7 @@ const enabledRoutes = allRoutes.filter((_, index) => routesEnabled[index]);
 
 const routeTree = rootRoute.addChildren([
     defaultRoute.addChildren(enabledRoutes), 
-    errorRoute.addChildren([notFoundRoute])
+    notFoundRoute.addChildren([catchAllRoute])
 ])
 
 const router = createRouter({ routeTree })
@@ -192,10 +205,6 @@ declare module '@tanstack/react-router' {
 
 export const App = () => {
     return (
-        <WebSocketProvider>
-            <APIProvider>
-                <RouterProvider router={router} />
-            </APIProvider>
-        </WebSocketProvider>
+        <RouterProvider router={router} />
     )
 }
