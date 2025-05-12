@@ -4,13 +4,16 @@ import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from '@server/utils/logger';
 import { sleep } from "@shared/helpers";
 import { DroidGroundConfig } from "@shared/types";
+import { WebsocketClient } from "@server/utils/types";
 
 export class ManagerSingleton {
     private static instance: ManagerSingleton;
+
     private serverClient: AdbServerClient | null = null;
     private adb: Adb | null = null;
     private config: DroidGroundConfig;
-  
+    public websocketClients: Map<string, WebsocketClient> = new Map<string, WebsocketClient>();
+
     private constructor() {
       // private constructor prevents direct instantiation
         const port = process.env.DG_ADB_PORT ?? '';

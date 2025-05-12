@@ -24,8 +24,14 @@ export const Overview: React.FC = () => {
 
 
     const startActivity: SubmitHandler<StartActivityRequest> = async (data) => {
-        console.log(data);
-        startActivityDialogRef.current?.close();
+        try {
+            console.log(data)
+            await RESTManagerInstance.startActivity(data);
+            startActivityDialogRef.current?.close();
+        } catch (e) {
+            console.error(e);
+            toast.error("Error while starting activity.")
+        }
     }
 
     const startBroadcastReceiver: SubmitHandler<StartBroadcastRequest> = async (data) => {

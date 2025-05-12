@@ -62,6 +62,9 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
                 setStreamingPhase(StreamingPhase.RENDER)
               }
               break
+            case WSMessageType.FRIDA_OUTPUT:
+              console.log("Frida output changed")
+              break
           }
 
           // Notify specific topic listeners

@@ -25,11 +25,15 @@ export interface DroidGroundConfig {
 
 
 export enum WSMessageType {
+  // Streaming
   STREAM_METADATA = "metadata",
   STREAM_METADATA_ACK = "metadataAck",
   CONFIGURATION = "configuration",
   CONFIGURATION_ACK = "configurationAck",
-  DATA = "data"
+  DATA = "data",
+  // Notifications
+  FRIDA_OUTPUT = "frida",
+  TERMINAL_OUTPUT = "terminal",
 }
 
 export enum StreamingPhase {

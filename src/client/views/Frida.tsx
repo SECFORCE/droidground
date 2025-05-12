@@ -1,4 +1,10 @@
-import { useState } from "react";
+import { RESTManagerInstance } from "@client/api/rest";
+import { useWebSocket } from "@client/context/WebSocket";
+import { RunFridaScriptRequest } from "@shared/api";
+import { WSCallback, WSMessageType } from "@shared/types";
+import { useEffect, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { FaCode } from "react-icons/fa";
 import { PiWarningBold } from "react-icons/pi";
 
@@ -8,8 +14,40 @@ setImmediate(function() {
 });`
 
 export const Frida: React.FC = () => {
-    const [code, setCode] = useState<string>(fridaScriptPlaceholder);  
-    const lines = code.split('\n');
+    const { subscribe, unsubscribe } = useWebSocket();
+    const runFridaScriptForm = useForm<RunFridaScriptRequest>();
+    const code = runFridaScriptForm.watch('script');
+    const lines = code ? code.split('\n') : [];
+    const [fridaOutput, setFridaOutput] = useState<string>("");
+
+    const runFridaScript: SubmitHandler<RunFridaScriptRequest> = async (data) => {
+        try {
+            await RESTManagerInstance.runFridaScript(data);
+        } catch (e) {
+            console.error(e);
+            toast.error("Error while running Frida script.")
+        }
+    }
+
+    const getFridaOutput = async () => {
+        try {
+            const res = await RESTManagerInstance.getFridaOutput();
+            setFridaOutput(res.data.output);
+        } catch (e) {
+            console.error(e);
+            toast.error("Error while getting Frida output.")
+        }
+    }
+
+    useEffect(() => {
+        const outputListener: WSCallback = (_metadata, _binaryData) => getFridaOutput()
+        subscribe(WSMessageType.FRIDA_OUTPUT, outputListener)
+
+        return () => {
+            unsubscribe(WSMessageType.FRIDA_OUTPUT, outputListener)
+          }
+
+    }, [])
 
     return (
         <div className="w-full flex flex-col gap-2">
@@ -31,22 +69,33 @@ export const Frida: React.FC = () => {
                             <div key={idx}>{idx + 1}</div>
                         ))}
                         </div>
-                
-                        {/* Textarea over code lines */}
-                        <textarea
-                        className="pl-12 pr-4 pt-4 pb-4 w-full h-full resize-none font-mono text-sm bg-transparent text-base-content focus:outline-none"
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                        rows={lines.length}
-                        spellCheck={false}
-                        />
+                        <form onSubmit={runFridaScriptForm.handleSubmit(runFridaScript)}>
+                            {/* Textarea over code lines */}
+                            <textarea
+                            className="pl-12 pr-4 pt-4 pb-4 w-full h-full resize-none font-mono text-sm bg-transparent text-base-content focus:outline-none"
+                            defaultValue={fridaScriptPlaceholder}
+                            rows={lines.length}
+                            spellCheck={false}
+                            {...runFridaScriptForm.register('script', {required: true, minLength: 20})}
+                            />
 
-                        <button className="absolute btn btn-info z-20 top-2 right-2">Run</button>
+                            <input className="absolute btn btn-info z-20 top-2 right-2" type="submit" value="Run" />
+                        </form>
                     </div>
 
                     <p className="text-base mt-2 font-semibold">Output</p>
                     <div className="mockup-code w-full hide-before">
-                        <pre className="text-accent"><code>Done!</code></pre>
+                        {fridaOutput.length > 0 ? (
+                            <>
+                            {fridaOutput.split('\n').map((l, key) => (
+                                <pre key={key} className="text-accent">
+                                    <code>{l}</code>
+                                </pre>
+                            ))}
+                            </>
+                        ): (
+                            <pre className="text-error"><code>No output</code></pre>
+                        )}
                     </div>
                 </div>
             </div>

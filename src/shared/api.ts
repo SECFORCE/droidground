@@ -24,6 +24,10 @@ export interface DeviceInfoResponse {
     model: string;
 }
 
+export interface FridaOutputResponse {
+    output: string;
+}
+
 export interface RunFridaScriptRequest {
     script: string;
 }

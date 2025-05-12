@@ -8,6 +8,9 @@ import { ManagerSingleton } from '@server/manager';
 import { DeviceInfoResponse, RunFridaScriptRequest, StartActivityRequest } from '@shared/api';
 import { versionNumberToCodename } from '@server/utils/helpers';
 import { capitalize } from '@shared/helpers';
+import { sendStructuredMessage } from '@server/utils/ws';
+import { WSMessageType } from '@shared/types';
+import { appendFileSync, readFileSync, writeFileSync } from 'fs';
 
 
 interface FridaState {
@@ -22,8 +25,9 @@ const current: FridaState = {
     script: null
 };
 
+const fridaOutputFile = '/tmp/frida.out'
 
-function onOutput(pid: frida.ProcessID, fd: frida.FileDescriptor, data: Buffer) {
+const onOutput = (pid: frida.ProcessID, fd: frida.FileDescriptor, data: Buffer) => {
     if (pid !== current.pid)
         return;
 
@@ -36,13 +40,19 @@ function onOutput(pid: frida.ProcessID, fd: frida.FileDescriptor, data: Buffer) 
     console.log(`[*] onOutput(pid=${pid}, fd=${fd}, data=${description})`);
 }
 
-function onMessage(message: frida.Message, data: Buffer | null) {
-    console.log("[*] onMessage() message:", message, "data:", data);
-}
-
-function onDetached(reason: frida.SessionDetachReason) {
+const onDetached = (reason: frida.SessionDetachReason) => {
     console.log(`[*] onDetached(reason="${reason}")`);
     current.device!.output.disconnect(onOutput);
+}
+
+const onMessage = (m: frida.Message, data: Buffer | null) => {
+    const message = m as frida.SendMessage;
+    Logger.info("Frida message:", message, "data:", data);
+    const websocketClients = ManagerSingleton.getInstance().websocketClients;
+    for (const [_wsClientId, client] of websocketClients) {
+        sendStructuredMessage(client.ws, WSMessageType.FRIDA_OUTPUT, {});
+    }
+    appendFileSync(fridaOutputFile, `${message.payload}\n`)
 }
 
 class APIController {
@@ -142,6 +152,7 @@ class APIController {
         try {
             const body = req.body as RunFridaScriptRequest;
             const scriptContent = body.script;
+            writeFileSync(fridaOutputFile, "");
             const device = await frida.getUsbDevice();
             current.device = device;
             device.output.connect(onOutput);
@@ -154,6 +165,9 @@ class APIController {
             session.detached.connect(onDetached);
 
             console.log(`[*] createScript()`);
+
+            console.log(scriptContent);
+
             const script = await session.createScript(scriptContent);
             current.script = script;
             script.message.connect(onMessage);
@@ -162,15 +176,25 @@ class APIController {
             console.log(`[*] resume(${pid})`);
             await device.resume(pid);
 
-            res.status(200).json({ message: 'Frida script started' }).end();
+            res.status(200).json({ result: 'Frida script started' }).end();
         } catch (error: any) {
             Logger.error('Error starting Frida script:', error);
             res.status(500).json({ message: 'An error occurred while starting the Frida script.' }).end();
         }
     }
 
+    getFridaOutput: RequestHandler = async (req, res, _next) => {
+        try {
+            const fridaOutput = readFileSync(fridaOutputFile, 'utf-8');
+            res.status(200).json({ output: fridaOutput }).end();
+        } catch (error: any) {
+            Logger.error('Error getting Frida output:', error);
+            res.status(500).json({ message: 'An error occurred while getting Frida output.' }).end();
+        }
+    }
+
     genericError: RequestHandler = async (_req, res) => {
-        res.status(400).json({ 'message': 'This feature is either missing or disabled.'}).end()
+        res.status(400).json({ message: 'This feature is either missing or disabled.'}).end()
     }
 }
 

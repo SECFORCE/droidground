@@ -19,62 +19,18 @@ import { TinyH264Decoder } from "@yume-chan/scrcpy-decoder-tinyh264";
 // Local imports
 import { ManagerSingleton } from '@server/manager';
 import api from '@server/api';
-import { DataMetadata, StreamingPhase, StreamMetadata, WSMessage, WSMessageType, WSMetadata } from "@shared/types";
-
+import { DataMetadata, StreamingPhase, StreamMetadata, WSMessageType } from "@shared/types";
 
 // Local imports
 import Logger from '@server/utils/logger';
+import { WebsocketClient } from "@server/utils/types";
+import { broadcastForPhase, sendStructuredMessage } from "@server/utils/ws";
 
-interface WebsocketClient {
-  state: StreamingPhase
-  ws: WebSocket
-}
 
 const H264Capabilities = TinyH264Decoder.capabilities.h264;
 
 let sharedVideoMetadata: StreamMetadata | null = null;
 let sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;;
-
-const sendStructuredMessage = (
-  ws: WebSocket,
-  type: WSMessageType,
-  metadata: WSMetadata,
-  binaryData?: Uint8Array
-) => {
-  const typedMetadata = {
-    ...metadata,
-    type
-  }
-  const metaBuf = new TextEncoder().encode(JSON.stringify(typedMetadata));
-  const metaLenBuf = new Uint8Array(4);
-  new DataView(metaLenBuf.buffer).setUint32(0, metaBuf.length);
-
-  const totalLength = 4 + metaBuf.length + (binaryData?.length || 0);
-  const fullPayload = new Uint8Array(totalLength);
-
-  fullPayload.set(metaLenBuf, 0);
-  fullPayload.set(metaBuf, 4);
-  if (binaryData) {
-    fullPayload.set(binaryData, 4 + metaBuf.length);
-  }
-
-  ws.send(fullPayload);
-}
-
-const broadcastForPhase = (websocketClients: Map<string, WebsocketClient>, state: StreamingPhase, message: WSMessage) => {
-  for (const [wsClientId, client] of websocketClients) {
-    // To avoid issues always send a keyframe first
-    if (state === StreamingPhase.RENDER && client.state === StreamingPhase.KEYFRAME) {
-      const metadata = message.metadata as DataMetadata;
-      if (metadata.keyframe) {
-        sendStructuredMessage(client.ws, WSMessageType.DATA, message.metadata, message.data);
-        websocketClients.set(wsClientId, {...client, state: StreamingPhase.RENDER})
-      }
-    } else if (client.state === state) {
-      sendStructuredMessage(client.ws, WSMessageType.DATA, message.metadata, message.data);
-    }
-  }
-}
 
 const setupApi = async (app: ExpressApplication) => {
   app.use(
@@ -90,10 +46,10 @@ const setupApi = async (app: ExpressApplication) => {
 
 const setupWs = async (httpServer: HTTPServer) => {
   const wss = new WebSocketServer({ server: httpServer });
-  const websocketClients = new Map<string, WebsocketClient>();
+  const websocketClients = ManagerSingleton.getInstance().websocketClients;
 
   wss.on('connection', (ws: WebSocket) => {
-    const id = uuidv4()
+    const id = uuidv4();
     websocketClients.set(id, {
       state: StreamingPhase.INIT,
       ws: ws
