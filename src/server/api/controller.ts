@@ -48,7 +48,7 @@ const onDetached = (reason: frida.SessionDetachReason) => {
 const onMessage = (m: frida.Message, data: Buffer | null) => {
     const message = m as frida.SendMessage;
     Logger.info("Frida message:", message, "data:", data);
-    const websocketClients = ManagerSingleton.getInstance().websocketClients;
+    const websocketClients = ManagerSingleton.getInstance().wsStreamingClients; // Change this to specific wss
     for (const [_wsClientId, client] of websocketClients) {
         sendStructuredMessage(client.ws, WSMessageType.FRIDA_OUTPUT, {});
     }

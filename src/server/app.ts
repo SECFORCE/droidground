@@ -2,7 +2,6 @@
 import fs from "fs/promises";
 import { v4 as uuidv4 } from 'uuid';
 import { Server as HTTPServer } from 'http'
-import url from 'url';
 import express from 'express';
 import {Application as ExpressApplication} from 'express'
 import cors from 'cors';
@@ -11,10 +10,10 @@ import '@dotenvx/dotenvx/config'
 
 // '@yume-chan' imports
 import { BIN } from "@yume-chan/fetch-scrcpy-server";
-import { Adb } from "@yume-chan/adb";
+import { Adb, decodeUtf8, encodeUtf8 } from "@yume-chan/adb";
 import { DefaultServerPath, ScrcpyCodecOptions, ScrcpyMediaStreamConfigurationPacket, ScrcpyMediaStreamPacket } from "@yume-chan/scrcpy";
 import { AdbScrcpyClient, AdbScrcpyOptions3_1 } from "@yume-chan/adb-scrcpy";
-import { ReadableStream, WritableStream } from "@yume-chan/stream-extra";
+import { ReadableStream, TextDecoderStream, WritableStream } from "@yume-chan/stream-extra";
 import { TinyH264Decoder } from "@yume-chan/scrcpy-decoder-tinyh264";
 
 // Local imports
@@ -47,7 +46,10 @@ const setupApi = async (app: ExpressApplication) => {
 
 const setupWs = async (httpServer: HTTPServer) => {
   const wssStreaming = new WebSocketServer({ noServer: true });
-  const websocketClients = ManagerSingleton.getInstance().websocketClients;
+  const wssTerminal = new WebSocketServer({ noServer: true });
+
+  const wsStreamingClients = ManagerSingleton.getInstance().wsStreamingClients;
+  const wsTerminalSessions = ManagerSingleton.getInstance().wsTerminalSessions;
 
   // Handle upgrade requests
   httpServer.on('upgrade', (request, socket, head) => {
@@ -57,19 +59,71 @@ const setupWs = async (httpServer: HTTPServer) => {
       wssStreaming.handleUpgrade(request, socket, head, (ws) => {
         wssStreaming.emit('connection', ws, request);
       });
+    } else if (pathname === '/terminal') {
+      wssTerminal.handleUpgrade(request, socket, head, (ws) => {
+        wssTerminal.emit('connection', ws, request);
+      });
     } else {
       socket.destroy();
     }
   });
 
+  wssTerminal.on('connection', async (ws: WebSocket) => {
+    try {
+        // 1. Get ADB device
+        const adb: Adb = await ManagerSingleton.getInstance().getAdb();
+
+        // 2. Create PTY shell
+        const ptyProcess = await adb.subprocess.shellProtocol!.pty();
+
+        void ptyProcess.exited.then(exitCode => {
+          Logger.debug(`PTY process exited with code ${exitCode}`)
+          wsTerminalSessions.delete(ws);
+          ws.send('[Process exited]')
+          ws.close()
+        }).catch(() => {
+          Logger.debug("PTY process killed")
+        })
+
+        wsTerminalSessions.set(ws, { process });
+
+        // 3. Start output reader loop
+        const reader = ptyProcess.output.getReader();
+        (async () => {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                ws.send(decodeUtf8(value));
+            }
+        })().catch(Logger.error);
+
+        // 4. Handle input from user
+        const writer = ptyProcess.input.getWriter();
+        ws.on('message', async (msg) => {
+              await writer.write(encodeUtf8(msg.toString()));
+        });
+
+        // 5. Cleanup
+        ws.on('close', async () => {
+            Logger.info('Client disconnected');
+            wsTerminalSessions.delete(ws);
+            await ptyProcess.kill();
+        });
+    } catch (err) {
+        Logger.error('Error initializing session:', err);
+        ws.send(`Error: ${err}`);
+        ws.close();
+    }
+  })
+
   wssStreaming.on('connection', (ws: WebSocket) => {
     const id = uuidv4();
-    websocketClients.set(id, {
+    wsStreamingClients.set(id, {
       state: StreamingPhase.INIT,
       ws: ws
     })
 
-    Logger.info(`WebSocket client connected with id '${id}', sending Metadata message (if available)`);
+    Logger.info(`WebSocket Streaming client connected with id '${id}', sending Metadata message (if available)`);
     
     if (sharedVideoMetadata) {
       sendStructuredMessage(ws, WSMessageType.STREAM_METADATA, sharedVideoMetadata)
@@ -77,17 +131,17 @@ const setupWs = async (httpServer: HTTPServer) => {
   
     ws.on('message', (clientMessage: any) => {
       let message = clientMessage.toString()
-      const currentClientData = websocketClients.get(id) as WebsocketClient;
+      const currentClientData = wsStreamingClients.get(id) as WebsocketClient;
       switch (message) {
         case WSMessageType.STREAM_METADATA_ACK:
-          websocketClients.set(id, {...currentClientData as WebsocketClient, state: StreamingPhase.METADATA})
+          wsStreamingClients.set(id, {...currentClientData as WebsocketClient, state: StreamingPhase.METADATA})
           if (sharedConfiguration) {
             sendStructuredMessage(ws, WSMessageType.CONFIGURATION, {}, sharedConfiguration.data)
           }
           break
         case WSMessageType.CONFIGURATION_ACK:
           const nextState: StreamingPhase = sharedVideoMetadata?.hardwareType === 'hardware' ? StreamingPhase.KEYFRAME : StreamingPhase.RENDER;
-          websocketClients.set(id, {...currentClientData as WebsocketClient, state: nextState})
+          wsStreamingClients.set(id, {...currentClientData as WebsocketClient, state: nextState})
           break
         default:
           Logger.error('Unknown message type:', message);
@@ -96,7 +150,7 @@ const setupWs = async (httpServer: HTTPServer) => {
     });
   
     ws.on('close', () => {
-      websocketClients.delete(id);
+      wsStreamingClients.delete(id);
       Logger.info(`WebSocket client with id '${id}' disconnected`);
     });
   });
@@ -171,7 +225,7 @@ const setupWs = async (httpServer: HTTPServer) => {
               case "configuration":
                 sharedConfiguration = packet
                 broadcastForPhase(
-                  websocketClients, 
+                  wsStreamingClients, 
                   StreamingPhase.METADATA, 
                   {
                     type: WSMessageType.CONFIGURATION, 
@@ -184,7 +238,7 @@ const setupWs = async (httpServer: HTTPServer) => {
                 // Handle data packet
                 const metadata: DataMetadata = { keyframe: packet.keyframe, pts: packet.pts ? packet.pts.toString() : null };
                 broadcastForPhase(
-                  websocketClients, 
+                  wsStreamingClients, 
                   StreamingPhase.RENDER, 
                   {
                     type: WSMessageType.DATA, 

@@ -1,6 +1,6 @@
-import { Adb, AdbServerClient, AdbTransport } from "@yume-chan/adb";
+import { WebSocket } from 'ws';
+import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "@yume-chan/adb";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
-
 import Logger from '@server/utils/logger';
 import { sleep } from "@shared/helpers";
 import { DroidGroundConfig } from "@shared/types";
@@ -12,7 +12,8 @@ export class ManagerSingleton {
     private serverClient: AdbServerClient | null = null;
     private adb: Adb | null = null;
     private config: DroidGroundConfig;
-    public websocketClients: Map<string, WebsocketClient> = new Map<string, WebsocketClient>();
+    public wsStreamingClients: Map<string, WebsocketClient> = new Map<string, WebsocketClient>();
+    public wsTerminalSessions: Map<WebSocket, any> =  new Map<WebSocket, { process: AdbShellProtocolPtyProcess }>();
 
     private constructor() {
       // private constructor prevents direct instantiation
