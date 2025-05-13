@@ -30,7 +30,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const connect = async () => {
-      let webSocketURL = `ws://localhost:4242`
+      let webSocketURL = `ws://localhost:4242/streaming`
       const socket = new WebSocket(webSocketURL)
       socket.binaryType = 'arraybuffer';
       socketRef.current = socket;

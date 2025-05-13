@@ -2,6 +2,7 @@
 import fs from "fs/promises";
 import { v4 as uuidv4 } from 'uuid';
 import { Server as HTTPServer } from 'http'
+import url from 'url';
 import express from 'express';
 import {Application as ExpressApplication} from 'express'
 import cors from 'cors';
@@ -45,10 +46,23 @@ const setupApi = async (app: ExpressApplication) => {
 };
 
 const setupWs = async (httpServer: HTTPServer) => {
-  const wss = new WebSocketServer({ server: httpServer });
+  const wssStreaming = new WebSocketServer({ noServer: true });
   const websocketClients = ManagerSingleton.getInstance().websocketClients;
 
-  wss.on('connection', (ws: WebSocket) => {
+  // Handle upgrade requests
+  httpServer.on('upgrade', (request, socket, head) => {
+    const pathname = new URL(`http://localhost${request.url}`).pathname
+
+    if (pathname === '/streaming') {
+      wssStreaming.handleUpgrade(request, socket, head, (ws) => {
+        wssStreaming.emit('connection', ws, request);
+      });
+    } else {
+      socket.destroy();
+    }
+  });
+
+  wssStreaming.on('connection', (ws: WebSocket) => {
     const id = uuidv4();
     websocketClients.set(id, {
       state: StreamingPhase.INIT,
