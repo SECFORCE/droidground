@@ -153,6 +153,8 @@ const setupScrcpy = async () => {
 }
 
 const setupWs = async (httpServer: HTTPServer) => {
+  const features = ManagerSingleton.getInstance().getConfig().features;
+
   const wssStreaming = new WebSocketServer({ noServer: true });
   const wssTerminal = new WebSocketServer({ noServer: true });
   const wssFrida = new WebSocketServer({ noServer: true });
@@ -169,11 +171,11 @@ const setupWs = async (httpServer: HTTPServer) => {
       wssStreaming.handleUpgrade(request, socket, head, (ws) => {
         wssStreaming.emit('connection', ws, request);
       });
-    } else if (pathname === '/terminal') {
+    } else if (pathname === '/terminal' && features.terminalEnabled) {
       wssTerminal.handleUpgrade(request, socket, head, (ws) => {
         wssTerminal.emit('connection', ws, request);
       });
-    } else if (pathname === '/frida') {
+    } else if (pathname === '/frida' && features.fridaEnabled) {
       wssFrida.handleUpgrade(request, socket, head, (ws) => {
         wssFrida.emit('connection', ws, request);
       });
