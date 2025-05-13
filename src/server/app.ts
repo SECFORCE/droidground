@@ -7,19 +7,20 @@ import {Application as ExpressApplication} from 'express'
 import cors from 'cors';
 import { WebSocketServer, WebSocket } from 'ws';
 import '@dotenvx/dotenvx/config'
+import frida, { FileDescriptor, ProcessID } from "frida";
 
 // '@yume-chan' imports
 import { BIN } from "@yume-chan/fetch-scrcpy-server";
 import { Adb, decodeUtf8, encodeUtf8 } from "@yume-chan/adb";
 import { DefaultServerPath, ScrcpyCodecOptions, ScrcpyMediaStreamConfigurationPacket, ScrcpyMediaStreamPacket } from "@yume-chan/scrcpy";
 import { AdbScrcpyClient, AdbScrcpyOptions3_1 } from "@yume-chan/adb-scrcpy";
-import { ReadableStream, TextDecoderStream, WritableStream } from "@yume-chan/stream-extra";
+import { ReadableStream, WritableStream } from "@yume-chan/stream-extra";
 import { TinyH264Decoder } from "@yume-chan/scrcpy-decoder-tinyh264";
 
 // Local imports
 import { ManagerSingleton } from '@server/manager';
 import api from '@server/api';
-import { DataMetadata, StreamingPhase, StreamMetadata, WSMessageType } from "@shared/types";
+import { DataMetadata, FridaState, StreamingPhase, StreamMetadata, WSMessageType } from "@shared/types";
 
 // Local imports
 import Logger from '@server/utils/logger';
@@ -44,12 +45,17 @@ const setupApi = async (app: ExpressApplication) => {
   app.use('/api/v1', api());
 };
 
+const setupScrcpy = () => {
+}
+
 const setupWs = async (httpServer: HTTPServer) => {
   const wssStreaming = new WebSocketServer({ noServer: true });
   const wssTerminal = new WebSocketServer({ noServer: true });
+  const wssFrida = new WebSocketServer({ noServer: true });
 
   const wsStreamingClients = ManagerSingleton.getInstance().wsStreamingClients;
   const wsTerminalSessions = ManagerSingleton.getInstance().wsTerminalSessions;
+  const wsFridaSessions: Map<WebSocket, FridaState | null> =  new Map<WebSocket, FridaState | null>();
 
   // Handle upgrade requests
   httpServer.on('upgrade', (request, socket, head) => {
@@ -63,10 +69,77 @@ const setupWs = async (httpServer: HTTPServer) => {
       wssTerminal.handleUpgrade(request, socket, head, (ws) => {
         wssTerminal.emit('connection', ws, request);
       });
+    } else if (pathname === '/frida') {
+      wssFrida.handleUpgrade(request, socket, head, (ws) => {
+        wssFrida.emit('connection', ws, request);
+      });
     } else {
       socket.destroy();
     }
   });
+
+  wssFrida.on('connection', (ws: WebSocket) => {
+    ws.once('message', async (msg) => {
+      try {
+        const onOutput = (pid: ProcessID, fd: FileDescriptor, data: Buffer) => {
+          if (pid !== wsFridaSessions.get(ws)?.pid)
+              return;
+
+          let description: string;
+          if (data.length > 0) {
+              description = "\"" + data.toString().replace(/\n/g, "\\n") + "\"";
+          } else {
+              description = "<EOF>";
+          }
+          Logger.info(`onOutput(pid=${pid}, fd=${fd}, data=${description})`);
+        }
+
+        const onDetached = (reason: frida.SessionDetachReason) => {
+          Logger.info(`onDetached(reason="${reason}")`);
+          wsFridaSessions.get(ws)?.device?.output.disconnect(onOutput);
+          ws.close();
+        }
+
+        const onMessage = (m: frida.Message, data: Buffer | null) => {
+          const message = m as frida.SendMessage;
+          Logger.info("Frida message:", message.payload, "data:", data);
+          ws.send(message.payload)
+        }
+        
+        const scriptContent = msg.toString()
+
+        const device = await frida.getUsbDevice();
+
+        wsFridaSessions.set(ws, { device: device, pid: null, script: null });
+
+        device.output.connect(onOutput);
+
+        const droidGroundConfig = ManagerSingleton.getInstance().getConfig()
+
+        const pid = await device.spawn(droidGroundConfig.packageName)
+        const session = await device.attach(pid);
+        wsFridaSessions.set(ws, { device: device, pid: pid, script: null });
+
+        session.detached.connect(onDetached);
+        const script = await session.createScript(scriptContent);
+        wsFridaSessions.set(ws, { device: device, pid: pid, script: script });
+        script.message.connect(onMessage);
+
+        await script.load();
+    
+        Logger.info(`Resuming (${pid})`);
+        await device.resume(pid);
+      } catch (err) {
+        ws.send(`An error occurred while running Frida script`);
+      }
+    })
+
+    ws.on('close', async () => {
+      Logger.info('Client disconnected');
+      await wsFridaSessions.get(ws)?.script?.unload()
+      wsFridaSessions.delete(ws);
+    })
+  })
 
   wssTerminal.on('connection', async (ws: WebSocket) => {
     try {

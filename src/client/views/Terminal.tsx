@@ -13,7 +13,7 @@ interface ITerminalComponentProps {
 }
 
 const TerminalComponent: React.FC<ITerminalComponentProps>  = ({ setReconnectButtonVisible }: ITerminalComponentProps) => {
-      const terminalRef = useRef<HTMLDivElement>(null);
+    const terminalRef = useRef<HTMLDivElement>(null);
     const socketRef = useRef<WebSocket | null>(null);
     const termRef = useRef<XTerminal | null>(null);
 

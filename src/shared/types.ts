@@ -1,3 +1,4 @@
+import frida from 'frida';
 import { ScrcpyVideoStreamMetadata } from "@yume-chan/scrcpy"
 
 export interface DroidGroundFeatures {
@@ -81,4 +82,10 @@ export interface IntentExtra {
   key: string;
   type: IntentExtraType;
   value?: string | number | boolean; // undefined if type is 'null'
+}
+
+export interface FridaState {
+    device: frida.Device | null;
+    pid: frida.ProcessID | null;
+    script: frida.Script | null;
 }

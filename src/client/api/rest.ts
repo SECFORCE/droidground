@@ -1,5 +1,5 @@
 import { http } from '@client/api/axios';
-import { DeviceInfoResponse, DroidGroundFeaturesResponse, FridaOutputResponse, IGenericResultRes, RunFridaScriptRequest, StartActivityRequest } from '@shared/api';
+import { DeviceInfoResponse, DroidGroundFeaturesResponse, IGenericResultRes, StartActivityRequest } from '@shared/api';
 import { AxiosResponse } from 'axios';
 
 // This functions are just used to wrap specific REST API calls
@@ -18,16 +18,6 @@ class RESTManager {
 
   async startActivity(data: StartActivityRequest): Promise<AxiosResponse<IGenericResultRes>> {
     const res = await http.post<IGenericResultRes>("/activity", data);
-    return res;
-  }
-
-  async runFridaScript(script: RunFridaScriptRequest): Promise<AxiosResponse<IGenericResultRes>> {
-    const res = await http.post<IGenericResultRes>("/frida", script);
-    return res;
-  }
-
-  async getFridaOutput(): Promise<AxiosResponse<FridaOutputResponse>> {
-    const res = await http.get<FridaOutputResponse>("/frida");
     return res;
   }
 

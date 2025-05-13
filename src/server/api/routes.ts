@@ -26,8 +26,6 @@ export default (app: Router) => {
   endpoint.post('/activity', checkFeatureEnabled(features.startActivityEnabled),  APIController.startActivity)
   endpoint.post('/shutdown', checkFeatureEnabled(features.shutdownEnabled), APIController.shutdown)
   endpoint.post('/reboot', checkFeatureEnabled(features.rebootEnabled), APIController.reboot)
-  endpoint.post('/frida', checkFeatureEnabled(features.fridaEnabled), APIController.runFridaScript)
-  endpoint.get('/frida', checkFeatureEnabled(features.fridaEnabled), APIController.getFridaOutput)
   endpoint.post('/logcat', checkFeatureEnabled(features.logcatEnabled), APIController.dumpLogcat)
   endpoint.delete('/logcat', checkFeatureEnabled(features.logcatEnabled), APIController.clearLogcat)
   endpoint.all('/*all', APIController.genericError)

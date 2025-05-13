@@ -1,59 +1,12 @@
 // Package imports
 import { RequestHandler } from 'express';
-import frida from "frida";
 
 // Local imports
 import Logger from '@server/utils/logger';
 import { ManagerSingleton } from '@server/manager';
-import { DeviceInfoResponse, RunFridaScriptRequest, StartActivityRequest } from '@shared/api';
+import { DeviceInfoResponse, StartActivityRequest } from '@shared/api';
 import { versionNumberToCodename } from '@server/utils/helpers';
 import { capitalize } from '@shared/helpers';
-import { sendStructuredMessage } from '@server/utils/ws';
-import { WSMessageType } from '@shared/types';
-import { appendFileSync, readFileSync, writeFileSync } from 'fs';
-
-
-interface FridaState {
-    device: frida.Device | null;
-    pid: frida.ProcessID | null;
-    script: frida.Script | null;
-}
-
-const current: FridaState = {
-    device: null,
-    pid: null,
-    script: null
-};
-
-const fridaOutputFile = '/tmp/frida.out'
-
-const onOutput = (pid: frida.ProcessID, fd: frida.FileDescriptor, data: Buffer) => {
-    if (pid !== current.pid)
-        return;
-
-    let description: string;
-    if (data.length > 0) {
-        description = "\"" + data.toString().replace(/\n/g, "\\n") + "\"";
-    } else {
-        description = "<EOF>";
-    }
-    console.log(`[*] onOutput(pid=${pid}, fd=${fd}, data=${description})`);
-}
-
-const onDetached = (reason: frida.SessionDetachReason) => {
-    console.log(`[*] onDetached(reason="${reason}")`);
-    current.device!.output.disconnect(onOutput);
-}
-
-const onMessage = (m: frida.Message, data: Buffer | null) => {
-    const message = m as frida.SendMessage;
-    Logger.info("Frida message:", message, "data:", data);
-    const websocketClients = ManagerSingleton.getInstance().wsStreamingClients; // Change this to specific wss
-    for (const [_wsClientId, client] of websocketClients) {
-        sendStructuredMessage(client.ws, WSMessageType.FRIDA_OUTPUT, {});
-    }
-    appendFileSync(fridaOutputFile, `${message.payload}\n`)
-}
 
 class APIController {
     features: RequestHandler = async (_req, res) => {
@@ -145,51 +98,6 @@ class APIController {
         } catch (error: any) {
             Logger.error('Error clearing logcat:', error);
             res.status(500).json({ message: 'An error occurred while clearing logcat.' }).end();
-        }
-    }
-
-    runFridaScript: RequestHandler = async (req, res, _next) => {
-        try {
-            const body = req.body as RunFridaScriptRequest;
-            const scriptContent = body.script;
-            writeFileSync(fridaOutputFile, "");
-            const device = await frida.getUsbDevice();
-            current.device = device;
-            device.output.connect(onOutput);
-
-            const droidGroundConfig = ManagerSingleton.getInstance().getConfig()
-
-            const pid = await device.spawn(droidGroundConfig.packageName)
-
-            const session = await device.attach(pid);
-            session.detached.connect(onDetached);
-
-            console.log(`[*] createScript()`);
-
-            console.log(scriptContent);
-
-            const script = await session.createScript(scriptContent);
-            current.script = script;
-            script.message.connect(onMessage);
-            await script.load();
-        
-            console.log(`[*] resume(${pid})`);
-            await device.resume(pid);
-
-            res.status(200).json({ result: 'Frida script started' }).end();
-        } catch (error: any) {
-            Logger.error('Error starting Frida script:', error);
-            res.status(500).json({ message: 'An error occurred while starting the Frida script.' }).end();
-        }
-    }
-
-    getFridaOutput: RequestHandler = async (req, res, _next) => {
-        try {
-            const fridaOutput = readFileSync(fridaOutputFile, 'utf-8');
-            res.status(200).json({ output: fridaOutput }).end();
-        } catch (error: any) {
-            Logger.error('Error getting Frida output:', error);
-            res.status(500).json({ message: 'An error occurred while getting Frida output.' }).end();
         }
     }
 
