@@ -1,5 +1,6 @@
 // Package imports
 import * as fs from 'fs';
+import { LsEntry } from '@server/utils/types';
 
 export const safeFileExists = (filePath: string) => {
     try {
@@ -9,7 +10,6 @@ export const safeFileExists = (filePath: string) => {
       return false;
     }
 }
- 
 
 const codenamesMap: {[versionNumber: string]: string} = {
   '1.0': 'Apple Pie',
@@ -61,4 +61,55 @@ export const versionNumberToCodename = (versionNumber: string): string => {
   if (codenamesMap[majorOnly]) return codenamesMap[majorOnly];
 
   return 'Unknown';
+}
+
+export const parseLsAlOutput= (output: string): LsEntry[] => {
+const lines = output.trim().split('\n');
+  const entries: LsEntry[] = [];
+
+  for (const line of lines) {
+    if (line.startsWith('total')) continue;
+
+    // Match valid entries (with or without symlink)
+    const regex = /^([\-ldcbspxrwtT\?]{10})\s+(\d+|\?)\s+(\S+|\?)\s+(\S+|\?)\s+(\d+|\?)\s+(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\s+(.+?)(?: -> (.+))?$/;
+
+    const match = line.match(regex);
+    if (match) {
+      const [
+        ,
+        permissions,
+        links,
+        owner,
+        group,
+        size,
+        datePart,
+        timePart,
+        name,
+        linkTarget,
+      ] = match;
+
+      entries.push({
+        permissions,
+        links: links === '?' ? undefined : parseInt(links, 10),
+        owner: owner === '?' ? undefined : owner,
+        group: group === '?' ? undefined : group,
+        size: size === '?' ? undefined : parseInt(size, 10),
+        date: `${datePart} ${timePart}`,
+        name,
+        linkTarget,
+        isSymlink: permissions.startsWith('l'),
+        isCorrupted: permissions.includes('?'),
+      });
+    } else {
+      // Fallback if the line doesn't match expected pattern
+      entries.push({
+        permissions: '',
+        name: line.trim(),
+        isSymlink: false,
+        isCorrupted: true,
+      });
+    }
+  }
+
+  return entries;
 }

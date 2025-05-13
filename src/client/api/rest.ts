@@ -1,5 +1,5 @@
 import { http } from '@client/api/axios';
-import { DeviceInfoResponse, DroidGroundFeaturesResponse, IGenericResultRes, StartActivityRequest } from '@shared/api';
+import { DeviceInfoResponse, DroidGroundFeaturesResponse, GetFilesRequest, GetFilesResponse, IGenericResultRes, StartActivityRequest } from '@shared/api';
 import { AxiosResponse } from 'axios';
 
 // This functions are just used to wrap specific REST API calls
@@ -28,6 +28,11 @@ class RESTManager {
 
   async clearLogcat(): Promise<AxiosResponse<IGenericResultRes>> {
     const res = await http.delete<IGenericResultRes>("/logcat");
+    return res;
+  }
+
+  async getFiles(data: GetFilesRequest): Promise<AxiosResponse<GetFilesResponse>> {
+    const res = await http.post<GetFilesResponse>("/files", data);
     return res;
   }
 

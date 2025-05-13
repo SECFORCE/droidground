@@ -331,7 +331,6 @@ const setupWs = async (httpServer: HTTPServer) => {
       Logger.info(`WebSocket client with id '${id}' disconnected`);
     });
   });
-
 }
 
 export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer) => {

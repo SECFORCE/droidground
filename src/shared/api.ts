@@ -1,3 +1,4 @@
+import { LsEntry } from "@server/utils/types";
 import { DroidGroundFeatures, IntentExtra } from "@shared/types";
 
 /***************************
@@ -23,6 +24,15 @@ export interface DeviceInfoResponse {
     deviceType: string;
     model: string;
 }
+
+export interface GetFilesRequest {
+  path: string;
+}
+
+export interface GetFilesResponse {
+  result: LsEntry[]
+}
+
 
 export interface StartActivityRequest {
     activity: string; // Fully qualified class, e.g., "com.example/.MainActivity"

@@ -28,5 +28,6 @@ export default (app: Router) => {
   endpoint.post('/reboot', checkFeatureEnabled(features.rebootEnabled), APIController.reboot)
   endpoint.post('/logcat', checkFeatureEnabled(features.logcatEnabled), APIController.dumpLogcat)
   endpoint.delete('/logcat', checkFeatureEnabled(features.logcatEnabled), APIController.clearLogcat)
+  endpoint.post('/files', checkFeatureEnabled(features.appManagerEnabled), APIController.files)
   endpoint.all('/*all', APIController.genericError)
 };

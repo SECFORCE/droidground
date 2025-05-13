@@ -4,8 +4,8 @@ import { RequestHandler } from 'express';
 // Local imports
 import Logger from '@server/utils/logger';
 import { ManagerSingleton } from '@server/manager';
-import { DeviceInfoResponse, StartActivityRequest } from '@shared/api';
-import { versionNumberToCodename } from '@server/utils/helpers';
+import { DeviceInfoResponse, GetFilesRequest, StartActivityRequest } from '@shared/api';
+import { parseLsAlOutput, versionNumberToCodename } from '@server/utils/helpers';
 import { capitalize } from '@shared/helpers';
 
 class APIController {
@@ -98,6 +98,27 @@ class APIController {
         } catch (error: any) {
             Logger.error('Error clearing logcat:', error);
             res.status(500).json({ message: 'An error occurred while clearing logcat.' }).end();
+        }
+    }
+
+    files: RequestHandler = async (req, res, _next) => {
+        try {
+            const body = req.body as GetFilesRequest;
+            const path = body.path;
+
+            const adb = await ManagerSingleton.getInstance().getAdb();
+            const sync = await adb.sync();
+            const isDirectory = await sync.isDirectory(path);
+            if (!isDirectory) {
+              throw new Error("Selected path is not a directory");
+            }
+
+            const result = await adb.subprocess.noneProtocol.spawnWaitText(`ls ${path} -al`)
+            const files = parseLsAlOutput(result);
+            res.json({ result: files  }).end();
+        } catch (error: any) {
+            Logger.error('Error getting files:', error);
+            res.status(500).json({ message: 'An error occurred while getting files.' }).end();
         }
     }
 
