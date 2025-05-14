@@ -1,3 +1,6 @@
+// Node.js imports
+import path from 'path';
+import fs from 'fs/promises';
 // Package imports
 import { RequestHandler } from 'express';
 
@@ -79,7 +82,7 @@ class APIController {
         }
     }
 
-    dumpLogcat: RequestHandler = async (_req, res, _next) => {
+    dumpLogcat: RequestHandler = async (_req, res) => {
         try {
             const adb = await ManagerSingleton.getInstance().getAdb();
             const result = await adb.subprocess.noneProtocol.spawnWaitText(`logcat -d -t 500`)
@@ -90,7 +93,7 @@ class APIController {
         }
     }
 
-    clearLogcat: RequestHandler = async (_req, res, _next) => {
+    clearLogcat: RequestHandler = async (_req, res) => {
         try {
             const adb = await ManagerSingleton.getInstance().getAdb();
             await adb.subprocess.noneProtocol.spawn(`logcat -c`)
@@ -101,7 +104,7 @@ class APIController {
         }
     }
 
-    files: RequestHandler = async (req, res, _next) => {
+    files: RequestHandler = async (req, res) => {
         try {
             const body = req.body as GetFilesRequest;
             const path = body.path;
@@ -120,6 +123,47 @@ class APIController {
             Logger.error('Error getting files:', error);
             res.status(500).json({ message: 'An error occurred while getting files.' }).end();
         }
+    }
+
+    bugreportzStatus: RequestHandler = async (_req, res) => {
+      try {
+        const adb = await ManagerSingleton.getInstance().getAdb();
+        // 'bugreportz' creates /dev/socket/dumpstate when it's running
+        const lsCmdResult = await adb.subprocess.noneProtocol?.spawnWaitText('ls /dev/socket/dumpstate');
+        const isBugreportRunning = lsCmdResult.trim().includes('No such file or directory') ? false : true;
+
+        res.json({ isRunning: isBugreportRunning }).end();
+      } catch (error: any) {
+          Logger.error('Error running bugreportz:', error);
+          res.status(500).json({ message: 'An error occurred while running bugreportz.' }).end();
+      }
+    }
+
+    runBugreportz: RequestHandler = async (_req, res) => {
+      let commandStarted = false;
+      try {
+        const adb = await ManagerSingleton.getInstance().getAdb();
+        // 'bugreportz' creates /dev/socket/dumpstate when it's running
+        const lsCmdResult = await adb.subprocess.noneProtocol?.spawnWaitText('ls /dev/socket/dumpstate');
+        const isBugreportRunning = lsCmdResult.trim().includes('No such file or directory') ? false : true;
+
+        if (isBugreportRunning) {
+          throw new Error("Bugreportz is already running");
+        }
+
+        res.json({ result: "bugreportz command started"}).end()
+        commandStarted = true;
+
+        const bugreportData = await adb.subprocess.noneProtocol?.spawnWait('bugreportz -s');
+        const filePath = path.join("/tmp", `bugreportz.zip`); // Save in a specific folder
+        await fs.writeFile(filePath, bugreportData);
+      } catch (error: any) {
+          Logger.error('Error running bugreportz:', error);
+          // If the command has started we mean the response was already returned to the client (let's just fail kinda silently)
+          if (!commandStarted) {
+            res.status(500).json({ message: 'An error occurred while running bugreportz.' }).end();
+          }
+      }
     }
 
     genericError: RequestHandler = async (_req, res) => {

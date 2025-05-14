@@ -20,7 +20,7 @@ import { TinyH264Decoder } from "@yume-chan/scrcpy-decoder-tinyh264";
 // Local imports
 import { ManagerSingleton } from '@server/manager';
 import api from '@server/api';
-import { DataMetadata, FridaState, StreamingPhase, StreamMetadata, WSMessageType } from "@shared/types";
+import { DataMetadata, StreamingPhase, StreamMetadata, WSMessageType } from "@shared/types";
 
 // Local imports
 import Logger from '@server/utils/logger';
@@ -161,7 +161,7 @@ const setupWs = async (httpServer: HTTPServer) => {
 
   const wsStreamingClients = ManagerSingleton.getInstance().wsStreamingClients;
   const wsTerminalSessions = ManagerSingleton.getInstance().wsTerminalSessions;
-  const wsFridaSessions: Map<WebSocket, FridaState | null> =  new Map<WebSocket, FridaState | null>();
+  const wsFridaSessions = ManagerSingleton.getInstance().wsFridaSessions;
 
   // Handle upgrade requests
   httpServer.on('upgrade', (request, socket, head) => {

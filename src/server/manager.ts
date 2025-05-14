@@ -3,7 +3,7 @@ import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from '@server/utils/logger';
 import { sleep } from "@shared/helpers";
-import { DroidGroundConfig } from "@shared/types";
+import { DroidGroundConfig, FridaState } from "@shared/types";
 import { WebsocketClient } from "@server/utils/types";
 
 export class ManagerSingleton {
@@ -12,8 +12,12 @@ export class ManagerSingleton {
     private serverClient: AdbServerClient | null = null;
     private adb: Adb | null = null;
     private config: DroidGroundConfig;
+    // Bugreports
+    private bugreports: Map<Adb, any> = new Map<Adb, any>();
+    // WS Sessions
     public wsStreamingClients: Map<string, WebsocketClient> = new Map<string, WebsocketClient>();
     public wsTerminalSessions: Map<WebSocket, any> =  new Map<WebSocket, { process: AdbShellProtocolPtyProcess }>();
+    public wsFridaSessions: Map<WebSocket, FridaState | null> =  new Map<WebSocket, FridaState | null>();
 
     private constructor() {
       // private constructor prevents direct instantiation

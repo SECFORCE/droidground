@@ -29,5 +29,7 @@ export default (app: Router) => {
   endpoint.post('/logcat', checkFeatureEnabled(features.logcatEnabled), APIController.dumpLogcat)
   endpoint.delete('/logcat', checkFeatureEnabled(features.logcatEnabled), APIController.clearLogcat)
   endpoint.post('/files', checkFeatureEnabled(features.fileBrowserEnabled), APIController.files)
+  endpoint.get('/bugreport', checkFeatureEnabled(features.bugReportEnabled), APIController.bugreportzStatus)
+  endpoint.post('/bugreport', checkFeatureEnabled(features.bugReportEnabled), APIController.runBugreportz)
   endpoint.all('/*all', APIController.genericError)
 };
