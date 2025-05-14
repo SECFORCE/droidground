@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { RouterProvider } from "@tanstack/react-router";
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
 import { WebSocketProvider } from "@client/context/WebSocket";
@@ -122,6 +122,14 @@ const NotFoundRoute = () => {
   );
 };
 
+const SuspenceTerminal = () => {
+  return (
+    <Suspense>
+      <Terminal />
+    </Suspense>
+  );
+};
+
 const defaultRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "defaultRoute",
@@ -160,7 +168,7 @@ const appManagerRoute = createRoute({
 const terminalRoute = createRoute({
   getParentRoute: () => defaultRoute,
   path: PAGES.TERMINAL,
-  component: Terminal,
+  component: SuspenceTerminal,
 });
 const logsRoute = createRoute({
   getParentRoute: () => defaultRoute,
