@@ -8,7 +8,7 @@ import { RequestHandler } from 'express';
 import Logger from '@server/utils/logger';
 import { ManagerSingleton } from '@server/manager';
 import { DeviceInfoResponse, GetFilesRequest, StartActivityRequest } from '@shared/api';
-import { parseLsAlOutput, versionNumberToCodename } from '@server/utils/helpers';
+import { parseLsAlOutput, safeFileExists, versionNumberToCodename } from '@server/utils/helpers';
 import { capitalize } from '@shared/helpers';
 
 class APIController {
@@ -131,8 +131,11 @@ class APIController {
         // 'bugreportz' creates /dev/socket/dumpstate when it's running
         const lsCmdResult = await adb.subprocess.noneProtocol?.spawnWaitText('ls /dev/socket/dumpstate');
         const isBugreportRunning = lsCmdResult.trim().includes('No such file or directory') ? false : true;
+        const filePath = path.join("/tmp", `bugreportz.zip`); // TODO: Save in a specific folder
+        const bugreportFileExists = safeFileExists(filePath);
 
-        res.json({ isRunning: isBugreportRunning }).end();
+
+        res.json({ isRunning: isBugreportRunning, isBugreportAvailable: bugreportFileExists }).end();
       } catch (error: any) {
           Logger.error('Error running bugreportz:', error);
           res.status(500).json({ message: 'An error occurred while running bugreportz.' }).end();
@@ -154,8 +157,12 @@ class APIController {
         res.json({ result: "bugreportz command started"}).end()
         commandStarted = true;
 
+        const filePath = path.join("/tmp", `bugreportz.zip`); // TODO: Save in a specific folder
+        if (safeFileExists(filePath)) {
+          await fs.unlink(filePath)
+        }
+
         const bugreportData = await adb.subprocess.noneProtocol?.spawnWait('bugreportz -s');
-        const filePath = path.join("/tmp", `bugreportz.zip`); // Save in a specific folder
         await fs.writeFile(filePath, bugreportData);
       } catch (error: any) {
           Logger.error('Error running bugreportz:', error);
@@ -163,6 +170,22 @@ class APIController {
           if (!commandStarted) {
             res.status(500).json({ message: 'An error occurred while running bugreportz.' }).end();
           }
+      }
+    }
+
+    downloadBugreport: RequestHandler = async (_req, res) => {
+      try {
+        const filePath = path.join("/tmp", `bugreportz.zip`); // TODO: Save in a specific folder
+        if (!safeFileExists(filePath)) {
+          res.status(400).json({ message: "Missing Bugreport file" }).end()
+        }
+        const bugreportContent = await fs.readFile(filePath);
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename=bugreport.zip');
+        res.status(200).send(bugreportContent);
+      } catch (error: any) {
+          Logger.error('Error downloading bugreport:', error);
+          res.status(500).json({ message: 'An error occurred while donwloading the bugreport.' }).end();
       }
     }
 

@@ -6,11 +6,12 @@ import { IoInformationCircleOutline, IoLogoAndroid } from "react-icons/io5";
 import { TbCpu, TbVersions } from "react-icons/tb";
 import { MdSpaceDashboard } from "react-icons/md";
 import { RESTManagerInstance } from "@client/api/rest";
-import { DeviceInfoResponse, StartActivityRequest, StartBroadcastRequest, StartServiceRequest } from "@shared/api";
+import { BugreportzStatusResponse, StartActivityRequest, StartBroadcastRequest, StartServiceRequest } from "@shared/api";
 import { useAPI } from "@client/context/API";
 
 export const Overview: React.FC = () => {
     const { featuresConfig, deviceInfo } = useAPI();
+    const [bugreportStatus, setBugreportStatus] = useState<BugreportzStatusResponse>({isBugreportAvailable: false, isRunning: false});
     const isPowerMenuEnabled = featuresConfig.shutdownEnabled || featuresConfig.rebootEnabled;
     const isActionsEnabled = featuresConfig.startActivityEnabled || featuresConfig.startBroadcastReceiverEnabled || featuresConfig.startServiceEnabled;
     // Forms
@@ -44,6 +45,43 @@ export const Overview: React.FC = () => {
         startServiceDialogRef.current?.close();
     }
 
+    const getBugreportzStatus = async () => {
+      try {
+        const res = await RESTManagerInstance.getBugreportzStatus();
+        setBugreportStatus(res.data)
+      } catch (e) {
+        console.error(e);
+        toast.error("Error while starting bugreportz.")
+      }
+    }
+
+    const runBugreportz = async () => {
+      try {
+        await RESTManagerInstance.startBugreportz();
+        toast.success("bugreportz correctly started")
+      } catch (e) {
+        console.error(e);
+        toast.error("Error while starting bugreportz.")
+      }
+    }
+
+    const downloadBugreport = async () => {
+      try {
+        const response = await RESTManagerInstance.downloadBugreport();
+
+        // Create a URL for the blob
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'bugreport.zip');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        toast.error('Failed to download bugreport.');
+      }
+    };
+
     const shutdown = async () => {
         try {
             await RESTManagerInstance.shutdown();
@@ -64,6 +102,17 @@ export const Overview: React.FC = () => {
 
     // Cleanup forms when dialogs are closed:
     useEffect(() => {
+      let timer: NodeJS.Timeout | null = null;
+      if (featuresConfig.bugReportEnabled) {
+        timer = setInterval(async function() {
+          const res = await RESTManagerInstance.getBugreportzStatus();
+          setBugreportStatus(res.data)
+        }, 5000);
+        getBugreportzStatus()
+      }
+
+
+
         // Just cleanup everything in a single function
         const handleClose = () => {
             startActivityForm.reset();
@@ -80,6 +129,9 @@ export const Overview: React.FC = () => {
 
 
         return () => {
+            if (timer) {
+              clearInterval(timer);
+            }
             for (const dialogRef of dialogRefs) {
                 if (dialogRef.current) {
                     dialogRef.current.addEventListener("close", handleClose);
@@ -282,7 +334,10 @@ export const Overview: React.FC = () => {
                         <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Bug Report</div>
                         <div className="collapse-content text-sm flex items-center justify-between">
                         <span>Run the <pre className="inline">bugreportz</pre> tool and get the output file</span>
-                        <button className="btn btn-info">Run <pre>bugreportz</pre></button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button className="btn btn-info" onClick={runBugreportz} disabled={bugreportStatus.isRunning}>Run <pre>bugreportz</pre></button>
+                          <button className="btn btn-accent" onClick={downloadBugreport} disabled={!bugreportStatus.isBugreportAvailable}>Download Bugreport</button>
+                        </div>
                         </div>
                     </div>
                 )}

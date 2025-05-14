@@ -31,5 +31,6 @@ export default (app: Router) => {
   endpoint.post('/files', checkFeatureEnabled(features.fileBrowserEnabled), APIController.files)
   endpoint.get('/bugreport', checkFeatureEnabled(features.bugReportEnabled), APIController.bugreportzStatus)
   endpoint.post('/bugreport', checkFeatureEnabled(features.bugReportEnabled), APIController.runBugreportz)
+  endpoint.get('/bugreport/download', checkFeatureEnabled(features.bugReportEnabled), APIController.downloadBugreport)
   endpoint.all('/*all', APIController.genericError)
 };

@@ -33,6 +33,11 @@ export interface GetFilesResponse {
   result: LsEntry[]
 }
 
+export interface BugreportzStatusResponse {
+  isRunning: boolean
+  isBugreportAvailable: boolean
+}
+
 
 export interface StartActivityRequest {
     activity: string; // Fully qualified class, e.g., "com.example/.MainActivity"

@@ -1,5 +1,5 @@
 import { http } from '@client/api/axios';
-import { DeviceInfoResponse, DroidGroundFeaturesResponse, GetFilesRequest, GetFilesResponse, IGenericResultRes, StartActivityRequest } from '@shared/api';
+import { BugreportzStatusResponse, DeviceInfoResponse, DroidGroundFeaturesResponse, GetFilesRequest, GetFilesResponse, IGenericResultRes, StartActivityRequest } from '@shared/api';
 import { AxiosResponse } from 'axios';
 
 // This functions are just used to wrap specific REST API calls
@@ -45,5 +45,21 @@ class RESTManager {
     const res = await http.post<IGenericResultRes>("/reboot");
     return res;
   }
+
+  async startBugreportz(): Promise<AxiosResponse<IGenericResultRes>> {
+    const res = await http.post<IGenericResultRes>("/bugreport");
+    return res;
+  }
+
+  async getBugreportzStatus(): Promise<AxiosResponse<BugreportzStatusResponse>> {
+    const res = await http.get<BugreportzStatusResponse>("/bugreport");
+    return res;
+  }
+
+  async downloadBugreport(): Promise<AxiosResponse<any>> {
+    const res = await http.get<any>("/bugreport/download", { responseType: 'blob' });
+    return res;
+  }
+
 }
 export const RESTManagerInstance = new RESTManager();
