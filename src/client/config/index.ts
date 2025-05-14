@@ -1,2 +1,2 @@
-export * from '@client/config/pages';
-export * from '@client/config/endpoint';
+export * from "@client/config/pages";
+export * from "@client/config/endpoint";

@@ -1,6 +1,14 @@
-import { http } from '@client/api/axios';
-import { BugreportzStatusResponse, DeviceInfoResponse, DroidGroundFeaturesResponse, GetFilesRequest, GetFilesResponse, IGenericResultRes, StartActivityRequest } from '@shared/api';
-import { AxiosResponse } from 'axios';
+import { http } from "@client/api/axios";
+import {
+  BugreportzStatusResponse,
+  DeviceInfoResponse,
+  DroidGroundFeaturesResponse,
+  GetFilesRequest,
+  GetFilesResponse,
+  IGenericResultRes,
+  StartActivityRequest,
+} from "@shared/api";
+import { AxiosResponse } from "axios";
 
 // This functions are just used to wrap specific REST API calls
 // Not using try/catch statement here so every specific component
@@ -57,9 +65,8 @@ class RESTManager {
   }
 
   async downloadBugreport(): Promise<AxiosResponse<any>> {
-    const res = await http.get<any>("/bugreport/download", { responseType: 'blob' });
+    const res = await http.get<any>("/bugreport/download", { responseType: "blob" });
     return res;
   }
-
 }
 export const RESTManagerInstance = new RESTManager();

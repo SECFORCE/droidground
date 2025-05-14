@@ -2,8 +2,8 @@
 import { createRoot, hydrateRoot } from "react-dom/client";
 
 // Local imports
-import '@client/index.css'
-import { App } from '@client/App'
+import "@client/index.css";
+import { App } from "@client/App";
 
 const container = document.getElementById("app");
 

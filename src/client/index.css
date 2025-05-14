@@ -1,29 +1,31 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap");
 @import "tailwindcss";
 @plugin "daisyui" {
-    themes: dark --default, dark --prefersdark;
-  }
+  themes:
+    dark --default,
+    dark --prefersdark;
+}
 @layer theme, base, components, utilities;
 
 @theme {
-    --font-orbitron: "Orbitron", sans-serif; 
+  --font-orbitron: "Orbitron", sans-serif;
 }
 
 @layer base {
-    select {
-        @apply !outline-none;
-    }
-    canvas {
-        @apply w-full h-auto;
-    }
+  select {
+    @apply !outline-none;
+  }
+  canvas {
+    @apply w-full h-auto;
+  }
 }
 
 @layer utilities {
-    .tstroke {
-        -webkit-text-stroke: #000;
-        -webkit-text-stroke-width: 5px;
-    }
-    .hide-before::before {
-        content: none !important; /* or display: none */
-    }
+  .tstroke {
+    -webkit-text-stroke: #000;
+    -webkit-text-stroke-width: 5px;
+  }
+  .hide-before::before {
+    content: none !important; /* or display: none */
+  }
 }

@@ -19,10 +19,10 @@ export interface IGenericErrRes {
 export interface DroidGroundFeaturesResponse extends DroidGroundFeatures {}
 
 export interface DeviceInfoResponse {
-    version: string;
-    architecture: string;
-    deviceType: string;
-    model: string;
+  version: string;
+  architecture: string;
+  deviceType: string;
+  model: string;
 }
 
 export interface GetFilesRequest {
@@ -30,38 +30,37 @@ export interface GetFilesRequest {
 }
 
 export interface GetFilesResponse {
-  result: LsEntry[]
+  result: LsEntry[];
 }
 
 export interface BugreportzStatusResponse {
-  isRunning: boolean
-  isBugreportAvailable: boolean
+  isRunning: boolean;
+  isBugreportAvailable: boolean;
 }
-
 
 export interface StartActivityRequest {
-    activity: string; // Fully qualified class, e.g., "com.example/.MainActivity"
-  
-    action?: string;
-    dataUri?: string;
-    mimeType?: string;
-    categories?: string[];
-    flags?: number;
-    extras?: IntentExtra[];
-    user?: number;
+  activity: string; // Fully qualified class, e.g., "com.example/.MainActivity"
+
+  action?: string;
+  dataUri?: string;
+  mimeType?: string;
+  categories?: string[];
+  flags?: number;
+  extras?: IntentExtra[];
+  user?: number;
 }
-  
+
 export interface StartBroadcastRequest {
-    receiver?: string; // Optional if using action
-    action?: string;   // Required if no receiver
-    extras?: IntentExtra[];
-    user?: number;
+  receiver?: string; // Optional if using action
+  action?: string; // Required if no receiver
+  extras?: IntentExtra[];
+  user?: number;
 }
 
 export interface StartServiceRequest {
-    service: string; // Fully qualified class, e.g., "com.example/.MyService"
+  service: string; // Fully qualified class, e.g., "com.example/.MyService"
 
-    action?: string;
-    extras?: IntentExtra[];
-    user?: number;
+  action?: string;
+  extras?: IntentExtra[];
+  user?: number;
 }

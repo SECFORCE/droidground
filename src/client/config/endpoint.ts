@@ -5,5 +5,5 @@ Usage: import { CONSTANT_NAME } from '@/config'
 */
 
 export const BACKEND: { [properties: string]: string } = {
-    BASE_URL: '/api/v1',
+  BASE_URL: "/api/v1",
 };
