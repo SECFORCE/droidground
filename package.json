@@ -10,7 +10,7 @@
     "dev": "tsx server.ts",
     "dev:server": "tsx server.ts",
     "dev:client": "npm run build:client && vite --config vite.config.ts dev",
-    "build": "rimraf dist && tsc -p tsconfig.json && tsc-alias -p tsconfig.json && npm run build:client && npm run build:server && npm run copy-files",
+    "build:setup": "rimraf dist && tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "build:client": "vite build --outDir dist/client --ssrManifest",
     "build:server": "vite build --ssr src/client/entry-server.tsx --outDir dist/server",
     "typecheck": "tsc --noEmit",
@@ -20,7 +20,10 @@
     "copy-files": "copyfiles \"public/**/*\" dist && copyfiles -u 2 \"dist/client/**/*\" dist && copyfiles -u 2 \"dist/client/assets/**/*\" dist/public",
     "format": "prettier --write src",
     "protobuf": "pbjs -t static-module -w es6 -o src/server/companion/wire.js companion/app/src/main/proto/wire.proto --es6_imports && pbts -o src/server/companion/wire.d.ts src/server/companion/wire.js",
-    "postinstall": "fetch-scrcpy-server 3.1 && npm run build"
+    "scrcpy": "fetch-scrcpy-server 3.1",
+    "postinstall": "npm run scrcpy && npm run build",
+    "companion": "zx scripts/companion.mjs",
+    "build": "zx scripts/build.mjs"
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.43.0",
@@ -97,6 +100,7 @@
     "tsc-alias": "^1.8.15",
     "typescript": "^5.8.3",
     "vite": "^6.3.3",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "zx": "^8.5.4"
   }
 }

@@ -19,7 +19,7 @@ The application currently supports the following methods:
 1. Build the Android app server:
 
    ```bash
-   ./gradlew assembleDebug
+   ./gradlew assembleRelease
    ```
 
 2. Push the server binary to the device:
@@ -31,7 +31,7 @@ The application currently supports the following methods:
 3. Start the companion app:
 
    ```bash
-   adb shell /data/local/tmp/droidground-companion.dex  app_process /system/bin com.secforce.droidground.Server
+   adb shell CLASSPATH=/data/local/tmp/droidground-companion.dex app_process /system/bin com.secforce.droidground.Server
    ```
 
 4. The server listens for incoming protobuf-based client connections (on `localabstract:droidground`).
