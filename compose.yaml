@@ -1,0 +1,12 @@
+services:
+  droidground:
+    build: .
+    image: secforce/droidground:0.1.0
+    container_name: droidground
+    env_file:
+      - .env
+    network_mode: host
+    #ports:
+    #  - 4242:4242
+    #extra_hosts:
+    #  - "host.docker.internal:host-gateway"

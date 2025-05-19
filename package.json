@@ -20,10 +20,10 @@
     "copy-files": "copyfiles \"public/**/*\" dist && copyfiles -u 2 \"dist/client/**/*\" dist && copyfiles -u 2 \"dist/client/assets/**/*\" dist/public",
     "format": "prettier --write src",
     "protobuf": "buf generate",
-    "postinstall": "npm run build",
     "scrcpy": "zx scripts/scrcpy.mjs",
     "companion": "zx scripts/companion.mjs",
-    "build": "zx scripts/build.mjs"
+    "build": "zx scripts/build.mjs",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.4.0",
