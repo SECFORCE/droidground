@@ -10,6 +10,7 @@ import { ManagerSingleton } from "@server/manager";
 import { DeviceInfoResponse, GetFilesRequest, StartActivityRequest } from "@shared/api";
 import { parseLsAlOutput, safeFileExists, versionNumberToCodename } from "@server/utils/helpers";
 import { capitalize } from "@shared/helpers";
+import { CompanionClient } from "@server/companion";
 
 class APIController {
   features: RequestHandler = async (_req, res) => {
@@ -186,6 +187,19 @@ class APIController {
       Logger.error("Error downloading bugreport:", error);
       res.status(500).json({ message: "An error occurred while donwloading the bugreport." }).end();
     }
+  };
+
+  getPackageInfos: RequestHandler = async (_req, res) => {
+    try {
+      const adb = await ManagerSingleton.getInstance().getAdb();
+      const packagesRes = await adb.subprocess.noneProtocol.spawnWaitText("pm list packages -3");
+      const packages = packagesRes.split("\n").map(el => el.split("package:")[1]);
+
+      const client = CompanionClient.getInstance();
+      const result: any = await client.sendMessage("getPackageInfos", { packageNames: packages });
+
+      res.json(result.packageInfos).end();
+    } catch (e) {}
   };
 
   genericError: RequestHandler = async (_req, res) => {

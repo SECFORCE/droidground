@@ -32,5 +32,7 @@ export default (app: Router) => {
   endpoint.get("/bugreport", checkFeatureEnabled(features.bugReportEnabled), APIController.bugreportzStatus);
   endpoint.post("/bugreport", checkFeatureEnabled(features.bugReportEnabled), APIController.runBugreportz);
   endpoint.get("/bugreport/download", checkFeatureEnabled(features.bugReportEnabled), APIController.downloadBugreport);
+  endpoint.get("/packages", checkFeatureEnabled(features.appManagerEnabled), APIController.getPackageInfos);
+
   endpoint.all("/*all", APIController.genericError);
 };

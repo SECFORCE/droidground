@@ -19,7 +19,7 @@
     "clean": "rimraf dist/",
     "copy-files": "copyfiles \"public/**/*\" dist && copyfiles -u 2 \"dist/client/**/*\" dist && copyfiles -u 2 \"dist/client/assets/**/*\" dist/public",
     "format": "prettier --write src",
-    "protobuf": "pbjs -t static-module -w es6 -o src/server/lib/companion.js companion/app/src/main/proto/wire.proto --es6_imports && pbts -o src/server/lib/companion.d.ts src/server/lib/companion.js",
+    "protobuf": "pbjs -t static-module -w es6 -o src/server/companion/wire.js companion/app/src/main/proto/wire.proto --es6_imports && pbts -o src/server/companion/wire.d.ts src/server/companion/wire.js",
     "postinstall": "fetch-scrcpy-server 3.1 && npm run build"
   },
   "dependencies": {
