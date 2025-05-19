@@ -1,6 +1,23 @@
 // Package imports
 import * as fs from "fs";
 import { LsEntry } from "@server/utils/types";
+import { fileURLToPath } from "url";
+import path, { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export const rootDir = () => {
+  return path.resolve(__dirname, "..", "..", "..");
+};
+
+export const resourcesDir = () => {
+  return path.resolve(rootDir(), "resources");
+};
+
+export const resourceFile = (filename: string) => {
+  return path.resolve(resourcesDir(), filename);
+};
 
 export const safeFileExists = (filePath: string) => {
   try {

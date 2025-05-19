@@ -20,8 +20,8 @@
     "copy-files": "copyfiles \"public/**/*\" dist && copyfiles -u 2 \"dist/client/**/*\" dist && copyfiles -u 2 \"dist/client/assets/**/*\" dist/public",
     "format": "prettier --write src",
     "protobuf": "buf generate",
-    "scrcpy": "fetch-scrcpy-server 3.1",
-    "postinstall": "npm run scrcpy && npm run build",
+    "postinstall": "npm run build",
+    "scrcpy": "zx scripts/scrcpy.mjs",
     "companion": "zx scripts/companion.mjs",
     "build": "zx scripts/build.mjs"
   },

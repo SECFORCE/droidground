@@ -1,13 +1,18 @@
+import fs from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
 import { AdbSocket } from "@yume-chan/adb";
+import { ReadableStream } from "@yume-chan/stream-extra";
 import { RequestSchema, ResponseSchema } from "@server/companion/wire_pb";
 import { create } from "@bufbuild/protobuf";
 import Logger from "@server/utils/logger";
 import { ManagerSingleton } from "@server/manager";
 import { sleep } from "@shared/helpers";
 import { sizeDelimitedDecodeStream, sizeDelimitedEncode } from "@bufbuild/protobuf/wire";
+import { resourceFile } from "@server/utils/helpers";
 
 type PlainObj<T> = { [name: string]: T };
+
+const COMPANION_FILE_PATH = "/data/local/tmp/droidground-companion.dex";
 
 export class CompanionClient {
   private static instance: CompanionClient;
@@ -106,14 +111,32 @@ export class CompanionClient {
   };
 
   private async push() {
-    Logger.warn("TODO. Pushing app to /data/local/tmp");
+    Logger.debug("Pushing app to /data/local/tmp");
+    const adb = await ManagerSingleton.getInstance().getAdb();
+    const sync = await adb.sync();
+    const companionFile = resourceFile("droidground-companion.dex");
+    const companionBuffer: Buffer = await fs.readFile(companionFile);
+
+    try {
+      await sync.write({
+        filename: COMPANION_FILE_PATH,
+        file: new ReadableStream({
+          start(controller) {
+            controller.enqueue(new Uint8Array(companionBuffer));
+            controller.close();
+          },
+        }),
+      });
+    } finally {
+      await sync.dispose();
+    }
   }
 
   private async start() {
     Logger.debug("Starting DroidGround Companion");
     const adb = await ManagerSingleton.getInstance().getAdb();
     await adb.subprocess.noneProtocol.spawn(
-      "CLASSPATH=/data/local/tmp/droidground-companion.dex app_process /system/bin com.secforce.droidground.Server",
+      `CLASSPATH=${COMPANION_FILE_PATH} app_process /system/bin com.secforce.droidground.Server`,
     );
 
     Logger.debug("DroidGround Companion started!");

@@ -9,7 +9,6 @@ import "@dotenvx/dotenvx/config";
 import frida, { FileDescriptor, ProcessID } from "frida";
 
 // '@yume-chan' imports
-import { BIN } from "@yume-chan/fetch-scrcpy-server";
 import { Adb, decodeUtf8, encodeUtf8 } from "@yume-chan/adb";
 import {
   DefaultServerPath,
@@ -30,6 +29,7 @@ import { DataMetadata, StreamingPhase, StreamMetadata, WSMessageType } from "@sh
 import Logger from "@server/utils/logger";
 import { WebsocketClient } from "@server/utils/types";
 import { broadcastForPhase, sendStructuredMessage } from "@server/utils/ws";
+import { resourceFile } from "@server/utils/helpers";
 
 const H264Capabilities = TinyH264Decoder.capabilities.h264;
 
@@ -49,7 +49,8 @@ const setupApi = async (app: ExpressApplication) => {
 };
 
 const setupScrcpy = async () => {
-  const serverBuffer: Buffer = await fs.readFile(BIN);
+  const scrcpyFile = resourceFile("scrcpy-server.jar");
+  const serverBuffer: Buffer = await fs.readFile(scrcpyFile);
   const adb: Adb = await ManagerSingleton.getInstance().getAdb();
   const wsStreamingClients = ManagerSingleton.getInstance().wsStreamingClients;
 
