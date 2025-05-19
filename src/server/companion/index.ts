@@ -1,9 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
 import { AdbSocket } from "@yume-chan/adb";
-import * as wire from "@server/companion/wire";
+import { RequestSchema, ResponseSchema } from "@server/companion/wire_pb";
+import { create } from "@bufbuild/protobuf";
 import Logger from "@server/utils/logger";
 import { ManagerSingleton } from "@server/manager";
 import { sleep } from "@shared/helpers";
+import { sizeDelimitedDecodeStream, sizeDelimitedEncode } from "@bufbuild/protobuf/wire";
 
 type PlainObj<T> = { [name: string]: T };
 
@@ -32,11 +34,12 @@ export class CompanionClient {
     const socket = this.socket as AdbSocket;
     const id = uuidv4();
 
-    const message = wire.com.secforce.droidground.Request.encodeDelimited({
+    const messageData = create(RequestSchema, {
       id,
       method,
       params: JSON.stringify(params),
-    }).finish(); // Uint8Array
+    });
+    const message = sizeDelimitedEncode(RequestSchema, messageData);
 
     const writer = socket.writable.getWriter();
     await writer.write(message);
@@ -54,36 +57,28 @@ export class CompanionClient {
       const socket = await adb.createSocket("localabstract:droidground");
       this.socket = socket;
 
-      let buf = new Uint8Array(0);
       const reader = socket.readable.getReader();
 
-      const readLoop = async () => {
+      async function* streamReader(reader: ReadableStreamDefaultReader<Uint8Array>): AsyncIterable<Uint8Array> {
         while (true) {
-          const { value: chunk, done } = await reader.read();
-          if (done) {
-            this.socket = null;
-            break;
-          }
+          const { value, done } = await reader.read();
+          if (done) return;
+          yield value;
+        }
+      }
 
-          // Append chunk to buffer
-          const newBuf = new Uint8Array(buf.length + chunk.length);
-          newBuf.set(buf);
-          newBuf.set(chunk, buf.length);
-          buf = newBuf;
+      const readLoop = async () => {
+        const iterable = streamReader(reader);
 
-          try {
-            const message = wire.com.secforce.droidground.Response.decodeDelimited(buf);
-            buf = new Uint8Array(0);
-            const { id, result } = message;
-
-            const resolve = this.resolves.get(id);
-            if (resolve) {
-              resolve(JSON.parse(result));
-            }
-          } catch {
-            // Likely incomplete buffer, wait for next chunk
+        for await (const message of sizeDelimitedDecodeStream(ResponseSchema, iterable)) {
+          const { id, result } = message;
+          const resolve = this.resolves.get(id);
+          if (resolve) {
+            resolve(JSON.parse(result));
           }
         }
+
+        this.socket = null;
       };
 
       readLoop(); // Start reading without awaiting so we don't block connect()
