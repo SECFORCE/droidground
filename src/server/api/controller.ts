@@ -7,7 +7,7 @@ import { RequestHandler } from "express";
 // Local imports
 import Logger from "@server/utils/logger";
 import { ManagerSingleton } from "@server/manager";
-import { DeviceInfoResponse, GetFilesRequest, StartActivityRequest } from "@shared/api";
+import { CompanionPackageInfos, DeviceInfoResponse, GetFilesRequest, StartActivityRequest } from "@shared/api";
 import { parseLsAlOutput, safeFileExists, versionNumberToCodename } from "@server/utils/helpers";
 import { capitalize } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
@@ -198,7 +198,21 @@ class APIController {
       const client = CompanionClient.getInstance();
       const result: any = await client.sendMessage("getPackageInfos", { packageNames: packages });
 
-      res.json(result.packageInfos).end();
+      const packageInfos: CompanionPackageInfos[] = result.packageInfos
+        .map(
+          (el: any): CompanionPackageInfos => ({
+            apkSize: el.apkSize ?? 0,
+            icon: el.icon ?? "",
+            label: el.label ?? "",
+            packageName: el.packageName ?? "",
+            versionName: el.versionName ?? "",
+            firstInstallTime: el.firstInstallTime ?? 0,
+            lastUpdateTime: el.lastUpdateTime ?? 0,
+          }),
+        )
+        .sort((a: CompanionPackageInfos, b: CompanionPackageInfos) => a.label.localeCompare(b.label));
+
+      res.json(packageInfos).end();
     } catch (e) {}
   };
 

@@ -1,6 +1,7 @@
 import { http } from "@client/api/axios";
 import {
   BugreportzStatusResponse,
+  CompanionPackageInfos,
   DeviceInfoResponse,
   DroidGroundFeaturesResponse,
   GetFilesRequest,
@@ -66,6 +67,11 @@ class RESTManager {
 
   async downloadBugreport(): Promise<AxiosResponse<any>> {
     const res = await http.get<any>("/bugreport/download", { responseType: "blob" });
+    return res;
+  }
+
+  async getPackageInfos(): Promise<AxiosResponse<CompanionPackageInfos[]>> {
+    const res = await http.get<CompanionPackageInfos[]>("packages");
     return res;
   }
 }

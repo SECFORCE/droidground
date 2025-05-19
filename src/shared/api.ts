@@ -33,6 +33,16 @@ export interface GetFilesResponse {
   result: LsEntry[];
 }
 
+export interface CompanionPackageInfos {
+  packageName: string;
+  versionName: string;
+  apkSize: number;
+  label: string;
+  icon: string;
+  firstInstallTime: number;
+  lastUpdateTime: number;
+}
+
 export interface BugreportzStatusResponse {
   isRunning: boolean;
   isBugreportAvailable: boolean;
