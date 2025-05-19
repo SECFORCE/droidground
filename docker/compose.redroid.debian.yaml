@@ -1,0 +1,25 @@
+services:
+  redroid:
+    privileged: true
+    volumes:
+      - /dev/binder1:/dev/binder
+      - /dev/binder2:/dev/hwbinder
+      - /dev/binder3:/dev/vndbinder
+      - ./data:/data
+    ports:
+      - 5555:5555 # No need to expose this, but it's useful for debugging purposes
+    container_name: redroid14
+    image: redroid/redroid:14.0.0-latest
+  droidground:
+    build: ..
+    image: secforce/droidground:0.1.0
+    container_name: droidground
+    restart: on-failure
+    ports:
+      - 4242:4242
+    env_file:
+      - ../.env
+    environment:
+      - DG_DEVICE_TYPE=network
+      - DG_DEVICE_HOST=redroid
+      - DG_DEVICE_PORT=5555
