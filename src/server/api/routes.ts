@@ -1,13 +1,17 @@
 // Package imports
+import path from "path";
 import { Router } from "express";
+import multer from "multer";
 
 // Local imports
 import APIController from "@server/api/controller";
 import { ManagerSingleton } from "@server/manager";
-import { checkFeatureEnabled } from "./middlewares";
+import { checkFeatureEnabled } from "@server/api/middlewares";
 
+const singleton = ManagerSingleton.getInstance();
+const upload = multer({ dest: path.join(singleton.getTmpDir(), "uploads") });
 const endpoint = Router(); // Define an Express Router
-const features = ManagerSingleton.getInstance().getConfig().features;
+const features = singleton.getConfig().features;
 
 // Endpoint implementation
 export default (app: Router) => {
@@ -33,6 +37,7 @@ export default (app: Router) => {
   endpoint.post("/bugreport", checkFeatureEnabled(features.bugReportEnabled), APIController.runBugreportz);
   endpoint.get("/bugreport/download", checkFeatureEnabled(features.bugReportEnabled), APIController.downloadBugreport);
   endpoint.get("/packages", checkFeatureEnabled(features.appManagerEnabled), APIController.getPackageInfos);
+  endpoint.post("/apk", checkFeatureEnabled(features.appManagerEnabled), upload.single("apkFile"), APIController.apk);
 
   endpoint.all("/*all", APIController.genericError);
 };

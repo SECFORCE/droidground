@@ -74,5 +74,10 @@ class RESTManager {
     const res = await http.get<CompanionPackageInfos[]>("packages");
     return res;
   }
+
+  async installApk(formData: FormData): Promise<AxiosResponse<IGenericResultRes>> {
+    const res = await http.post<IGenericResultRes>("/apk", formData);
+    return res;
+  }
 }
 export const RESTManagerInstance = new RESTManager();

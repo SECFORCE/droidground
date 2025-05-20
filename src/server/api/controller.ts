@@ -1,8 +1,10 @@
 // Node.js imports
 import path from "path";
 import fs from "fs/promises";
+
 // Package imports
 import { RequestHandler } from "express";
+import { ReadableStream } from "@yume-chan/stream-extra";
 
 // Local imports
 import Logger from "@server/utils/logger";
@@ -11,10 +13,11 @@ import { CompanionPackageInfos, DeviceInfoResponse, GetFilesRequest, StartActivi
 import { parseLsAlOutput, safeFileExists, versionNumberToCodename } from "@server/utils/helpers";
 import { capitalize } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
-import { BUGREPORT_FILENAME } from "@server/config";
+import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER } from "@server/config";
 
 class APIController {
-  features: RequestHandler = async (_req, res) => {
+  features: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const droidGroundConfig = ManagerSingleton.getInstance().getConfig();
       res.json({ features: droidGroundConfig.features }).end();
@@ -24,7 +27,8 @@ class APIController {
     }
   };
 
-  info: RequestHandler = async (_req, res) => {
+  info: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
       const versionResult = await adb.subprocess.noneProtocol.spawnWaitText("getprop ro.build.version.release");
@@ -49,6 +53,7 @@ class APIController {
   };
 
   startActivity: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const body = req.body as StartActivityRequest;
       const activity = body.activity;
@@ -62,7 +67,8 @@ class APIController {
     }
   };
 
-  shutdown: RequestHandler = async (_req, res) => {
+  shutdown: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
       await adb.subprocess.noneProtocol.spawnWait(`reboot -p`);
@@ -73,7 +79,8 @@ class APIController {
     }
   };
 
-  reboot: RequestHandler = async (_req, res) => {
+  reboot: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
       await adb.subprocess.noneProtocol.spawnWait(`reboot`);
@@ -84,7 +91,8 @@ class APIController {
     }
   };
 
-  dumpLogcat: RequestHandler = async (_req, res) => {
+  dumpLogcat: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
       const result = await adb.subprocess.noneProtocol.spawnWaitText(`logcat -d -t 500`);
@@ -95,7 +103,8 @@ class APIController {
     }
   };
 
-  clearLogcat: RequestHandler = async (_req, res) => {
+  clearLogcat: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
       await adb.subprocess.noneProtocol.spawn(`logcat -c`);
@@ -107,6 +116,7 @@ class APIController {
   };
 
   files: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const body = req.body as GetFilesRequest;
       const path = body.path;
@@ -127,7 +137,8 @@ class APIController {
     }
   };
 
-  bugreportzStatus: RequestHandler = async (_req, res) => {
+  bugreportzStatus: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const singleton = ManagerSingleton.getInstance();
       const adb = await singleton.getAdb();
@@ -145,7 +156,8 @@ class APIController {
     }
   };
 
-  runBugreportz: RequestHandler = async (_req, res) => {
+  runBugreportz: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     let commandStarted = false;
     try {
       const singleton = ManagerSingleton.getInstance();
@@ -178,12 +190,14 @@ class APIController {
     }
   };
 
-  downloadBugreport: RequestHandler = async (_req, res) => {
+  downloadBugreport: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const tmpDir = ManagerSingleton.getInstance().getTmpDir();
       const filePath = path.join(tmpDir, BUGREPORT_FILENAME);
       if (!safeFileExists(filePath)) {
         res.status(400).json({ message: "Missing Bugreport file" }).end();
+        return;
       }
       const bugreportContent = await fs.readFile(filePath);
       res.setHeader("Content-Type", "application/json");
@@ -191,11 +205,12 @@ class APIController {
       res.status(200).send(bugreportContent);
     } catch (error: any) {
       Logger.error("Error downloading bugreport:", error);
-      res.status(500).json({ message: "An error occurred while donwloading the bugreport." }).end();
+      res.status(500).json({ message: "An error occurred while downloading the bugreport." }).end();
     }
   };
 
-  getPackageInfos: RequestHandler = async (_req, res) => {
+  getPackageInfos: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
       const packagesRes = await adb.subprocess.noneProtocol.spawnWaitText("pm list packages -3");
@@ -219,7 +234,50 @@ class APIController {
         .sort((a: CompanionPackageInfos, b: CompanionPackageInfos) => a.label.localeCompare(b.label));
 
       res.json(packageInfos).end();
-    } catch (e) {}
+    } catch (error: any) {
+      Logger.error("Error getting packages info:", error);
+      res.status(500).json({ message: "An error occurred while getting packages info." }).end();
+    }
+  };
+
+  apk: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    try {
+      if (!req.file) {
+        res.status(400).json({ message: "No file uploaded." }).end();
+        return;
+      }
+
+      const adb = await ManagerSingleton.getInstance().getAdb();
+      const sync = await adb.sync();
+      const file = req.file as Express.Multer.File;
+      const apkFilePath = file.path;
+      const apkBuffer: Buffer = await fs.readFile(apkFilePath);
+      const uploadedFilePath = path.resolve(DEFAULT_UPLOAD_FOLDER, file.filename);
+
+      await sync.write({
+        filename: uploadedFilePath,
+        file: new ReadableStream({
+          start(controller) {
+            controller.enqueue(new Uint8Array(apkBuffer));
+            controller.close();
+          },
+        }),
+      });
+
+      const installRes = await adb.subprocess.noneProtocol.spawnWaitText(`pm install ${uploadedFilePath}`);
+      await adb.rm(uploadedFilePath);
+      await fs.unlink(apkFilePath); // Clean up the uploaded file
+
+      if (installRes.trim() !== "Success") {
+        res.status(500).json({ message: "An error occurred while installing the APK." }).end();
+      } else {
+        res.json({ result: "APK correctly installed." }).end();
+      }
+    } catch (error) {
+      Logger.error("Error importing database:", error);
+      res.status(500).json({ message: "An error occurred while installing the APK." }).end();
+    }
   };
 
   genericError: RequestHandler = async (_req, res) => {

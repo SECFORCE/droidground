@@ -5,7 +5,7 @@ import { WebSocketProvider } from "@client/context/WebSocket";
 import { Header, VideoRenderer } from "@client/layout";
 import { Overview, Frida, NotFound, FileBrowser, AppManager, Terminal, Logs, Error } from "@client/views";
 import { PAGES } from "@client/config";
-import { APIProvider, useAPI } from "./context/API";
+import { APIProvider, useAPI } from "@client/context/API";
 import { sleep } from "@shared/helpers";
 import Logo from "@client/assets/logo.png";
 import { Toaster } from "react-hot-toast";

@@ -79,6 +79,7 @@
     "@types/cors": "^2.8.17",
     "@types/eslint": "^9.6.1",
     "@types/express": "^5.0.1",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22.15.2",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",

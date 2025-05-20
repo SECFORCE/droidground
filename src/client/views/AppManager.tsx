@@ -31,6 +31,7 @@ const toHumanReadableSize = (bytes: number, decimals = 2) => {
 export const AppManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [packages, setPackages] = useState<CompanionPackageInfos[]>([]);
+  const [apkFile, setApkFile] = useState<File | null>(null);
 
   const getPackageInfos = async () => {
     setIsLoading(true);
@@ -50,6 +51,34 @@ export const AppManager: React.FC = () => {
   useEffect(() => {
     getPackageInfos();
   }, []);
+
+  const handleInstall = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    e.preventDefault();
+
+    const fileToUpload = e.target.files && e.target.files.length > 0 ? e.target.files[0] : null;
+    if (!fileToUpload) {
+      toast.error("Please select an APK file to upload.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("apkFile", fileToUpload);
+
+    try {
+      setIsLoading(true);
+      await RESTManagerInstance.installApk(formData);
+      const result = await RESTManagerInstance.getPackageInfos();
+      setPackages(result.data);
+      await sleep(500);
+      // Display the upload summary
+      toast.success("APK correctly installed");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to upload file.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -81,7 +110,12 @@ export const AppManager: React.FC = () => {
               <button className="btn btn-info" onClick={getPackageInfos}>
                 <FiRefreshCcw />
               </button>
-              <button className="btn btn-accent">Install APK</button>
+              <div>
+                <input type="file" accept=".apk" id="apk-upload" className="hidden" onChange={handleInstall} />
+                <label htmlFor="apk-upload" className="btn btn-accent cursor-pointer whitespace-nowrap">
+                  Install APK
+                </label>
+              </div>
             </div>
           </div>
           <div className="overflow-x-auto">
