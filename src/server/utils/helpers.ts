@@ -29,6 +29,12 @@ export const safeFileExists = (filePath: string) => {
   }
 };
 
+export const ensureFolderExists = (dirPath: string) => {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+};
+
 const codenamesMap: { [versionNumber: string]: string } = {
   "1.0": "Apple Pie",
   "1.1": "Banana Bread",

@@ -1,3 +1,4 @@
+import path from "path";
 import fs from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
 import { Server as HTTPServer } from "http";
@@ -29,9 +30,10 @@ import { DataMetadata, StreamingPhase, StreamMetadata, WSMessageType } from "@sh
 import Logger from "@server/utils/logger";
 import { WebsocketClient } from "@server/utils/types";
 import { broadcastForPhase, sendStructuredMessage } from "@server/utils/ws";
-import { resourceFile, safeFileExists } from "@server/utils/helpers";
+import { ensureFolderExists, resourceFile, resourcesDir, safeFileExists } from "@server/utils/helpers";
 import { RESOURCES } from "@server/config";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
+import { downloadFridaServer, getFridaVersion, mapAbiToFridaArch } from "./utils/frida";
 
 const H264Capabilities = TinyH264Decoder.capabilities.h264;
 
@@ -79,9 +81,6 @@ const setupScrcpy = async () => {
       cleanup: false,
     }),
   );
-
-  Logger.debug("Listing encoders (and using the first one)");
-  Logger.debug(encoders);
 
   // Choose first encoder for now
   const encoder = encoders.filter(e => e.type === "video")[0];
@@ -355,14 +354,28 @@ const checkResources = () => {
   }
 };
 
+const setupFrida = async () => {
+  Logger.info("Downloading Frida Server for the attached device");
+  const singleton = ManagerSingleton.getInstance();
+  const adb = await singleton.getAdb();
+  const fridaVersion = await getFridaVersion();
+  const abi = (await adb.subprocess.noneProtocol.spawnWaitText("getprop ro.product.cpu.abi")).trim();
+  const arch = mapAbiToFridaArch(abi);
+
+  const fridaServerPath = await downloadFridaServer(fridaVersion, arch, resourcesDir());
+  Logger.info(`Frida server downloaded at ${fridaServerPath}`);
+};
+
 export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer) => {
   checkResources();
-
   const manager = ManagerSingleton.getInstance();
 
   await manager.init();
   // A device is needed, otherwise there's nothing to do here
   await manager.setAdb();
+  if (manager.getConfig().features.fridaEnabled) {
+    await setupFrida();
+  }
   await setupApi(app);
   await setupWs(httpServer);
   await setupScrcpy();
