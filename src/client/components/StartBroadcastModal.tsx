@@ -11,7 +11,6 @@ interface IModalProps {
 
 export const StartBroadcastModal: React.FC<IModalProps> = ({ dialogRef }) => {
   const [actionResult, setActionResult] = useState<string[]>([]);
-  const [bothMissingError, setBothMissingError] = useState<boolean>(false);
   const {
     register,
     handleSubmit,
@@ -32,7 +31,6 @@ export const StartBroadcastModal: React.FC<IModalProps> = ({ dialogRef }) => {
 
   useEffect(() => {
     const handleClose = () => {
-      setBothMissingError(false);
       setActionResult([]);
       reset();
     };
@@ -51,7 +49,6 @@ export const StartBroadcastModal: React.FC<IModalProps> = ({ dialogRef }) => {
 
   const startBroadcastReceiver: SubmitHandler<StartBroadcastRequest> = async data => {
     if (!data.receiver && !data.action) {
-      setBothMissingError(true);
       return;
     }
 
@@ -73,10 +70,11 @@ export const StartBroadcastModal: React.FC<IModalProps> = ({ dialogRef }) => {
         <form onSubmit={handleSubmit(startBroadcastReceiver)} className="space-y-4">
           <input
             type="text"
-            placeholder="Receiver (optional)"
+            placeholder="Receiver (Full name)"
             className="input input-bordered w-full"
-            {...register("receiver")}
+            {...register("receiver", { required: true })}
           />
+          {errors.receiver && <p className="text-error text-sm">Receiver is required.</p>}
 
           <input
             type="text"
@@ -84,7 +82,6 @@ export const StartBroadcastModal: React.FC<IModalProps> = ({ dialogRef }) => {
             className="input input-bordered w-full"
             {...register("action")}
           />
-          {bothMissingError && <p className="text-error text-sm">You must specify at least a Receiver or an Action.</p>}
 
           {/* Extras Section */}
           <div>

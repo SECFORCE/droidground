@@ -27,6 +27,7 @@ import {
 import { capitalize } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
 import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER } from "@server/config";
+import { CompanionAttackSurfaceResponse } from "@server/utils/types";
 
 class APIController {
   features: RequestHandler = async (req, res) => {
@@ -68,14 +69,25 @@ class APIController {
   startActivity: RequestHandler = async (req, res) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
-      // TODO: add check with companion app to restrict usage only to exported activities from target app
       const body = req.body as StartActivityRequest;
+      const config = ManagerSingleton.getInstance().getConfig();
+      const client = CompanionClient.getInstance();
+      const bufRes = await client.sendMessage<CompanionAttackSurfaceResponse>("getAttackSurfaces", {
+        packageNames: [config.packageName],
+      });
+      const exportedActivities = bufRes.attackSurfaces[config.packageName].activities;
+
+      if (!exportedActivities.includes(body.activity)) {
+        res.status(400).json({ message: "This activity is not exported by the target app" }).end();
+        return;
+      }
+
       const parts: string[] = ["am start"];
 
       /*
       // User
       if (body.user !== undefined) {
-        parts.push(`--user ${body.user}`);
+        parts.push(`--user ${shellEscape(body.user.toString())}`);
       }
       */
 
@@ -103,7 +115,7 @@ class APIController {
 
       // Flags
       if (body.flags !== undefined && body.flags !== null) {
-        parts.push(`-f ${body.flags}`);
+        parts.push(`-f ${shellEscape(body.flags.toString())}`);
       }
 
       // Extras
@@ -114,7 +126,7 @@ class APIController {
       }
 
       // Activity
-      parts.push(shellEscape(body.activity));
+      parts.push(shellEscape(`${config.packageName}/${body.activity}`));
 
       const command = parts.join(" ");
       Logger.debug(`Running command: "${command}"`);
@@ -130,25 +142,35 @@ class APIController {
   startBroadcast: RequestHandler = async (req, res) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
-      // TODO: add check with companion app to restrict usage only to exported broadcast receivers from target app
       const body = req.body as StartBroadcastRequest;
+      const config = ManagerSingleton.getInstance().getConfig();
+      const client = CompanionClient.getInstance();
+      const bufRes = await client.sendMessage<CompanionAttackSurfaceResponse>("getAttackSurfaces", {
+        packageNames: [config.packageName],
+      });
+      const exportedReceiver = bufRes.attackSurfaces[config.packageName].receivers;
+
+      if (!exportedReceiver.includes(body.receiver)) {
+        res.status(400).json({ message: "This receiver is not exported by the target app" }).end();
+        return;
+      }
+
       const parts: string[] = ["am broadcast"];
 
       /*
       // User
       if (body.user !== undefined) {
-        parts.push(`--user ${body.user}`);
+        parts.push(`--user ${shellEscape(body.user.toString())}`);
       }
       */
 
-      // Add component (receiver) or action
-      if (body.receiver) {
-        parts.push(`-n ${body.receiver}`);
-      } else if (body.action) {
-        parts.push(`-a ${body.action}`);
-      } else {
-        throw new Error("Either one between 'receiver' and 'action' is needed");
+      // Action
+      if (body.action) {
+        parts.push(`-a ${shellEscape(body.action)}`);
       }
+
+      // Receiver
+      parts.push(`-n ${shellEscape(`${config.packageName}/${body.receiver}`)}`);
 
       // Extras
       if (body.extras) {
@@ -171,14 +193,25 @@ class APIController {
   startService: RequestHandler = async (req, res) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
-      // TODO: add check with companion app to restrict usage only to exported services from target app
       const body = req.body as StartServiceRequest;
+      const config = ManagerSingleton.getInstance().getConfig();
+      const client = CompanionClient.getInstance();
+      const bufRes = await client.sendMessage<CompanionAttackSurfaceResponse>("getAttackSurfaces", {
+        packageNames: [config.packageName],
+      });
+      const exportedServices = bufRes.attackSurfaces[config.packageName].services;
+
+      if (!exportedServices.includes(body.service)) {
+        res.status(400).json({ message: "This service is not exported by the target app" }).end();
+        return;
+      }
+
       const parts: string[] = ["am startservice"];
 
       /*
       // User
       if (body.user !== undefined) {
-        parts.push(`--user ${body.user}`);
+        parts.push(`--user ${shellEscape(body.user.toString())}`);
       }
       */
 
@@ -195,7 +228,7 @@ class APIController {
       }
 
       // Service
-      parts.push(`-n ${shellEscape(body.service)}`);
+      parts.push(`-n ${shellEscape(`${config.packageName}/${body.service}`)}`);
 
       const command = parts.join(" ");
       Logger.debug(`Running command: "${command}"`);

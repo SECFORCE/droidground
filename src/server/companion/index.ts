@@ -31,7 +31,7 @@ export class CompanionClient {
     return CompanionClient.instance;
   }
 
-  async sendMessage(method: string, params: PlainObj<any> = {}) {
+  async sendMessage<T>(method: string, params: PlainObj<any> = {}): Promise<T> {
     if (!this.socket) {
       await this.connect();
     }

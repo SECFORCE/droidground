@@ -64,7 +64,7 @@ export const StartServiceModal: React.FC<IModalProps> = ({ dialogRef }) => {
         <form onSubmit={handleSubmit(startService)} className="space-y-4">
           <input
             type="text"
-            placeholder="Service (e.g., com.example/.MyService)"
+            placeholder="Service (Full name)"
             className="input input-bordered w-full"
             {...register("service", { required: true })}
           />

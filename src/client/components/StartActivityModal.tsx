@@ -66,7 +66,7 @@ export const StartActivityModal: React.FC<IModalProps> = ({ dialogRef }) => {
           {/* Main Fields */}
           <input
             type="text"
-            placeholder="com.example.app/.MainActivity"
+            placeholder="com.example.app.MainActivity (Full name)"
             className="input input-bordered w-full"
             {...register("activity", { required: true })}
           />

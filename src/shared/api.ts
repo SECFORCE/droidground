@@ -61,7 +61,7 @@ export interface StartActivityRequest {
 }
 
 export interface StartBroadcastRequest {
-  receiver?: string; // Optional if using action
+  receiver: string; // Optional if using action, but making it mandatory makes things easier
   action?: string; // Required if no receiver
   extras?: IntentExtra[];
   //user?: number;

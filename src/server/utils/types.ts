@@ -18,3 +18,16 @@ export type LsEntry = {
   isSymlink: boolean;
   isCorrupted: boolean;
 };
+
+export type CompanionAttackSurface = {
+  activities: string[];
+  services: string[];
+  receivers: string[];
+  providers: string[];
+};
+
+export type CompanionAttackSurfaceResponse = {
+  attackSurfaces: {
+    [packageName: string]: CompanionAttackSurface;
+  };
+};
