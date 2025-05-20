@@ -1,3 +1,6 @@
+import os from "os";
+import path from "path";
+import fs from "fs";
 import { WebSocket } from "ws";
 import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "@yume-chan/adb";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
@@ -12,6 +15,7 @@ export class ManagerSingleton {
   private serverClient: AdbServerClient | null = null;
   private adb: Adb | null = null;
   private config: DroidGroundConfig;
+  private tmpDir: string = fs.mkdtempSync(path.join(os.tmpdir(), "droidground"));
   // Bugreports
   private bugreports: Map<Adb, any> = new Map<Adb, any>();
   // WS Sessions
@@ -118,5 +122,9 @@ export class ManagerSingleton {
 
   public getConfig(): DroidGroundConfig {
     return this.config;
+  }
+
+  public getTmpDir(): string {
+    return this.tmpDir;
   }
 }

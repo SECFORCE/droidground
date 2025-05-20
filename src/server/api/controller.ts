@@ -11,6 +11,7 @@ import { CompanionPackageInfos, DeviceInfoResponse, GetFilesRequest, StartActivi
 import { parseLsAlOutput, safeFileExists, versionNumberToCodename } from "@server/utils/helpers";
 import { capitalize } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
+import { BUGREPORT_FILENAME } from "@server/config";
 
 class APIController {
   features: RequestHandler = async (_req, res) => {
@@ -128,11 +129,13 @@ class APIController {
 
   bugreportzStatus: RequestHandler = async (_req, res) => {
     try {
-      const adb = await ManagerSingleton.getInstance().getAdb();
+      const singleton = ManagerSingleton.getInstance();
+      const adb = await singleton.getAdb();
+      const tmpDir = singleton.getTmpDir();
       // 'bugreportz' creates /dev/socket/dumpstate when it's running
       const lsCmdResult = await adb.subprocess.noneProtocol?.spawnWaitText("ls /dev/socket/dumpstate");
       const isBugreportRunning = lsCmdResult.trim().includes("No such file or directory") ? false : true;
-      const filePath = path.join("/tmp", `bugreportz.zip`); // TODO: Save in a specific folder
+      const filePath = path.join(tmpDir, BUGREPORT_FILENAME);
       const bugreportFileExists = safeFileExists(filePath);
 
       res.json({ isRunning: isBugreportRunning, isBugreportAvailable: bugreportFileExists }).end();
@@ -145,7 +148,9 @@ class APIController {
   runBugreportz: RequestHandler = async (_req, res) => {
     let commandStarted = false;
     try {
-      const adb = await ManagerSingleton.getInstance().getAdb();
+      const singleton = ManagerSingleton.getInstance();
+      const adb = await singleton.getAdb();
+      const tmpDir = singleton.getTmpDir();
       // 'bugreportz' creates /dev/socket/dumpstate when it's running
       const lsCmdResult = await adb.subprocess.noneProtocol?.spawnWaitText("ls /dev/socket/dumpstate");
       const isBugreportRunning = lsCmdResult.trim().includes("No such file or directory") ? false : true;
@@ -157,7 +162,7 @@ class APIController {
       res.json({ result: "bugreportz command started" }).end();
       commandStarted = true;
 
-      const filePath = path.join("/tmp", `bugreportz.zip`); // TODO: Save in a specific folder
+      const filePath = path.join(tmpDir, BUGREPORT_FILENAME);
       if (safeFileExists(filePath)) {
         await fs.unlink(filePath);
       }
@@ -175,7 +180,8 @@ class APIController {
 
   downloadBugreport: RequestHandler = async (_req, res) => {
     try {
-      const filePath = path.join("/tmp", `bugreportz.zip`); // TODO: Save in a specific folder
+      const tmpDir = ManagerSingleton.getInstance().getTmpDir();
+      const filePath = path.join(tmpDir, BUGREPORT_FILENAME);
       if (!safeFileExists(filePath)) {
         res.status(400).json({ message: "Missing Bugreport file" }).end();
       }
