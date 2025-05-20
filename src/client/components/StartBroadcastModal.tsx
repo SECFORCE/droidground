@@ -66,7 +66,7 @@ export const StartBroadcastModal: React.FC<IModalProps> = ({ dialogRef }) => {
   return (
     <dialog ref={dialogRef} className="modal">
       <div className="modal-box max-w-3xl">
-        <h3 className="font-bold text-lg mb-4">Send Broadcast</h3>
+        <h3 className="font-bold text-lg mb-4">Send Broadcast Intent</h3>
         <form onSubmit={handleSubmit(startBroadcastReceiver)} className="space-y-4">
           <input
             type="text"
