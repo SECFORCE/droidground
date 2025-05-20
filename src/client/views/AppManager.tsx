@@ -100,11 +100,11 @@ export const AppManager: React.FC = () => {
     <div className="w-full flex flex-col gap-2">
       <div className="flex gap-2 items-center mb-2">
         <IoApps size={32} />
-        <h1 className="text-2xl font-semibold">App Manager</h1>
+        <h1 className="text-2xl font-semibold select-none">App Manager</h1>
       </div>
       <div className="card bg-base-300 border border-base-300">
         <div className="card-body p-4 max-h-screen">
-          <div className="card-title justify-between mb-2">
+          <div className="card-title justify-between mb-2 select-none">
             <h2>Third-party Apps</h2>
             <div className="flex gap-2">
               <button className="btn btn-info" onClick={getPackageInfos}>

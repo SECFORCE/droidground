@@ -101,7 +101,7 @@ export const FileBrowser = () => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col gap-2 select-none">
       <div className="flex gap-2 items-center mb-2">
         <GiFiles size={32} />
         <h1 className="text-2xl font-semibold">File Browser</h1>

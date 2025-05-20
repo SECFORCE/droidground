@@ -16,7 +16,7 @@ export const NotFound: React.FC = () => {
           </div>
           <h1 className="mb-5 font-bold opacity-20 text-5xl">Not Found</h1>
           <a className="btn btn-info " href="/">
-            Go back
+            Home
           </a>
         </div>
       </div>

@@ -96,10 +96,10 @@ export const Terminal: React.FC = () => {
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <IoTerminalSharp size={32} />
-          <h1 className="text-2xl font-semibold">Terminal</h1>
+          <h1 className="text-2xl font-semibold select-none">Terminal</h1>
         </div>
         {showReconnectBtn && (
-          <button className="btn btn-info" onClick={reload}>
+          <button className="btn btn-info select-none" onClick={reload}>
             Reconnect
           </button>
         )}

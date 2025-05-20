@@ -61,18 +61,18 @@ export const Frida: React.FC = () => {
     <div className="w-full flex flex-col gap-2">
       <div className="flex gap-2 items-center mb-2">
         <FaCode size={32} />
-        <h1 className="text-2xl font-semibold">Frida</h1>
+        <h1 className="text-2xl font-semibold select-none">Frida</h1>
       </div>
       <div className="card bg-base-300 border border-base-300">
         <div className="card-body p-4">
-          <div role="alert" className="alert alert-warning">
+          <div role="alert" className="alert alert-warning select-none">
             <PiWarningBold size={20} />
             <span>
               To get the output you <b>have to use</b> the <pre className="inline">send</pre> function in your{" "}
               <i>Frida</i> script.
             </span>
           </div>
-          <p>Write your script in the editor below and run it!</p>
+          <p className="select-none">Write your script in the editor below and run it!</p>
           <div className="bg-neutral relative p-0 overflow-hidden">
             {/* Line Numbers */}
             <div className="absolute top-0 left-0 h-full w-10 bg-base-200 text-base-content opacity-50 text-right pr-2 pt-4 text-xs select-none leading-[1.25rem]">
@@ -103,7 +103,7 @@ export const Frida: React.FC = () => {
             </div>
           </div>
 
-          <p className="text-base mt-2 font-semibold">Output</p>
+          <p className="text-base mt-2 font-semibold select-none">Output</p>
           <div className="mockup-code w-full hide-before max-h-96 overflow-y-auto">
             {socketRef.current ? (
               <>

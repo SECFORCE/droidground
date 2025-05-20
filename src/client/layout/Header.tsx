@@ -71,7 +71,7 @@ const Navbar: React.FC = () => {
 
 export const Header: React.FC = () => {
   return (
-    <header className="w-full bg-neutral h-18">
+    <header className="w-full bg-neutral h-18 select-none">
       <div className="container m-auto h-full flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img src={Logo} className="h-10" />
