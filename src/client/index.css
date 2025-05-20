@@ -4,6 +4,7 @@
   themes:
     dark --default,
     dark --prefersdark;
+  logs: false;
 }
 @layer theme, base, components, utilities;
 
