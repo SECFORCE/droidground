@@ -3,6 +3,7 @@ import * as fs from "fs";
 import { LsEntry } from "@server/utils/types";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
+import { IntentExtra, IntentExtraType } from "@shared/types";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -119,4 +120,33 @@ export const parseLsAlOutput = (output: string): LsEntry[] => {
   }
 
   return entries;
+};
+
+export const buildExtra = (extra: IntentExtra): string[] => {
+  const { key, type, value } = extra;
+
+  switch (type) {
+    case IntentExtraType.STRING:
+      return [`--es ${shellEscape(key)} ${shellEscape(String(value))}`];
+    case IntentExtraType.INT:
+      return [`--ei ${shellEscape(key)} ${parseInt(String(value), 10)}`];
+    case IntentExtraType.LONG:
+      return [`--el ${shellEscape(key)} ${parseInt(String(value), 10)}`];
+    case IntentExtraType.FLOAT:
+      return [`--ef ${shellEscape(key)} ${parseFloat(String(value))}`];
+    case IntentExtraType.BOOL:
+      return [`--ez ${shellEscape(key)} ${String(value) === "true"}`];
+    case IntentExtraType.URI:
+      return [`--eu ${shellEscape(key)} ${shellEscape(String(value))}`];
+    case IntentExtraType.COMPONENT:
+      return [`--ecn ${shellEscape(key)} ${shellEscape(String(value))}`];
+    case IntentExtraType.NULL:
+      return [`--esn ${shellEscape(key)}`];
+    default:
+      throw new Error(`Unsupported extra type: ${type}`);
+  }
+};
+
+export const shellEscape = (value: string): string => {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
 };

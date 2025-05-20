@@ -31,9 +31,6 @@ export enum WSMessageType {
   CONFIGURATION = "configuration",
   CONFIGURATION_ACK = "configurationAck",
   DATA = "data",
-  // Notifications
-  FRIDA_OUTPUT = "frida",
-  TERMINAL_OUTPUT = "terminal",
 }
 
 export enum StreamingPhase {

@@ -1,18 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
 import toast from "react-hot-toast";
 
 import { IoInformationCircleOutline, IoLogoAndroid } from "react-icons/io5";
 import { TbCpu, TbVersions } from "react-icons/tb";
 import { MdSpaceDashboard } from "react-icons/md";
 import { RESTManagerInstance } from "@client/api/rest";
-import {
-  BugreportzStatusResponse,
-  StartActivityRequest,
-  StartBroadcastRequest,
-  StartServiceRequest,
-} from "@shared/api";
+import { BugreportzStatusResponse } from "@shared/api";
 import { useAPI } from "@client/context/API";
+import { StartActivityModal, StartBroadcastModal, StartServiceModal } from "@client/components";
 
 export const Overview: React.FC = () => {
   const { featuresConfig, deviceInfo } = useAPI();
@@ -25,35 +20,10 @@ export const Overview: React.FC = () => {
     featuresConfig.startActivityEnabled ||
     featuresConfig.startBroadcastReceiverEnabled ||
     featuresConfig.startServiceEnabled;
-  // Forms
-  const startActivityForm = useForm<StartActivityRequest>();
-  const startBroadcastReceiverForm = useForm<StartBroadcastRequest>();
-  const startServiceForm = useForm<StartServiceRequest>();
   // Dialogs
   const startActivityDialogRef = useRef<HTMLDialogElement | null>(null);
   const startBroadcastReceiverDialogRef = useRef<HTMLDialogElement | null>(null);
   const startServiceDialogRef = useRef<HTMLDialogElement | null>(null);
-
-  const startActivity: SubmitHandler<StartActivityRequest> = async data => {
-    try {
-      console.log(data);
-      await RESTManagerInstance.startActivity(data);
-      startActivityDialogRef.current?.close();
-    } catch (e) {
-      console.error(e);
-      toast.error("Error while starting activity.");
-    }
-  };
-
-  const startBroadcastReceiver: SubmitHandler<StartBroadcastRequest> = async data => {
-    console.log(data);
-    startBroadcastReceiverDialogRef.current?.close();
-  };
-
-  const startService: SubmitHandler<StartServiceRequest> = async data => {
-    console.log(data);
-    startServiceDialogRef.current?.close();
-  };
 
   const getBugreportzStatus = async () => {
     try {
@@ -121,28 +91,9 @@ export const Overview: React.FC = () => {
       getBugreportzStatus();
     }
 
-    // Just cleanup everything in a single function
-    const handleClose = () => {
-      startActivityForm.reset();
-      startBroadcastReceiverForm.reset();
-      startServiceForm.reset();
-    };
-
-    const dialogRefs = [startActivityDialogRef, startBroadcastReceiverDialogRef, startServiceDialogRef];
-    for (const dialogRef of dialogRefs) {
-      if (dialogRef.current) {
-        dialogRef.current.addEventListener("close", handleClose);
-      }
-    }
-
     return () => {
       if (timer) {
         clearInterval(timer);
-      }
-      for (const dialogRef of dialogRefs) {
-        if (dialogRef.current) {
-          dialogRef.current.addEventListener("close", handleClose);
-        }
       }
     };
   }, []);
@@ -154,125 +105,13 @@ export const Overview: React.FC = () => {
        ***************/}
 
       {/* Start Activity Modal */}
-      <dialog ref={startActivityDialogRef} className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg">Start Activity</h3>
-          <form onSubmit={startActivityForm.handleSubmit(startActivity)}>
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Activity</legend>
-              <input
-                type="text"
-                placeholder="com.example.app/.MainActivity"
-                className="input w-full"
-                {...startActivityForm.register("activity", { required: true, minLength: 4 })}
-              />
-            </fieldset>
-
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Action</legend>
-              <input
-                type="text"
-                placeholder="Action"
-                className="input w-full"
-                {...startActivityForm.register("action")}
-              />
-              <p className="label">Optional</p>
-            </fieldset>
-
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Data URI</legend>
-              <input
-                type="text"
-                placeholder="Data URI"
-                className="input w-full"
-                {...startActivityForm.register("dataUri")}
-              />
-              <p className="label">Optional</p>
-            </fieldset>
-
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">MIME Type</legend>
-              <input
-                type="text"
-                placeholder="MIME Type"
-                className="input w-full"
-                {...startActivityForm.register("mimeType")}
-              />
-              <p className="label">Optional</p>
-            </fieldset>
-            <input className="btn btn-info" type="submit" value="Start" />
-          </form>
-        </div>
-        <form method="dialog" className="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
+      <StartActivityModal dialogRef={startActivityDialogRef} />
 
       {/* Start Broadcast Receiver Modal */}
-      <dialog ref={startBroadcastReceiverDialogRef} className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg">Start Broadcast Receiver</h3>
-          <form onSubmit={startBroadcastReceiverForm.handleSubmit(startBroadcastReceiver)}>
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Receiver</legend>
-              <input
-                type="text"
-                placeholder="com.example.app/.MainActivity"
-                className="input w-full"
-                {...startBroadcastReceiverForm.register("receiver", { required: true, minLength: 4 })}
-              />
-            </fieldset>
-
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Action</legend>
-              <input
-                type="text"
-                placeholder="Action"
-                className="input w-full"
-                {...startBroadcastReceiverForm.register("action")}
-              />
-              <p className="label">Optional</p>
-            </fieldset>
-            <input className="btn btn-info" type="submit" value="Start" />
-          </form>
-        </div>
-        <form method="dialog" className="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
+      <StartBroadcastModal dialogRef={startBroadcastReceiverDialogRef} />
 
       {/* Start Service Modal */}
-      <dialog ref={startServiceDialogRef} className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg">Start Service</h3>
-          <form onSubmit={startServiceForm.handleSubmit(startService)}>
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Service</legend>
-              <input
-                type="text"
-                placeholder="com.example.app/.MainActivity"
-                className="input w-full"
-                {...startServiceForm.register("service", { required: true, minLength: 4 })}
-              />
-            </fieldset>
-
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Action</legend>
-              <input
-                type="text"
-                placeholder="Action"
-                className="input w-full"
-                {...startServiceForm.register("action")}
-              />
-              <p className="label">Optional</p>
-            </fieldset>
-            <input className="btn btn-info" type="submit" value="Start" />
-          </form>
-        </div>
-        <form method="dialog" className="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
+      <StartServiceModal dialogRef={startServiceDialogRef} />
 
       {/*************
        *   Content   *
@@ -343,14 +182,14 @@ export const Overview: React.FC = () => {
 
               <div className="flex w-full justify-between items-center">
                 <p>
-                  Start <b>Broadcast Receiver</b>
+                  Send <b>Broadcast Intent</b>
                 </p>
                 <div className="join">
                   <button
-                    className="btn btn-info join-item rounded-r-md"
+                    className="btn btn-accent join-item rounded-r-md"
                     onClick={() => startBroadcastReceiverDialogRef.current?.showModal()}
                   >
-                    Start
+                    Send
                   </button>
                 </div>
               </div>

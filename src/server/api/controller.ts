@@ -9,8 +9,21 @@ import { ReadableStream } from "@yume-chan/stream-extra";
 // Local imports
 import Logger from "@server/utils/logger";
 import { ManagerSingleton } from "@server/manager";
-import { CompanionPackageInfos, DeviceInfoResponse, GetFilesRequest, StartActivityRequest } from "@shared/api";
-import { parseLsAlOutput, safeFileExists, versionNumberToCodename } from "@server/utils/helpers";
+import {
+  CompanionPackageInfos,
+  DeviceInfoResponse,
+  GetFilesRequest,
+  StartActivityRequest,
+  StartBroadcastRequest,
+  StartServiceRequest,
+} from "@shared/api";
+import {
+  buildExtra,
+  parseLsAlOutput,
+  safeFileExists,
+  shellEscape,
+  versionNumberToCodename,
+} from "@server/utils/helpers";
 import { capitalize } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
 import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER } from "@server/config";
@@ -55,15 +68,143 @@ class APIController {
   startActivity: RequestHandler = async (req, res) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
+      // TODO: add check with companion app to restrict usage only to exported activities from target app
       const body = req.body as StartActivityRequest;
-      const activity = body.activity;
-      const adb = await ManagerSingleton.getInstance().getAdb();
+      const parts: string[] = ["am start"];
 
-      const result = await adb.subprocess.noneProtocol.spawnWaitText(`am start -n ${activity}`);
+      /*
+      // User
+      if (body.user !== undefined) {
+        parts.push(`--user ${body.user}`);
+      }
+      */
+
+      // Action
+      if (body.action) {
+        parts.push(`-a ${shellEscape(body.action)}`);
+      }
+
+      // Data URI
+      if (body.dataUri) {
+        parts.push(`-d ${shellEscape(body.dataUri)}`);
+      }
+
+      // MIME Type
+      if (body.mimeType) {
+        parts.push(`-t ${shellEscape(body.mimeType)}`);
+      }
+
+      // Categories
+      if (body.categories) {
+        for (const category of body.categories) {
+          parts.push(`-c ${shellEscape(category)}`);
+        }
+      }
+
+      // Flags
+      if (body.flags !== undefined && body.flags !== null) {
+        parts.push(`-f ${body.flags}`);
+      }
+
+      // Extras
+      if (body.extras) {
+        for (const extra of body.extras) {
+          parts.push(...buildExtra(extra));
+        }
+      }
+
+      // Activity
+      parts.push(shellEscape(body.activity));
+
+      const command = parts.join(" ");
+      Logger.debug(`Running command: "${command}"`);
+      const adb = await ManagerSingleton.getInstance().getAdb();
+      const result = await adb.subprocess.noneProtocol.spawnWaitText(command);
       res.json({ result: result }).end();
     } catch (error: any) {
       Logger.error("Error starting activity:", error);
       res.status(500).json({ message: "An error occurred while starting the activity." }).end();
+    }
+  };
+
+  startBroadcast: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    try {
+      // TODO: add check with companion app to restrict usage only to exported broadcast receivers from target app
+      const body = req.body as StartBroadcastRequest;
+      const parts: string[] = ["am broadcast"];
+
+      /*
+      // User
+      if (body.user !== undefined) {
+        parts.push(`--user ${body.user}`);
+      }
+      */
+
+      // Add component (receiver) or action
+      if (body.receiver) {
+        parts.push(`-n ${body.receiver}`);
+      } else if (body.action) {
+        parts.push(`-a ${body.action}`);
+      } else {
+        throw new Error("Either one between 'receiver' and 'action' is needed");
+      }
+
+      // Extras
+      if (body.extras) {
+        for (const extra of body.extras) {
+          parts.push(...buildExtra(extra));
+        }
+      }
+
+      const command = parts.join(" ");
+      Logger.debug(`Running command: "${command}"`);
+      const adb = await ManagerSingleton.getInstance().getAdb();
+      const result = await adb.subprocess.noneProtocol.spawnWaitText(command);
+      res.json({ result: result }).end();
+    } catch (error: any) {
+      Logger.error("Error starting broadcast:", error);
+      res.status(500).json({ message: "An error occurred while starting the broadcast." }).end();
+    }
+  };
+
+  startService: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    try {
+      // TODO: add check with companion app to restrict usage only to exported services from target app
+      const body = req.body as StartServiceRequest;
+      const parts: string[] = ["am startservice"];
+
+      /*
+      // User
+      if (body.user !== undefined) {
+        parts.push(`--user ${body.user}`);
+      }
+      */
+
+      // Action
+      if (body.action) {
+        parts.push(`-a ${shellEscape(body.action)}`);
+      }
+
+      // Extras
+      if (body.extras) {
+        for (const extra of body.extras) {
+          parts.push(...buildExtra(extra));
+        }
+      }
+
+      // Service
+      parts.push(`-n ${shellEscape(body.service)}`);
+
+      const command = parts.join(" ");
+      Logger.debug(`Running command: "${command}"`);
+      const adb = await ManagerSingleton.getInstance().getAdb();
+      const result = await adb.subprocess.noneProtocol.spawnWaitText(command);
+      res.json({ result: result }).end();
+    } catch (error: any) {
+      Logger.error("Error starting service:", error);
+      res.status(500).json({ message: "An error occurred while starting the service." }).end();
     }
   };
 
@@ -138,7 +279,6 @@ class APIController {
   };
 
   bugreportzStatus: RequestHandler = async (req, res) => {
-    Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const singleton = ManagerSingleton.getInstance();
       const adb = await singleton.getAdb();

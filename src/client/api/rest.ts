@@ -8,6 +8,8 @@ import {
   GetFilesResponse,
   IGenericResultRes,
   StartActivityRequest,
+  StartBroadcastRequest,
+  StartServiceRequest,
 } from "@shared/api";
 import { REST_API_ENDPOINTS as E } from "@shared/endpoints";
 import { AxiosResponse } from "axios";
@@ -28,6 +30,16 @@ class RESTManager {
 
   async startActivity(data: StartActivityRequest): Promise<AxiosResponse<IGenericResultRes>> {
     const res = await http.post<IGenericResultRes>(E.ACTIVITY, data);
+    return res;
+  }
+
+  async startBroadcast(data: StartBroadcastRequest): Promise<AxiosResponse<IGenericResultRes>> {
+    const res = await http.post<IGenericResultRes>(E.BROADCAST, data);
+    return res;
+  }
+
+  async startService(data: StartServiceRequest): Promise<AxiosResponse<IGenericResultRes>> {
+    const res = await http.post<IGenericResultRes>(E.SERVICE, data);
     return res;
   }
 

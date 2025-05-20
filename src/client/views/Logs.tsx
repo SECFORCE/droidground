@@ -9,7 +9,6 @@ export const Logs: React.FC = () => {
   const dump = async () => {
     try {
       const res = await RESTManagerInstance.dumpLogcat();
-      console.log(res.data.result.split("\n").length);
       setCurrentLogs(res.data.result.split("\n"));
     } catch (e) {
       console.error(e);

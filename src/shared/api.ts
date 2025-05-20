@@ -57,14 +57,14 @@ export interface StartActivityRequest {
   categories?: string[];
   flags?: number;
   extras?: IntentExtra[];
-  user?: number;
+  //user?: number;
 }
 
 export interface StartBroadcastRequest {
   receiver?: string; // Optional if using action
   action?: string; // Required if no receiver
   extras?: IntentExtra[];
-  user?: number;
+  //user?: number;
 }
 
 export interface StartServiceRequest {
@@ -72,5 +72,5 @@ export interface StartServiceRequest {
 
   action?: string;
   extras?: IntentExtra[];
-  user?: number;
+  //user?: number;
 }

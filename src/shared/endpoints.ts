@@ -2,6 +2,8 @@ export const REST_API_ENDPOINTS = {
   FEATURES: "/features",
   INFO: "/info",
   ACTIVITY: "/activity",
+  BROADCAST: "/broadcast",
+  SERVICE: "/service",
   SHUTDOWN: "/shutdown",
   REBOOT: "/reboot",
   LOGCAT: "/logcat",
