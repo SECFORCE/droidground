@@ -4,6 +4,7 @@ import android.annotation.TargetApi
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.content.pm.ActivityInfo
 import android.content.res.AssetManager
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -56,6 +57,10 @@ class Connection(private val client: LocalSocket) : Thread() {
                 result.put("version", getVersion())
             }
 
+            "getAttackSurfaces" -> {
+                result.put("attackSurfaces", getAttackSurfaces(JSONObject(params)))
+            }
+
             "getPackageInfos" -> {
                 result.put("packageInfos", getPackageInfos(JSONObject(params)))
             }
@@ -74,6 +79,21 @@ class Connection(private val client: LocalSocket) : Thread() {
         return BuildConfig.VERSION_NAME
     }
 
+    private fun getAttackSurfaces(params: JSONObject): JSONObject {
+        val packageNames = Util.jsonArrayToStringArray(params.getJSONArray("packageNames"))
+        val result = JSONObject()
+
+        packageNames.forEach {
+            try {
+                result.put(it, getAttackSurface(it))
+            } catch (e: Exception) {
+                Log.e(TAG, "Fail to get attack surface", e)
+            }
+        }
+
+        return result
+    }
+
     private fun getPackageInfos(params: JSONObject): JSONArray {
         val packageNames = Util.jsonArrayToStringArray(params.getJSONArray("packageNames"))
         val result = JSONArray()
@@ -90,6 +110,59 @@ class Connection(private val client: LocalSocket) : Thread() {
     }
 
     @TargetApi(Build.VERSION_CODES.P)
+    private fun getAttackSurface(packageName: String): JSONObject {
+      
+        val resultJson = JSONObject()
+        val activitiesArray = JSONArray()
+        val servicesArray = JSONArray()
+        val receiversArray = JSONArray()
+        val providersArray = JSONArray()
+
+        try {
+            val flags = PackageManager.GET_ACTIVITIES or
+                        PackageManager.GET_SERVICES or
+                        PackageManager.GET_RECEIVERS or
+                        PackageManager.GET_PROVIDERS
+
+            val packageInfo = ServiceManager.packageManager.getPackageInfo(packageName, flags)
+
+            packageInfo.activities?.forEach {
+                if (it.exported) {
+                    activitiesArray.put(it.name)
+                }
+            }
+
+            packageInfo.services?.forEach {
+                if (it.exported) {
+                    servicesArray.put(it.name)
+                }
+            }
+
+            packageInfo.receivers?.forEach {
+                if (it.exported) {
+                    receiversArray.put(it.name)
+                }
+            }
+
+            packageInfo.providers?.forEach {
+                if (it.exported) {
+                    providersArray.put(it.authority ?: it.name)
+                }
+            }
+        } catch (e: PackageManager.NameNotFoundException) {
+            Log.e(TAG, "Package not found: $packageName", e)
+        }
+
+        // Populate the JSON object
+        resultJson.put("activities", activitiesArray)
+        resultJson.put("services", servicesArray)
+        resultJson.put("receivers", receiversArray)
+        resultJson.put("providers", providersArray)
+
+        return resultJson
+    }
+
+    @TargetApi(Build.VERSION_CODES.P)
     private fun getPackageInfo(packageName: String): JSONObject {
         var flags = PackageManager.GET_ACTIVITIES
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -97,6 +170,7 @@ class Connection(private val client: LocalSocket) : Thread() {
         } else {
             flags = flags or PackageManager.GET_SIGNATURES
         }
+
         val packageInfo =
             ServiceManager.packageManager.getPackageInfo(packageName, flags)
 
