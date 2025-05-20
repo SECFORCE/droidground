@@ -29,7 +29,8 @@ import { DataMetadata, StreamingPhase, StreamMetadata, WSMessageType } from "@sh
 import Logger from "@server/utils/logger";
 import { WebsocketClient } from "@server/utils/types";
 import { broadcastForPhase, sendStructuredMessage } from "@server/utils/ws";
-import { resourceFile } from "@server/utils/helpers";
+import { resourceFile, safeFileExists } from "@server/utils/helpers";
+import { RESOURCES } from "@server/config";
 
 const H264Capabilities = TinyH264Decoder.capabilities.h264;
 
@@ -49,7 +50,7 @@ const setupApi = async (app: ExpressApplication) => {
 };
 
 const setupScrcpy = async () => {
-  const scrcpyFile = resourceFile("scrcpy-server.jar");
+  const scrcpyFile = resourceFile(RESOURCES.SCRCPY_SERVER);
   const serverBuffer: Buffer = await fs.readFile(scrcpyFile);
   const adb: Adb = await ManagerSingleton.getInstance().getAdb();
   const wsStreamingClients = ManagerSingleton.getInstance().wsStreamingClients;
@@ -342,7 +343,22 @@ const setupWs = async (httpServer: HTTPServer) => {
   });
 };
 
+const checkResources = () => {
+  const companionFile = resourceFile(RESOURCES.COMPANION_FILE);
+  const scrcpyFile = resourceFile(RESOURCES.SCRCPY_SERVER);
+  if (!safeFileExists(companionFile)) {
+    Logger.error(`Companion file is missing, run 'npm run companion' to generate it`);
+    process.exit(1);
+  }
+  if (!safeFileExists(scrcpyFile)) {
+    Logger.error(`Scrcpy server is missing, run 'npm run scrcpy' to generate it`);
+    process.exit(1);
+  }
+};
+
 export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer) => {
+  checkResources();
+
   const manager = ManagerSingleton.getInstance();
 
   await manager.init();

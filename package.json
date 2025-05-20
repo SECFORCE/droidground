@@ -20,9 +20,9 @@
     "copy-files": "copyfiles \"public/**/*\" dist && copyfiles -u 2 \"dist/client/**/*\" dist && copyfiles -u 2 \"dist/client/assets/**/*\" dist/public",
     "format": "prettier --write src",
     "protobuf": "buf generate",
-    "scrcpy": "zx scripts/scrcpy.mjs",
-    "companion": "zx scripts/companion.mjs",
-    "build": "zx scripts/build.mjs",
+    "scrcpy": "tsx scripts/scrcpy.ts",
+    "companion": "tsx scripts/companion.ts",
+    "build": "tsx scripts/build.ts",
     "postinstall": "npm run build"
   },
   "dependencies": {

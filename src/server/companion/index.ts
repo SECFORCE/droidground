@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { AdbSocket } from "@yume-chan/adb";
 import { ReadableStream } from "@yume-chan/stream-extra";
@@ -8,11 +9,10 @@ import Logger from "@server/utils/logger";
 import { ManagerSingleton } from "@server/manager";
 import { sleep } from "@shared/helpers";
 import { sizeDelimitedDecodeStream, sizeDelimitedEncode } from "@bufbuild/protobuf/wire";
-import { resourceFile } from "@server/utils/helpers";
+import { resourceFile, safeFileExists } from "@server/utils/helpers";
+import { DEFAULT_UPLOAD_FOLDER, RESOURCES } from "@server/config";
 
 type PlainObj<T> = { [name: string]: T };
-
-const COMPANION_FILE_PATH = "/data/local/tmp/droidground-companion.dex";
 
 export class CompanionClient {
   private static instance: CompanionClient;
@@ -111,15 +111,19 @@ export class CompanionClient {
   };
 
   private async push() {
-    Logger.debug("Pushing app to /data/local/tmp");
+    Logger.debug(`Pushing app to ${DEFAULT_UPLOAD_FOLDER}`);
     const adb = await ManagerSingleton.getInstance().getAdb();
     const sync = await adb.sync();
-    const companionFile = resourceFile("droidground-companion.dex");
-    const companionBuffer: Buffer = await fs.readFile(companionFile);
-
     try {
+      const companionFile = resourceFile(RESOURCES.COMPANION_FILE);
+      if (!safeFileExists(companionFile)) {
+        throw new Error("Companion file is missing");
+      }
+
+      const companionBuffer: Buffer = await fs.readFile(companionFile);
+
       await sync.write({
-        filename: COMPANION_FILE_PATH,
+        filename: path.resolve(DEFAULT_UPLOAD_FOLDER, RESOURCES.COMPANION_FILE),
         file: new ReadableStream({
           start(controller) {
             controller.enqueue(new Uint8Array(companionBuffer));
@@ -127,6 +131,9 @@ export class CompanionClient {
           },
         }),
       });
+    } catch (e) {
+      Logger.error("Error while pushing DroidGround Companion app");
+      Logger.error(e);
     } finally {
       await sync.dispose();
     }
@@ -136,7 +143,7 @@ export class CompanionClient {
     Logger.debug("Starting DroidGround Companion");
     const adb = await ManagerSingleton.getInstance().getAdb();
     await adb.subprocess.noneProtocol.spawn(
-      `CLASSPATH=${COMPANION_FILE_PATH} app_process /system/bin com.secforce.droidground.Server`,
+      `CLASSPATH=${path.resolve(DEFAULT_UPLOAD_FOLDER, RESOURCES.COMPANION_FILE)} app_process /system/bin com.secforce.droidground.Server`,
     );
 
     Logger.debug("DroidGround Companion started!");
