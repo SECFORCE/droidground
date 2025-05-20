@@ -31,7 +31,7 @@ import Logger from "@server/utils/logger";
 import { WebsocketClient } from "@server/utils/types";
 import { broadcastForPhase, sendStructuredMessage } from "@server/utils/ws";
 import { ensureFolderExists, resourceFile, resourcesDir, safeFileExists } from "@server/utils/helpers";
-import { RESOURCES } from "@server/config";
+import { DEFAULT_UPLOAD_FOLDER, RESOURCES } from "@server/config";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
 import { downloadFridaServer, getFridaVersion, mapAbiToFridaArch } from "./utils/frida";
 
@@ -364,6 +364,37 @@ const setupFrida = async () => {
 
   const fridaServerPath = await downloadFridaServer(fridaVersion, arch, resourcesDir());
   Logger.info(`Frida server downloaded at ${fridaServerPath}`);
+
+  // Push the frida-server
+  const sync = await adb.sync();
+  const fridaServerDevicePath = path.resolve(DEFAULT_UPLOAD_FOLDER, RESOURCES.FRIDA_SERVER);
+  try {
+    const fridaFile = resourceFile(RESOURCES.FRIDA_SERVER);
+    if (!safeFileExists(fridaFile)) {
+      throw new Error("Frida Server file is missing");
+    }
+
+    const fridaBuffer: Buffer = await fs.readFile(fridaFile);
+    await sync.write({
+      filename: fridaServerDevicePath,
+      file: new ReadableStream({
+        start(controller) {
+          controller.enqueue(new Uint8Array(fridaBuffer));
+          controller.close();
+        },
+      }),
+      permission: 0o755, // Executable
+    });
+  } catch (e) {
+    Logger.error("Error while pushing Frida Server");
+    Logger.error(e);
+  } finally {
+    await sync.dispose();
+  }
+  // Start frida-server
+  await adb.subprocess.noneProtocol.spawnWaitText("killall frida-server");
+  adb.subprocess.noneProtocol.spawn(`su -c '${fridaServerDevicePath}'`);
+  Logger.info("Frida server started");
 };
 
 export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer) => {

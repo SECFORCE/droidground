@@ -49,7 +49,6 @@ export const downloadFridaServer = async (version: string, arch: string, destFol
   }
 
   fs.renameSync(decompressedPath, finalPath);
-  fs.chmodSync(finalPath, 0o755);
 
   return finalPath;
 };

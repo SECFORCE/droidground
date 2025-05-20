@@ -11,4 +11,5 @@ export const BUGREPORT_FILENAME = "bugreportz.zip";
 export const RESOURCES = {
   COMPANION_FILE: "droidground-companion.dex",
   SCRCPY_SERVER: "scrcpy-server.jar",
+  FRIDA_SERVER: "frida-server",
 } as const;
