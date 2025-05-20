@@ -31,6 +31,7 @@ import { WebsocketClient } from "@server/utils/types";
 import { broadcastForPhase, sendStructuredMessage } from "@server/utils/ws";
 import { resourceFile, safeFileExists } from "@server/utils/helpers";
 import { RESOURCES } from "@server/config";
+import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
 
 const H264Capabilities = TinyH264Decoder.capabilities.h264;
 
@@ -171,17 +172,15 @@ const setupWs = async (httpServer: HTTPServer) => {
 
   // Handle upgrade requests
   httpServer.on("upgrade", (request, socket, head) => {
-    const pathname = new URL(`http://localhost${request.url}`).pathname;
-
-    if (pathname === "/streaming") {
+    if (request.url === WEBSOCKET_ENDPOINTS.STREAMING) {
       wssStreaming.handleUpgrade(request, socket, head, ws => {
         wssStreaming.emit("connection", ws, request);
       });
-    } else if (pathname === "/terminal" && features.terminalEnabled) {
+    } else if (request.url === WEBSOCKET_ENDPOINTS.TERMINAL && features.terminalEnabled) {
       wssTerminal.handleUpgrade(request, socket, head, ws => {
         wssTerminal.emit("connection", ws, request);
       });
-    } else if (pathname === "/frida" && features.fridaEnabled) {
+    } else if (request.url === WEBSOCKET_ENDPOINTS.FRIDA && features.fridaEnabled) {
       wssFrida.handleUpgrade(request, socket, head, ws => {
         wssFrida.emit("connection", ws, request);
       });

@@ -4,6 +4,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { SearchAddon } from "@xterm/addon-search";
 import { IoTerminalSharp } from "react-icons/io5";
 import "@xterm/xterm/css/xterm.css";
+import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
 
 const fitAddon = new FitAddon();
 const searchAddon = new SearchAddon();
@@ -36,7 +37,8 @@ const TerminalComponent: React.FC<ITerminalComponentProps> = ({
       fitAddon.fit();
     }
 
-    const socket = new WebSocket("ws://localhost:4242/terminal");
+    const wsBaseUrl = `ws://${window.location.host}`; //TODO: Move to wss at some point
+    const socket = new WebSocket(`${wsBaseUrl}${WEBSOCKET_ENDPOINTS.TERMINAL}`);
     socketRef.current = socket;
 
     // When data comes from backend, write to terminal

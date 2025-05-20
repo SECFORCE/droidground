@@ -95,9 +95,10 @@ const createServer = async (isProd = process.env.NODE_ENV === "production") => {
   await serverApp(app, httpServer);
   await ssrLoader(app, isProd);
 
-  const port = process.env.PORT || 4242;
-  httpServer.listen(Number(port), "0.0.0.0", () => {
-    Logger.info(`DroidGround is running on http://localhost:${port} in ${isProd ? "production" : "development"} mode.`);
+  const host = process.env.DROIDGROUND_HOST || "0.0.0.0";
+  const port = process.env.DROIDGROUND_PORT || 4242;
+  httpServer.listen(Number(port), host, () => {
+    Logger.info(`DroidGround is running on http://${host}:${port} in ${isProd ? "production" : "development"} mode.`);
   });
 };
 

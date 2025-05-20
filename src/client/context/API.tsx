@@ -2,7 +2,6 @@ import { createContext, useEffect, useContext, ReactNode, useState } from "react
 import { DroidGroundFeatures } from "@shared/types";
 import { DeviceInfoResponse } from "@shared/api";
 import { RESTManagerInstance } from "@client/api/rest";
-import toast from "react-hot-toast";
 
 type APIContextType = {
   featuresConfig: DroidGroundFeatures;

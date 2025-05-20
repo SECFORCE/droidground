@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { sleep } from "@shared/helpers";
 import { FaCode } from "react-icons/fa";
 import { PiWarningBold } from "react-icons/pi";
+import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
 
 const fridaScriptPlaceholder = `// Dummy Frida script
 setImmediate(function() {
@@ -17,7 +18,8 @@ export const Frida: React.FC = () => {
   const lines = code ? code.split("\n") : [];
 
   const socketSetup = () => {
-    const socket = new WebSocket("ws://localhost:4242/frida");
+    const wsBaseUrl = `ws://${window.location.host}`; //TODO: Move to wss at some point
+    const socket = new WebSocket(`${wsBaseUrl}${WEBSOCKET_ENDPOINTS.FRIDA}`);
     socketRef.current = socket;
 
     // When data comes from backend, write to terminal
