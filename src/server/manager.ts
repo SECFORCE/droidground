@@ -177,4 +177,12 @@ export class ManagerSingleton {
   public getTmpDir(): string {
     return this.tmpDir;
   }
+
+  public async runTargetApp() {
+    const adb = await this.getAdb();
+    // Force close the app
+    await adb.subprocess.noneProtocol.spawnWait(`am force-stop ${this.config.packageName} 1`);
+    // And then reopen it
+    await adb.subprocess.noneProtocol.spawnWait(`monkey -p ${this.config.packageName} 1`);
+  }
 }

@@ -29,6 +29,7 @@ export default (app: Router) => {
 
   endpoint.get(E.FEATURES, APIController.features);
   endpoint.get(E.INFO, APIController.info);
+  endpoint.post(E.RESTART, APIController.restartApp);
   endpoint.post(E.ACTIVITY, checkFeatureEnabled(features.startActivityEnabled), APIController.startActivity);
   endpoint.post(E.BROADCAST, checkFeatureEnabled(features.startBroadcastReceiverEnabled), APIController.startBroadcast);
   endpoint.post(E.SERVICE, checkFeatureEnabled(features.startServiceEnabled), APIController.startService);

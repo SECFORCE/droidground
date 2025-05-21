@@ -294,6 +294,7 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
     await setupFrida();
   }
 
+  await manager.runTargetApp(); // Start the target app
   await setupApi(app);
   await setupWs(httpServer);
   await setupScrcpy();

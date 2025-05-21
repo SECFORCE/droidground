@@ -42,6 +42,17 @@ class APIController {
     }
   };
 
+  restartApp: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    try {
+      await ManagerSingleton.getInstance().runTargetApp();
+      res.json({ result: "Target app correctly restarted" }).end();
+    } catch (error: any) {
+      Logger.error(`Error restarting target app: ${error}`);
+      res.status(500).json({ message: "An error occurred while restarting the target app." }).end();
+    }
+  };
+
   info: RequestHandler = async (req, res) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {

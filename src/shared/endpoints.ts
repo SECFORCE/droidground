@@ -1,6 +1,7 @@
 export const REST_API_ENDPOINTS = {
   FEATURES: "/features",
   INFO: "/info",
+  RESTART: "/restart", // restart the target app
   ACTIVITY: "/activity",
   BROADCAST: "/broadcast",
   SERVICE: "/service",

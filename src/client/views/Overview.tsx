@@ -35,6 +35,16 @@ export const Overview: React.FC = () => {
     }
   };
 
+  const restartApp = async () => {
+    try {
+      await RESTManagerInstance.restartApp();
+      toast.success("App correctly restarted");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error while restarting app.");
+    }
+  };
+
   const runBugreportz = async () => {
     try {
       await RESTManagerInstance.startBugreportz();
@@ -166,6 +176,17 @@ export const Overview: React.FC = () => {
             <input type="checkbox" name="actions-accordion" className="peer" />
             <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Actions</div>
             <div className="collapse-content text-sm flex flex-col items-center justify-between gap-4">
+              <div className="flex w-full justify-between items-center">
+                <p>
+                  Restart <b>App</b>
+                </p>
+                <div className="join">
+                  <button className="btn btn-accent join-item rounded-r-md" onClick={restartApp}>
+                    Restart
+                  </button>
+                </div>
+              </div>
+
               <div className="flex w-full justify-between items-center">
                 <p>
                   Start <b>Activity</b>

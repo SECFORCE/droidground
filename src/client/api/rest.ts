@@ -29,6 +29,11 @@ class RESTManager {
     return res;
   }
 
+  async restartApp(): Promise<AxiosResponse<IGenericResultRes>> {
+    const res = await http.post<IGenericResultRes>(E.RESTART);
+    return res;
+  }
+
   async startActivity(data: StartActivityRequest): Promise<AxiosResponse<IGenericResultRes>> {
     const res = await http.post<IGenericResultRes>(E.ACTIVITY, data);
     return res;
