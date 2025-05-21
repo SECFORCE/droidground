@@ -272,6 +272,7 @@ const setupWs = async (httpServer: HTTPServer) => {
             const ajv = new Ajv();
             const valid = ajv.validate(schema, args);
             if (!valid) {
+              await device.resume(pid);
               throw new Error("Inputs are invalid for the selected Frida script");
             }
           }

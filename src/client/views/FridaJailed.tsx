@@ -28,7 +28,6 @@ interface ArrayFieldEditorProps {
 }
 
 const parsePrimitive = (type: PrimitiveType, raw: any): string | number | boolean => {
-  console.log(raw);
   if (type === "number") return Number(raw);
   if (type === "boolean") return raw === "true" || raw === true;
   return raw;
@@ -314,7 +313,6 @@ export const FridaJailed: React.FC = () => {
       }
     });
     const socketData: StartFridaLibraryScriptRequest = { scriptName: data.scriptName, args: result };
-    console.log(socketData);
     stopScript();
     setFridaOutput([]);
     return socketSetup(socketData);
@@ -395,6 +393,7 @@ export const FridaJailed: React.FC = () => {
                 <div className="flex justify-between select-none">
                   <h2 className="text-xl font-semibold">Args Object</h2>
                   <button
+                    type="button"
                     className={`btn ${isObjectBuilderVisible ? "btn-error" : "btn-info"}`}
                     onClick={toggleObjectBuilder}
                   >
