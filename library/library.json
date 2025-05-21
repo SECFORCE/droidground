@@ -1,14 +1,14 @@
 [
   {
-    "filename": "enumClasses.js",
+    "filename": "enum_classes.js",
     "description": "Enumerate all Java classes"
   },
   {
-    "filename": "enumMethods.js",
+    "filename": "enum_methods.js",
     "description": "Enumerate all methods declared in a Java class"
   },
   {
-    "filename": "findPattern.js",
+    "filename": "find_pattern.js",
     "description": "Find all Java classes that match a pattern"
   },
   {
@@ -18,5 +18,9 @@
   {
     "filename": "hook_method.js",
     "description": "Dynamically hooks all overloads of a specified Java method"
+  },
+  {
+    "filename": "log_interceptor.js",
+    "description": "Intercept and log all calls to Android's logging functions"
   }
 ]
