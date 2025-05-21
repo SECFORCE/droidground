@@ -78,5 +78,5 @@ When adding a new script:
 
 - Save your script to the `library/` folder.
 - Export `run(args)` and `schema()`.
-- Add an entry to `ibrary.json` with a clear description.
+- Add an entry to `library.json` with a clear description.
 - Test your script on a sample app to verify it runs and validates correctly.
