@@ -12,6 +12,7 @@ export const REST_API_ENDPOINTS = {
   BUGREPORT: "/bugreport",
   PACKAGES: "/packages",
   APK: "/apk",
+  LIBRARY: "/library",
 } as const;
 
 export const WEBSOCKET_ENDPOINTS = {

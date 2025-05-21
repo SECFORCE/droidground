@@ -33,6 +33,7 @@ import { libraryFile, resourceFile, resourcesDir, safeFileExists } from "@server
 import { DEFAULT_UPLOAD_FOLDER, RESOURCES } from "@server/config";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
 import { downloadFridaServer, getFridaVersion, mapAbiToFridaArch } from "@server/utils/frida";
+import { StartFridaLibraryScriptRequest } from "@shared/api";
 
 const H264Capabilities = TinyH264Decoder.capabilities.h264;
 
@@ -243,10 +244,8 @@ const setupWs = async (httpServer: HTTPServer) => {
           /*
            * Frida jailed
            */
-          // TODO parse message instead of hardcoding the script (just for testing)
-          const scriptName = "enumMethods.js";
-          const args = { className: "java.lang.String" };
-
+          // TODO: Add body validation
+          const { scriptName, args } = JSON.parse(msg.toString()) as StartFridaLibraryScriptRequest;
           const filename = libraryFile(scriptName);
           const scriptContent = await fs.readFile(filename, "utf-8");
           const device = await frida.getUsbDevice();

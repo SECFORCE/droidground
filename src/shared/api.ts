@@ -1,5 +1,5 @@
 import { LsEntry } from "@server/utils/types";
-import { DroidGroundFeatures, IntentExtra } from "@shared/types";
+import { DroidGroundFeatures, FridaLibrary, IntentExtra } from "@shared/types";
 
 /***************************
  *         Generic         *
@@ -75,7 +75,11 @@ export interface StartServiceRequest {
   //user?: number;
 }
 
+export interface FridaLibraryResponse {
+  library: FridaLibrary;
+}
+
 export interface StartFridaLibraryScriptRequest {
-  script: string;
+  scriptName: string;
   args: null | Record<string, any>;
 }

@@ -28,6 +28,7 @@ import { capitalize } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
 import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER } from "@server/config";
 import { CompanionAttackSurfaceResponse } from "@server/utils/types";
+import { loadFridaLibrary } from "@server/utils/frida";
 
 class APIController {
   features: RequestHandler = async (req, res) => {
@@ -450,6 +451,17 @@ class APIController {
     } catch (error) {
       Logger.error(`Error importing database: ${error}`);
       res.status(500).json({ message: "An error occurred while installing the APK." }).end();
+    }
+  };
+
+  getFridaLibrary: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    try {
+      const fridaLibrary = await loadFridaLibrary();
+      res.json({ library: fridaLibrary }).end();
+    } catch (error: any) {
+      Logger.error(`Error getting Frida library: ${error}`);
+      res.status(500).json({ message: "An error occurred while getting the Frida library." }).end();
     }
   };
 

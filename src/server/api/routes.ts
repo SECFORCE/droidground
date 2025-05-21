@@ -13,6 +13,7 @@ const singleton = ManagerSingleton.getInstance();
 const upload = multer({ dest: path.join(singleton.getTmpDir(), "uploads") });
 const endpoint = Router(); // Define an Express Router
 const features = singleton.getConfig().features;
+const fridaJailEnabled = features.fridaType === "full" ? false : true;
 
 // Endpoint implementation
 export default (app: Router) => {
@@ -41,6 +42,7 @@ export default (app: Router) => {
   endpoint.get(E.BUGREPORT, checkFeatureEnabled(features.bugReportEnabled), APIController.downloadBugreport);
   endpoint.get(E.PACKAGES, checkFeatureEnabled(features.appManagerEnabled), APIController.getPackageInfos);
   endpoint.post(E.APK, checkFeatureEnabled(features.appManagerEnabled), upload.single("apkFile"), APIController.apk);
+  endpoint.get(E.LIBRARY, checkFeatureEnabled(fridaJailEnabled), APIController.getFridaLibrary);
 
   endpoint.all("/*all", APIController.genericError);
 };
