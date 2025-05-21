@@ -132,3 +132,4 @@ dist
 # Custom
 resources
 docker/data
+init.d

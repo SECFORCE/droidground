@@ -13,6 +13,7 @@ import { setupFrida } from "./utils/frida";
 import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { setupScrcpy } from "./utils/scrcpy";
 import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
+import { execSync } from "child_process";
 
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
@@ -91,6 +92,7 @@ export class ManagerSingleton {
       }
 
       await this.setupAdb();
+      this.setCtf();
       if (this.getConfig().features.fridaEnabled) {
         await setupFrida();
       }
@@ -184,5 +186,17 @@ export class ManagerSingleton {
     await adb.subprocess.noneProtocol.spawnWait(`am force-stop ${this.config.packageName} 1`);
     // And then reopen it
     await adb.subprocess.noneProtocol.spawnWait(`monkey -p ${this.config.packageName} 1`);
+  }
+
+  public setCtf() {
+    const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "";
+    const setupScript = path.resolve(initDFolder, "setup.sh");
+    execSync(setupScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
+  }
+
+  public resetCtf() {
+    const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "";
+    const setupScript = path.resolve(initDFolder, "reset.sh");
+    execSync(setupScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
   }
 }

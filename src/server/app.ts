@@ -290,6 +290,8 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
   await manager.init(httpServer);
   // A device is needed, otherwise there's nothing to do here
   await manager.setAdb();
+  manager.setCtf();
+
   if (manager.getConfig().features.fridaEnabled) {
     await setupFrida();
   }
