@@ -1,4 +1,5 @@
 export const REST_API_ENDPOINTS = {
+  RESET: "/reset", // run the reset.sh script
   FEATURES: "/features",
   INFO: "/info",
   RESTART: "/restart", // restart the target app

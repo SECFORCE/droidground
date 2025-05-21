@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import Logo from "@client/assets/logo.png";
 import { PAGES } from "@client/config";
+import { RESTManagerInstance } from "@client/api/rest";
+import toast from "react-hot-toast";
 
 interface INavItem {
   label: string;
@@ -29,6 +31,16 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [hovered, setHovered] = useState<INavItem | null>(null);
+
+  const reset = async () => {
+    try {
+      await RESTManagerInstance.resetCtf();
+      toast.success("Reset correctly performed");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error while resetting the CTF");
+    }
+  };
 
   return (
     <nav className="px-2 py-1">
@@ -64,6 +76,9 @@ const Navbar: React.FC = () => {
               </button>
             </li>
           ))}
+        <button className="btn btn-error" onClick={reset}>
+          Reset
+        </button>
       </ul>
     </nav>
   );

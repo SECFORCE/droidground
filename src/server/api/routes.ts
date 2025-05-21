@@ -27,6 +27,7 @@ export default (app: Router) => {
     next();
   });
 
+  endpoint.post(E.RESET, APIController.reset);
   endpoint.get(E.FEATURES, APIController.features);
   endpoint.get(E.INFO, APIController.info);
   endpoint.post(E.RESTART, APIController.restartApp);

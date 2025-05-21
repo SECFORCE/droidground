@@ -14,6 +14,7 @@ import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { setupScrcpy } from "./utils/scrcpy";
 import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
 import { execSync } from "child_process";
+import { safeFileExists } from "./utils/helpers";
 
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
@@ -188,15 +189,27 @@ export class ManagerSingleton {
     await adb.subprocess.noneProtocol.spawnWait(`monkey -p ${this.config.packageName} 1`);
   }
 
-  public setCtf() {
+  public setCtf(): boolean {
     const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "";
     const setupScript = path.resolve(initDFolder, "setup.sh");
-    execSync(setupScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
+    if (safeFileExists(setupScript)) {
+      execSync(setupScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
+      return true;
+    } else {
+      Logger.error(`setup.sh script missing in the ${initDFolder}`);
+      return false;
+    }
   }
 
-  public resetCtf() {
+  public resetCtf(): boolean {
     const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "";
-    const setupScript = path.resolve(initDFolder, "reset.sh");
-    execSync(setupScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
+    const resetScript = path.resolve(initDFolder, "reset.sh");
+    if (safeFileExists(resetScript)) {
+      execSync(resetScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
+      return true;
+    } else {
+      Logger.error(`reset.sh script missing in the ${initDFolder}`);
+      return false;
+    }
   }
 }

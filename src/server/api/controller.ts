@@ -42,6 +42,24 @@ class APIController {
     }
   };
 
+  reset: RequestHandler = async (req, res) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    try {
+      const singleton = ManagerSingleton.getInstance();
+      const resetDone = singleton.resetCtf();
+      if (!resetDone) {
+        res.status(500).json({ message: "An error occurred while resetting the CTF" }).end();
+        return;
+      }
+
+      await singleton.runTargetApp();
+      res.json({ result: "CTF correctly reset" }).end();
+    } catch (error: any) {
+      Logger.error(`Error resetting the CTF: ${error}`);
+      res.status(500).json({ message: "An error occurred while resetting the CTF" }).end();
+    }
+  };
+
   restartApp: RequestHandler = async (req, res) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {

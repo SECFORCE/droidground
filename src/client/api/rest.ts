@@ -19,6 +19,11 @@ import { AxiosResponse } from "axios";
 // Not using try/catch statement here so every specific component
 // can handle the error in his own way
 class RESTManager {
+  async resetCtf(): Promise<AxiosResponse<IGenericResultRes>> {
+    const res = await http.post<IGenericResultRes>(E.RESET);
+    return res;
+  }
+
   async getFeatures(): Promise<AxiosResponse<DroidGroundFeaturesResponse>> {
     const res = await http.get<DroidGroundFeaturesResponse>(E.FEATURES);
     return res;
