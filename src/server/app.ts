@@ -8,6 +8,7 @@ import cors from "cors";
 import { WebSocketServer, WebSocket } from "ws";
 import "@dotenvx/dotenvx/config";
 import frida, { FileDescriptor, ProcessID } from "frida";
+import Ajv from "ajv";
 
 // '@yume-chan' imports
 import { Adb, decodeUtf8, encodeUtf8 } from "@yume-chan/adb";
@@ -25,15 +26,13 @@ import { TinyH264Decoder } from "@yume-chan/scrcpy-decoder-tinyh264";
 import { ManagerSingleton } from "@server/manager";
 import api from "@server/api";
 import { DataMetadata, StreamingPhase, StreamMetadata, WSMessageType } from "@shared/types";
-
-// Local imports
 import Logger from "@server/utils/logger";
-import { WebsocketClient } from "@server/utils/types";
+import { IFridaRPC, WebsocketClient } from "@server/utils/types";
 import { broadcastForPhase, sendStructuredMessage } from "@server/utils/ws";
-import { resourceFile, resourcesDir, safeFileExists } from "@server/utils/helpers";
+import { libraryFile, resourceFile, resourcesDir, safeFileExists } from "@server/utils/helpers";
 import { DEFAULT_UPLOAD_FOLDER, RESOURCES } from "@server/config";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
-import { downloadFridaServer, getFridaVersion, mapAbiToFridaArch } from "@server/frida/setup";
+import { downloadFridaServer, getFridaVersion, mapAbiToFridaArch } from "@server/utils/frida";
 
 const H264Capabilities = TinyH264Decoder.capabilities.h264;
 
@@ -160,6 +159,7 @@ const setupScrcpy = async () => {
 
 const setupWs = async (httpServer: HTTPServer) => {
   const features = ManagerSingleton.getInstance().getConfig().features;
+  const fridaType = features.fridaType;
 
   const wssStreaming = new WebSocketServer({ noServer: true });
   const wssTerminal = new WebSocketServer({ noServer: true });
@@ -215,29 +215,72 @@ const setupWs = async (httpServer: HTTPServer) => {
           ws.send(message.payload);
         };
 
-        const scriptContent = msg.toString();
+        if (fridaType === "full") {
+          /*
+           * Frida full
+           */
+          const scriptContent = msg.toString();
+          const device = await frida.getUsbDevice();
 
-        const device = await frida.getUsbDevice();
+          wsFridaSessions.set(ws, { device: device, pid: null, script: null });
+          device.output.connect(onOutput);
 
-        wsFridaSessions.set(ws, { device: device, pid: null, script: null });
+          const droidGroundConfig = ManagerSingleton.getInstance().getConfig();
+          const pid = await device.spawn(droidGroundConfig.packageName);
+          const session = await device.attach(pid);
+          wsFridaSessions.set(ws, { device: device, pid: pid, script: null });
 
-        device.output.connect(onOutput);
+          session.detached.connect(onDetached);
+          const script = await session.createScript(scriptContent);
+          wsFridaSessions.set(ws, { device: device, pid: pid, script: script });
+          script.message.connect(onMessage);
 
-        const droidGroundConfig = ManagerSingleton.getInstance().getConfig();
+          await script.load();
 
-        const pid = await device.spawn(droidGroundConfig.packageName);
-        const session = await device.attach(pid);
-        wsFridaSessions.set(ws, { device: device, pid: pid, script: null });
+          Logger.info(`Resuming (${pid})`);
+          await device.resume(pid);
+        } else {
+          /*
+           * Frida jailed
+           */
+          // TODO parse message instead of hardcoding the script (just for testing)
+          const scriptName = "enumMethods.js";
+          const args = { className: "java.lang.String" };
 
-        session.detached.connect(onDetached);
-        const script = await session.createScript(scriptContent);
-        wsFridaSessions.set(ws, { device: device, pid: pid, script: script });
-        script.message.connect(onMessage);
+          const filename = libraryFile(scriptName);
+          const scriptContent = await fs.readFile(filename, "utf-8");
+          const device = await frida.getUsbDevice();
 
-        await script.load();
+          wsFridaSessions.set(ws, { device: device, pid: null, script: null });
+          device.output.connect(onOutput);
+          const droidGroundConfig = ManagerSingleton.getInstance().getConfig();
+          const pid = await device.spawn(droidGroundConfig.packageName);
+          const session = await device.attach(pid);
+          wsFridaSessions.set(ws, { device: device, pid: pid, script: null });
 
-        Logger.info(`Resuming (${pid})`);
-        await device.resume(pid);
+          session.detached.connect(onDetached);
+
+          const script = await session.createScript(scriptContent);
+          wsFridaSessions.set(ws, { device: device, pid: pid, script: script });
+
+          script.message.connect(onMessage);
+          await script.load();
+
+          const rpc = script.exports as IFridaRPC;
+          const schema = await rpc.schema();
+
+          if (schema) {
+            const ajv = new Ajv();
+            const valid = ajv.validate(schema, args);
+            if (!valid) {
+              throw new Error("Inputs are invalid for the selected Frida script");
+            }
+          }
+
+          await rpc.run(args);
+          Logger.info(`Resuming (${pid})`);
+          await device.resume(pid);
+        }
       } catch (err) {
         ws.send(`An error occurred while running Frida script`);
       }
@@ -407,6 +450,7 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
   if (manager.getConfig().features.fridaEnabled) {
     await setupFrida();
   }
+
   await setupApi(app);
   await setupWs(httpServer);
   await setupScrcpy();

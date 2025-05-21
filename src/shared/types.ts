@@ -13,6 +13,7 @@ export interface DroidGroundFeatures {
   appManagerEnabled: boolean;
   terminalEnabled: boolean;
   logcatEnabled: boolean;
+  fridaType: "full" | "jail";
 }
 
 export interface DroidGroundConfig {
@@ -84,3 +85,10 @@ export interface FridaState {
   pid: frida.ProcessID | null;
   script: frida.Script | null;
 }
+
+export interface FridaScript {
+  filename: string;
+  description: string;
+}
+
+export type FridaLibrary = FridaScript[];

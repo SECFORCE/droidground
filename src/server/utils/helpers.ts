@@ -24,7 +24,7 @@ export const resourceFile = (filename: string) => {
   return path.resolve(resourcesDir(), filename);
 };
 
-export const fridaScript = (filename: string) => {
+export const libraryFile = (filename: string) => {
   return path.resolve(fridaScriptsDir(), filename);
 };
 

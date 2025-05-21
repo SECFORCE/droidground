@@ -1,5 +1,7 @@
-import { StreamingPhase } from "@shared/types";
+import { JSONSchemaType } from "ajv";
+import { ScriptExports } from "frida";
 import { WebSocket } from "ws";
+import { StreamingPhase } from "@shared/types";
 
 export interface WebsocketClient {
   state: StreamingPhase;
@@ -31,3 +33,8 @@ export type CompanionAttackSurfaceResponse = {
     [packageName: string]: CompanionAttackSurface;
   };
 };
+
+export interface IFridaRPC extends ScriptExports {
+  run: (args: any) => Promise<void>;
+  schema: () => Promise<null | JSONSchemaType<any>>;
+}

@@ -74,3 +74,8 @@ export interface StartServiceRequest {
   extras?: IntentExtra[];
   //user?: number;
 }
+
+export interface StartFridaLibraryScriptRequest {
+  script: string;
+  args: null | Record<string, any>;
+}

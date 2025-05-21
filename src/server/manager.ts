@@ -44,6 +44,7 @@ export class ManagerSingleton {
         startBroadcastReceiverEnabled: !(process.env.DROIDGROUND_START_RECEIVER_DISABLED === "true"),
         startServiceEnabled: !(process.env.DROIDGROUND_START_SERVICE_DISABLED === "true"),
         terminalEnabled: !(process.env.DROIDGROUND_TERMINAL_DISABLED === "true"),
+        fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
       },
     };
   }

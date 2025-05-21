@@ -1,7 +1,11 @@
 import { execSync } from "child_process";
 import path from "path";
 import fs from "fs";
+import { readFile } from "fs/promises";
 import followRedirects from "follow-redirects";
+import { FridaLibrary } from "@shared/types";
+import { libraryFile } from "@server/utils/helpers";
+import Ajv from "ajv";
 
 export const getFridaVersion = async () => {
   return execSync("frida --version").toString().trim();
@@ -51,4 +55,33 @@ export const downloadFridaServer = async (version: string, arch: string, destFol
   fs.renameSync(decompressedPath, finalPath);
 
   return finalPath;
+};
+
+const fridaScriptSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      filename: { type: "string" },
+      description: { type: "string" },
+    },
+    required: ["filename", "description"],
+    additionalProperties: false,
+  },
+};
+
+export const loadFridaLibrary = async (): Promise<FridaLibrary> => {
+  const ajv = new Ajv();
+  const libraryJsonFile = libraryFile("library.json");
+  const data = await readFile(libraryJsonFile, "utf-8");
+  const parsed = JSON.parse(data);
+
+  const validate = ajv.compile(fridaScriptSchema);
+  const valid = validate(parsed);
+
+  if (!valid) {
+    throw new Error("Invalid frida library.json format.");
+  }
+
+  return parsed as FridaLibrary;
 };
