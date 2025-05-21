@@ -91,4 +91,7 @@ export interface FridaScript {
   description: string;
 }
 
-export type FridaLibrary = FridaScript[];
+export interface FridaFullScript extends FridaScript {
+  content: string;
+}
+export type FridaLibrary = FridaFullScript[];

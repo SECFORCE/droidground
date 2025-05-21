@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import { readFile } from "fs/promises";
 import followRedirects from "follow-redirects";
-import { FridaLibrary } from "@shared/types";
+import { FridaLibrary, FridaScript } from "@shared/types";
 import { libraryFile } from "@server/utils/helpers";
 import Ajv from "ajv";
 
@@ -83,5 +83,16 @@ export const loadFridaLibrary = async (): Promise<FridaLibrary> => {
     throw new Error("Invalid frida library.json format.");
   }
 
-  return parsed as FridaLibrary;
+  const fridaScripts = parsed as FridaScript[];
+
+  const fridaLibrary: FridaLibrary = fridaScripts.map(el => {
+    const fridaScript = libraryFile(el.filename);
+    const content = fs.readFileSync(fridaScript, "utf-8");
+    return {
+      ...el,
+      content: content,
+    };
+  });
+
+  return fridaLibrary;
 };
