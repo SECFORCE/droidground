@@ -26,5 +26,9 @@
   {
     "filename": "get_android_id.js",
     "description": "Get the unique ANDROID_ID for the target app"
+  },
+  {
+    "filename": "get_app_env_info.js",
+    "description": "Get Env App Info for the target app"
   }
 ]
