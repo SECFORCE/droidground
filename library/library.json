@@ -14,5 +14,9 @@
   {
     "filename": "clipboard.js",
     "description": "Dump the clipboard content"
+  },
+  {
+    "filename": "hook_method.js",
+    "description": "Dynamically hooks all overloads of a specified Java method"
   }
 ]

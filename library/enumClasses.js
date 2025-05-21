@@ -19,12 +19,12 @@ function enumAllClasses() {
   return allClasses;
 }
 
-/**
- * Enumerate all loaded Java class names in dot notation.
- *
- * @returns {void}
- */
 rpc.exports = {
+  /**
+   * Enumerate all loaded Java class names in dot notation.
+   *
+   * @returns {void}
+   */
   run: function () {
     var result = [];
     Java.perform(function () {

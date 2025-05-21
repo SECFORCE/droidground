@@ -44,15 +44,15 @@ function findClasses(pattern) {
   return foundClasses;
 }
 
-/**
- * Find all loaded Java class names matching the provided pattern
- * and send them using Frida's `send()` function.
- *
- * @param {Object} args - An object containing parameters.
- * @param {string} args.pattern - Regex pattern string to match class names.
- * @returns {void}
- */
 rpc.exports = {
+  /**
+   * Find all loaded Java class names matching the provided pattern
+   * and send them using Frida's `send()` function.
+   *
+   * @param {Object} args - An object containing parameters.
+   * @param {string} args.pattern - Regex pattern string to match class names.
+   * @returns {void}
+   */
   run: function (args) {
     const { pattern } = args;
     Java.perform(function () {

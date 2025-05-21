@@ -12,14 +12,14 @@ function enumMethods(targetClass) {
   return ownMethods.map(method => method.toString());
 }
 
-/**
- * Enumerate all methods declared in a given Java class.
- *
- * @param {Object} args - An object containing parameters.
- * @param {string} args.className - Fully qualified Java class name (e.g., "java.lang.String").
- * @returns {void}
- */
 rpc.exports = {
+  /**
+   * Enumerate all methods declared in a given Java class.
+   *
+   * @param {Object} args - An object containing parameters.
+   * @param {string} args.className - Fully qualified Java class name (e.g., "java.lang.String").
+   * @returns {void}
+   */
   run: function (args) {
     const { className } = args;
     var result = [];
