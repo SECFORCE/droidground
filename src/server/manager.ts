@@ -2,18 +2,27 @@ import os from "os";
 import path from "path";
 import fs from "fs";
 import { WebSocket } from "ws";
+import { Server as HTTPServer } from "http";
 import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "@yume-chan/adb";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from "@server/utils/logger";
 import { sleep } from "@shared/helpers";
-import { DroidGroundConfig, FridaState } from "@shared/types";
+import { DroidGroundConfig, FridaState, StreamMetadata } from "@shared/types";
 import { WebsocketClient } from "@server/utils/types";
+import { setupFrida } from "./utils/frida";
+import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
+import { setupScrcpy } from "./utils/scrcpy";
+import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
 
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
 
+  private initCompleted = false;
+  private httpServer: HTTPServer | null = null;
+  private scrcpyClient: AdbScrcpyClient<any> | null = null;
   private serverClient: AdbServerClient | null = null;
   private adb: Adb | null = null;
+  private device: AdbServerClient.Device | null = null;
   private config: DroidGroundConfig;
   private tmpDir: string = fs.mkdtempSync(path.join(os.tmpdir(), "droidground"));
   // Bugreports
@@ -22,6 +31,9 @@ export class ManagerSingleton {
   public wsStreamingClients: Map<string, WebsocketClient> = new Map<string, WebsocketClient>();
   public wsTerminalSessions: Map<WebSocket, any> = new Map<WebSocket, { process: AdbShellProtocolPtyProcess }>();
   public wsFridaSessions: Map<WebSocket, FridaState | null> = new Map<WebSocket, FridaState | null>();
+  // Scrcpy
+  public sharedVideoMetadata: StreamMetadata | null = null;
+  public sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;
 
   private constructor() {
     // private constructor prevents direct instantiation
@@ -56,7 +68,8 @@ export class ManagerSingleton {
     return ManagerSingleton.instance;
   }
 
-  public async init() {
+  public async init(httpServer: HTTPServer) {
+    this.httpServer = httpServer;
     const connector: AdbServerNodeTcpConnector = new AdbServerNodeTcpConnector({
       host: this.config.adb.host,
       port: this.config.adb.port,
@@ -66,17 +79,45 @@ export class ManagerSingleton {
     this.serverClient = client;
     const observer = await client.trackDevices();
 
-    observer.onDeviceAdd(devices => {
-      for (const device of devices) {
-        console.log("add");
-        console.log(device.serial);
+    observer.onDeviceAdd(async _devices => {
+      if (this.initCompleted) {
+        return;
       }
+
+      if (!this.httpServer) {
+        Logger.error("Missing httpServer, cannot stop the server");
+        return;
+      }
+
+      await this.setupAdb();
+      if (this.getConfig().features.fridaEnabled) {
+        await setupFrida();
+      }
+
+      const host = process.env.DROIDGROUND_HOST || "0.0.0.0";
+      const port = process.env.DROIDGROUND_PORT || 4242;
+      this.httpServer.listen(Number(port), host, () => {
+        Logger.info(`Restarting DroidGround on http://${host}:${port}.`);
+      });
+      await setupScrcpy();
+      this.initCompleted = true;
     });
 
-    observer.onDeviceRemove(devices => {
+    observer.onDeviceRemove(async devices => {
       for (const device of devices) {
-        console.log("remove");
-        console.log(device.serial);
+        Logger.debug(`Device with serial ${device.serial} disconnected`);
+        if (!this.httpServer) {
+          Logger.error("Missing httpServer, cannot stop the server");
+          continue;
+        }
+
+        if (device.serial === this.device?.serial) {
+          Logger.info("Stopping HTTP Server.");
+          this.httpServer.close();
+          this.initCompleted = false;
+          this.adb = null;
+          await this.scrcpyClient?.close();
+        }
       }
     });
   }
@@ -94,7 +135,10 @@ export class ManagerSingleton {
     Logger.debug(devices);
     const device = devices[0];
 
+    this.device = device;
+
     const transport: AdbTransport = await serverClient.createTransport(device);
+    Logger.debug("Transport created.");
     const adb: Adb = new Adb(transport);
     return adb;
   }
@@ -112,6 +156,11 @@ export class ManagerSingleton {
         await sleep(5000);
       }
     }
+    this.initCompleted = true;
+  }
+
+  public setScrcpyClient(scrcpyClient: AdbScrcpyClient<any>) {
+    this.scrcpyClient = scrcpyClient;
   }
 
   public async getAdb(): Promise<Adb> {

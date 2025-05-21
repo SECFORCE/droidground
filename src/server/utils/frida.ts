@@ -3,9 +3,13 @@ import path from "path";
 import fs from "fs";
 import { readFile } from "fs/promises";
 import followRedirects from "follow-redirects";
-import { FridaLibrary, FridaScript } from "@shared/types";
-import { libraryFile } from "@server/utils/helpers";
 import Ajv from "ajv";
+import { ReadableStream } from "@yume-chan/stream-extra";
+import { FridaLibrary, FridaScript } from "@shared/types";
+import { libraryFile, resourceFile, resourcesDir, safeFileExists } from "@server/utils/helpers";
+import Logger from "@server/utils/logger";
+import { DEFAULT_UPLOAD_FOLDER, RESOURCES } from "@server/config";
+import { ManagerSingleton } from "@server/manager";
 
 export const getFridaVersion = async () => {
   return execSync("frida --version").toString().trim();
@@ -95,4 +99,47 @@ export const loadFridaLibrary = async (): Promise<FridaLibrary> => {
   });
 
   return fridaLibrary;
+};
+
+export const setupFrida = async () => {
+  Logger.info("Downloading Frida Server for the attached device");
+  const singleton = ManagerSingleton.getInstance();
+  const adb = await singleton.getAdb();
+  const fridaVersion = await getFridaVersion();
+  const abi = (await adb.subprocess.noneProtocol.spawnWaitText("getprop ro.product.cpu.abi")).trim();
+  const arch = mapAbiToFridaArch(abi);
+
+  const fridaServerPath = await downloadFridaServer(fridaVersion, arch, resourcesDir());
+  Logger.info(`Frida server downloaded at ${fridaServerPath}`);
+
+  // Push the frida-server
+  const sync = await adb.sync();
+  const fridaServerDevicePath = path.resolve(DEFAULT_UPLOAD_FOLDER, RESOURCES.FRIDA_SERVER);
+  try {
+    const fridaFile = resourceFile(RESOURCES.FRIDA_SERVER);
+    if (!safeFileExists(fridaFile)) {
+      throw new Error("Frida Server file is missing");
+    }
+
+    const fridaBuffer: Buffer = await readFile(fridaFile);
+    await sync.write({
+      filename: fridaServerDevicePath,
+      file: new ReadableStream({
+        start(controller) {
+          controller.enqueue(new Uint8Array(fridaBuffer));
+          controller.close();
+        },
+      }),
+      permission: 0o755, // Executable
+    });
+  } catch (e) {
+    Logger.error("Error while pushing Frida Server");
+    Logger.error(e);
+  } finally {
+    await sync.dispose();
+  }
+  // Start frida-server
+  await adb.subprocess.noneProtocol.spawnWaitText("killall frida-server");
+  adb.subprocess.noneProtocol.spawn(`su -c '${fridaServerDevicePath}'`);
+  Logger.info("Frida server started");
 };
