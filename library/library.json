@@ -22,5 +22,9 @@
   {
     "filename": "log_interceptor.js",
     "description": "Intercept and log all calls to Android's logging functions"
+  },
+  {
+    "filename": "get_android_id.js",
+    "description": "Get the unique ANDROID_ID for the target app"
   }
 ]
