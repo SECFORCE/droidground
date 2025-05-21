@@ -34,5 +34,9 @@
   {
     "filename": "enum_dex_classes.js",
     "description": "Enumerate Dex classes"
+  },
+  {
+    "filename": "debugger_connected_bypass.js",
+    "description": "Debugger connected Bypass"
   }
 ]
