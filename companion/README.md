@@ -12,7 +12,8 @@ The application waits for a connection on the `droidground` UNIX abstract namesp
 The application currently supports the following methods:
 
 - `getVersion`: which returns the value of `BuildConfig.VERSION_NAME`
-- `getPackageInfos`: which returns structured info about the installed applications
+- `getPackageInfos`: which returns structured info about the applications
+- `getAttackSurfaces`: which returns the exported activities, broadcast receivers, services and content providers for the requested applications.
 
 ## Usage
 
