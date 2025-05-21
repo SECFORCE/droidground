@@ -10,5 +10,9 @@
   {
     "filename": "findPattern.js",
     "description": "Find all Java classes that match a pattern"
+  },
+  {
+    "filename": "clipboard.js",
+    "description": "Dump the clipboard content"
   }
 ]
