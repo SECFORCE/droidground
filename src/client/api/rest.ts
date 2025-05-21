@@ -4,6 +4,7 @@ import {
   CompanionPackageInfos,
   DeviceInfoResponse,
   DroidGroundFeaturesResponse,
+  FridaLibraryResponse,
   GetFilesRequest,
   GetFilesResponse,
   IGenericResultRes,
@@ -90,6 +91,11 @@ class RESTManager {
 
   async installApk(formData: FormData): Promise<AxiosResponse<IGenericResultRes>> {
     const res = await http.post<IGenericResultRes>(E.APK, formData);
+    return res;
+  }
+
+  async getFridaLibrary(): Promise<AxiosResponse<FridaLibraryResponse>> {
+    const res = await http.get<FridaLibraryResponse>(E.LIBRARY);
     return res;
   }
 }

@@ -59,7 +59,7 @@ const FileItem: React.FC<FileItemProps> = ({ item, onOpen }) => {
   );
 };
 
-export const FileBrowser = () => {
+export const FileBrowser: React.FC = () => {
   const [path, setPath] = useState("/");
   const [items, setItems] = useState<FileItemType[]>([]);
   const [loading, setLoading] = useState(false);

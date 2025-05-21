@@ -2,7 +2,8 @@ import { lazy } from "react";
 
 // Normal views
 export { Overview } from "@client/views/Overview";
-export { Frida } from "@client/views/Frida";
+export { FridaFull } from "@client/views/FridaFull";
+export { FridaJailed } from "@client/views/FridaJailed";
 export { FileBrowser } from "@client/views/FileBrowser";
 export { AppManager } from "@client/views/AppManager";
 export { Logs } from "@client/views/Logs";

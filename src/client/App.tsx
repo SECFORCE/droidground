@@ -3,7 +3,17 @@ import { RouterProvider } from "@tanstack/react-router";
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
 import { WebSocketProvider } from "@client/context/WebSocket";
 import { Header, VideoRenderer } from "@client/layout";
-import { Overview, Frida, NotFound, FileBrowser, AppManager, Terminal, Logs, Error } from "@client/views";
+import {
+  Overview,
+  FridaFull,
+  FridaJailed,
+  NotFound,
+  FileBrowser,
+  AppManager,
+  Terminal,
+  Logs,
+  Error,
+} from "@client/views";
 import { PAGES } from "@client/config";
 import { APIProvider, useAPI } from "@client/context/API";
 import { sleep } from "@shared/helpers";
@@ -149,10 +159,16 @@ const indexRoute = createRoute({
   component: Overview,
 });
 
-const fridaRoute = createRoute({
+const fridaFullRoute = createRoute({
   getParentRoute: () => defaultRoute,
   path: PAGES.FRIDA,
-  component: Frida,
+  component: FridaFull,
+});
+
+const fridaJailedRoute = createRoute({
+  getParentRoute: () => defaultRoute,
+  path: PAGES.FRIDA,
+  component: FridaJailed,
 });
 
 const fileBrowserRoute = createRoute({
@@ -187,6 +203,9 @@ const fileBrowserRouteEnabled = !(import.meta.env.DROIDGROUND_FILE_BROWSER_DISAB
 const appManagerRouteEnabled = !(import.meta.env.DROIDGROUND_APP_MANAGER_DISABLED === "true");
 const terminalRouteEnabled = !(import.meta.env.DROIDGROUND_TERMINAL_DISABLED === "true");
 const logsRouteEnabled = !(import.meta.env.DROIDGROUND_LOGCAT_DISABLED === "true");
+
+// Determine the correct Frida route to use. Default value is FridaJailed
+const fridaRoute = import.meta.env.DROIDGROUND_FRIDA_TYPE === "full" ? fridaFullRoute : fridaJailedRoute;
 
 const allRoutes = [indexRoute, fridaRoute, fileBrowserRoute, appManagerRoute, terminalRoute, logsRoute];
 const routesEnabled = [

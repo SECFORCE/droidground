@@ -9,7 +9,7 @@ setImmediate(function() {
     send('Hello, world!');
 });`;
 
-export const Frida: React.FC = () => {
+export const FridaFull: React.FC = () => {
   const [isRunDisabled, setIsRunDisabled] = useState<boolean>(false);
   const [isStopDisabled, setIsStopDisabled] = useState<boolean>(true);
   const [code, setCode] = useState<string>(fridaScriptPlaceholder);
