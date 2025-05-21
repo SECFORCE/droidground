@@ -135,15 +135,26 @@ function uniqBy(array, key) {
 
 /**
  * Entry point to run a trace on a given pattern.
- *
- * @param {string} pattern - A pattern string to trace (Java class/method or module).
- *                           Supports exact names or regex (e.g., "com.example.Class", /decrypt/i, or "exports:*!open*").
+ * @param {Object} args - An object containing parameters.
+ * @param {string} args.pattern - A pattern string to trace (Java class/method or module).
+ *                                Supports exact names or regex (e.g., "com.example.Class", /decrypt/i, or "exports:*!open*").
  * @returns {void}
  */
 rpc.exports = {
-  run: function (pattern) {
+  run: function (args) {
+    const { pattern } = args;
     Java.perform(function () {
       trace(pattern);
     });
+  },
+  schema: function () {
+    return {
+      type: "object",
+      properties: {
+        pattern: { type: "string" },
+      },
+      required: ["pattern"],
+      additionalProperties: false,
+    };
   },
 };

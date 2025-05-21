@@ -48,16 +48,28 @@ function findClasses(pattern) {
  * Find all loaded Java class names matching the provided pattern
  * and send them using Frida's `send()` function.
  *
- * @param {string} pattern - Regex pattern string to match class names.
+ * @param {Object} args - An object containing parameters.
+ * @param {string} args.pattern - Regex pattern string to match class names.
  * @returns {void}
  */
 rpc.exports = {
-  run: function (pattern) {
+  run: function (args) {
+    const { pattern } = args;
     Java.perform(function () {
       const matches = findClasses(pattern);
       matches.forEach(function (className) {
         send(className);
       });
     });
+  },
+  schema: function () {
+    return {
+      type: "object",
+      properties: {
+        pattern: { type: "string" },
+      },
+      required: ["pattern"],
+      additionalProperties: false,
+    };
   },
 };

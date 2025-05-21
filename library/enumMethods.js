@@ -15,17 +15,29 @@ function enumMethods(targetClass) {
 /**
  * Enumerate all methods declared in a given Java class.
  *
- * @param {string} classname - Fully qualified Java class name (e.g., "java.lang.String").
+ * @param {Object} args - An object containing parameters.
+ * @param {string} args.className - Fully qualified Java class name (e.g., "java.lang.String").
  * @returns {void}
  */
 rpc.exports = {
-  run: function (classname) {
+  run: function (args) {
+    const { className } = args;
     var result = [];
     Java.perform(function () {
-      result = enumMethods(classname);
+      result = enumMethods(className);
       result.forEach(function (el) {
         send(el);
       });
     });
+  },
+  schema: function () {
+    return {
+      type: "object",
+      properties: {
+        className: { type: "string" },
+      },
+      required: ["className"],
+      additionalProperties: false,
+    };
   },
 };

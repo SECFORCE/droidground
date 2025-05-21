@@ -1,0 +1,14 @@
+[
+  {
+    "filename": "enumClasses.js",
+    "description": "Enumerate all Java classes"
+  },
+  {
+    "filename": "enumMethods.js",
+    "description": "Enumerate all methods declared in a Java class"
+  },
+  {
+    "filename": "findPattern.js",
+    "description": "Find all Java classes that match a pattern"
+  }
+]

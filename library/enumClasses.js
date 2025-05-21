@@ -34,4 +34,7 @@ rpc.exports = {
       });
     });
   },
+  schema: function () {
+    return null;
+  },
 };
