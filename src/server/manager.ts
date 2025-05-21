@@ -190,7 +190,7 @@ export class ManagerSingleton {
   }
 
   public setCtf(): boolean {
-    const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "";
+    const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const setupScript = path.resolve(initDFolder, "setup.sh");
     if (safeFileExists(setupScript)) {
       execSync(setupScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
@@ -202,7 +202,7 @@ export class ManagerSingleton {
   }
 
   public resetCtf(): boolean {
-    const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "";
+    const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const resetScript = path.resolve(initDFolder, "reset.sh");
     if (safeFileExists(resetScript)) {
       execSync(resetScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();

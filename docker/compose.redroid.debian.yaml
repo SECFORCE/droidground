@@ -19,6 +19,8 @@ services:
       - 4242:4242
     env_file:
       - ../.env
+    volumes:
+      - ./init.d:/init.d
     environment:
       - DG_DEVICE_TYPE=network
       - DG_DEVICE_HOST=redroid
