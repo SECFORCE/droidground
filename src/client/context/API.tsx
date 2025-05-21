@@ -22,6 +22,7 @@ const featuresConfig: DroidGroundFeatures = {
   startBroadcastReceiverEnabled: !(import.meta.env.DROIDGROUND_START_RECEIVER_DISABLED === "true"),
   startServiceEnabled: !(import.meta.env.DROIDGROUND_START_SERVICE_DISABLED === "true"),
   terminalEnabled: !(import.meta.env.DROIDGROUND_TERMINAL_DISABLED === "true"),
+  fridaType: import.meta.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
 };
 
 export const APIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

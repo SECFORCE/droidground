@@ -44,7 +44,9 @@ RUN npm install --ignore-scripts && \
   npm run build:client && \ 
   npm run build:server && \ 
   npm run copy-files
-RUN mkdir dist/resources && cp resources/scrcpy-server.jar dist/resources/scrcpy-server.jar
+RUN mkdir dist/resources && \
+  cp resources/scrcpy-server.jar dist/resources/scrcpy-server.jar && \
+  cp -r library dist
 COPY --from=companion-builder /usr/src/app/companion/droidground-companion.dex dist/resources/droidground-companion.dex
 
 #################################################################
