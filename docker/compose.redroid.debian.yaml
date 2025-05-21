@@ -1,3 +1,9 @@
+# This example is specific for Debian, run the following commands before starting the compose:
+# modprobe binder_linux devices=binder1,binder2,binder3,binder4,binder5,binder6
+# chmod 666 /dev/binder*
+#
+# You may find the Redroid deploy instructions for other distros here: https://github.com/remote-android/redroid-doc/tree/master/deploy
+
 services:
   redroid:
     privileged: true
@@ -5,7 +11,6 @@ services:
       - /dev/binder1:/dev/binder
       - /dev/binder2:/dev/hwbinder
       - /dev/binder3:/dev/vndbinder
-      - ./data:/data
     ports:
       - 5555:5555 # No need to expose this, but it's useful for debugging purposes
     container_name: redroid14
@@ -25,3 +30,4 @@ services:
       - DG_DEVICE_TYPE=network
       - DG_DEVICE_HOST=redroid
       - DG_DEVICE_PORT=5555
+      - DG_INIT_SCRIPTS_FOLDER=/init.d

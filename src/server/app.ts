@@ -271,6 +271,7 @@ const setupWs = async (httpServer: HTTPServer) => {
 };
 
 const checkResources = () => {
+  Logger.debug("Check resources...");
   const companionFile = resourceFile(RESOURCES.COMPANION_FILE);
   const scrcpyFile = resourceFile(RESOURCES.SCRCPY_SERVER);
   if (!safeFileExists(companionFile)) {
@@ -281,6 +282,7 @@ const checkResources = () => {
     Logger.error(`Scrcpy server is missing, run 'npm run scrcpy' to generate it`);
     process.exit(1);
   }
+  Logger.debug("Check resources done!");
 };
 
 export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer) => {
@@ -289,6 +291,7 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
 
   await manager.init(httpServer);
   // A device is needed, otherwise there's nothing to do here
+
   await manager.setAdb();
   manager.setCtf();
 

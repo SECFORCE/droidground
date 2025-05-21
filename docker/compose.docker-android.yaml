@@ -15,7 +15,10 @@ services:
       - 4242:4242
     env_file:
       - ../.env
+    volumes:
+      - ./init.d:/init.d
     environment:
       - DG_DEVICE_TYPE=network
       - DG_DEVICE_HOST=docker-android
       - DG_DEVICE_PORT=5555
+      - DG_INIT_SCRIPTS_FOLDER=/init.d

@@ -71,6 +71,7 @@ export class ManagerSingleton {
   }
 
   public async init(httpServer: HTTPServer) {
+    Logger.debug("Singleton init...");
     this.httpServer = httpServer;
     const connector: AdbServerNodeTcpConnector = new AdbServerNodeTcpConnector({
       host: this.config.adb.host,
@@ -105,6 +106,7 @@ export class ManagerSingleton {
       });
       await setupScrcpy();
       this.appStatus = AppStatus.RUNNING_PHASE;
+      Logger.debug("Singleton init done!");
     });
 
     observer.onDeviceRemove(async devices => {
@@ -129,7 +131,7 @@ export class ManagerSingleton {
   private async setupAdb() {
     const serverClient = this.serverClient as AdbServerClient;
 
-    await serverClient.waitFor({ usb: true, tcp: true }, "device");
+    await serverClient.waitFor(undefined, "device");
     const devices: AdbServerClient.Device[] = await serverClient.getDevices();
     if (devices.length === 0) {
       Logger.error("No device connected");
@@ -149,6 +151,7 @@ export class ManagerSingleton {
   }
 
   public async setAdb() {
+    Logger.debug("Adb setup....");
     while (true) {
       try {
         await this.setupAdb();
@@ -160,6 +163,7 @@ export class ManagerSingleton {
       }
     }
     this.appStatus = AppStatus.RUNNING_PHASE;
+    Logger.debug("Adb setup done!");
   }
 
   public setScrcpyClient(scrcpyClient: AdbScrcpyClient<any>) {
@@ -186,7 +190,20 @@ export class ManagerSingleton {
     // Force close the app
     await adb.subprocess.noneProtocol.spawnWait(`am force-stop ${this.config.packageName} 1`);
     // And then reopen it
-    await adb.subprocess.noneProtocol.spawnWait(`monkey -p ${this.config.packageName} 1`);
+
+    // Try with resolved activity first
+    const activityToLaunch = (
+      await adb.subprocess.noneProtocol.spawnWaitText(
+        `cmd package resolve-activity --brief ${this.config.packageName} | tail -n 1`,
+      )
+    ).trim();
+
+    if (activityToLaunch.length > 0) {
+      await adb.subprocess.noneProtocol.spawnWait(`am start ${activityToLaunch}`);
+    } else {
+      // Otherwise go with monkey
+      await adb.subprocess.noneProtocol.spawnWait(`monkey -p ${this.config.packageName} 1`);
+    }
   }
 
   public setCtf(): boolean {
