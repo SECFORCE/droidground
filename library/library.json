@@ -30,5 +30,9 @@
   {
     "filename": "get_app_env_info.js",
     "description": "Get Env App Info for the target app"
+  },
+  {
+    "filename": "enum_dex_classes.js",
+    "description": "Enumerate Dex classes"
   }
 ]
