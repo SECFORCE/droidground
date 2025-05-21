@@ -7,6 +7,7 @@ import { sleep } from "@shared/helpers";
 import { FridaLibrary } from "@shared/types";
 import { StartFridaLibraryScriptRequest } from "@shared/api";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
+import { PiWarningBold } from "react-icons/pi";
 
 type PrimitiveType = "string" | "number" | "boolean";
 type FieldType = PrimitiveType | "array";
@@ -362,6 +363,13 @@ export const FridaJailed: React.FC = () => {
       </div>
       <div className="card bg-base-300 border border-base-300">
         <div className="card-body p-4">
+          <div role="alert" className="alert alert-warning select-none">
+            <PiWarningBold size={20} />
+            <span>
+              In order to make this work you have to send a <b>correct</b> (or empty) <code>args</code> object which
+              matches the script you've chosen.
+            </span>
+          </div>
           <FormProvider {...startFridaScriptForm}>
             <form onSubmit={startFridaScriptForm.handleSubmit(runScript)}>
               {/* Script Selection */}
