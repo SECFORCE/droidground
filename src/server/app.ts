@@ -30,10 +30,10 @@ import { DataMetadata, StreamingPhase, StreamMetadata, WSMessageType } from "@sh
 import Logger from "@server/utils/logger";
 import { WebsocketClient } from "@server/utils/types";
 import { broadcastForPhase, sendStructuredMessage } from "@server/utils/ws";
-import { ensureFolderExists, resourceFile, resourcesDir, safeFileExists } from "@server/utils/helpers";
+import { resourceFile, resourcesDir, safeFileExists } from "@server/utils/helpers";
 import { DEFAULT_UPLOAD_FOLDER, RESOURCES } from "@server/config";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
-import { downloadFridaServer, getFridaVersion, mapAbiToFridaArch } from "./utils/frida";
+import { downloadFridaServer, getFridaVersion, mapAbiToFridaArch } from "@server/frida/setup";
 
 const H264Capabilities = TinyH264Decoder.capabilities.h264;
 
@@ -211,7 +211,7 @@ const setupWs = async (httpServer: HTTPServer) => {
 
         const onMessage = (m: frida.Message, data: Buffer | null) => {
           const message = m as frida.SendMessage;
-          Logger.info("Frida message:", message.payload, "data:", data);
+          Logger.info(`[Frida message] Payload: ${message.payload} - Data: ${data}`);
           ws.send(message.payload);
         };
 
@@ -294,7 +294,7 @@ const setupWs = async (httpServer: HTTPServer) => {
         await ptyProcess.kill();
       });
     } catch (err) {
-      Logger.error("Error initializing session:", err);
+      Logger.error(`Error initializing session: ${err}`);
       ws.send(`Error: ${err}`);
       ws.close();
     }
@@ -329,7 +329,7 @@ const setupWs = async (httpServer: HTTPServer) => {
           wsStreamingClients.set(id, { ...(currentClientData as WebsocketClient), state: nextState });
           break;
         default:
-          Logger.error("Unknown message type:", message);
+          Logger.error(`Unknown message type: ${message}`);
           break;
       }
     });

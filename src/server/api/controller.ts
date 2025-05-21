@@ -36,7 +36,7 @@ class APIController {
       const droidGroundConfig = ManagerSingleton.getInstance().getConfig();
       res.json({ features: droidGroundConfig.features }).end();
     } catch (error: any) {
-      Logger.error("Error getting features config:", error);
+      Logger.error(`Error getting features config: ${error}`);
       res.status(500).json({ message: "An error occurred while getting features config." }).end();
     }
   };
@@ -61,7 +61,7 @@ class APIController {
       };
       res.json(response).end();
     } catch (error: any) {
-      Logger.error("Error getting info:", error);
+      Logger.error(`Error getting info: ${error}`);
       res.status(500).json({ message: "An error occurred while getting device info." }).end();
     }
   };
@@ -134,7 +134,7 @@ class APIController {
       const result = await adb.subprocess.noneProtocol.spawnWaitText(command);
       res.json({ result: result }).end();
     } catch (error: any) {
-      Logger.error("Error starting activity:", error);
+      Logger.error(`Error starting activity: ${error}`);
       res.status(500).json({ message: "An error occurred while starting the activity." }).end();
     }
   };
@@ -185,7 +185,7 @@ class APIController {
       const result = await adb.subprocess.noneProtocol.spawnWaitText(command);
       res.json({ result: result }).end();
     } catch (error: any) {
-      Logger.error("Error starting broadcast:", error);
+      Logger.error(`Error starting broadcast: ${error}`);
       res.status(500).json({ message: "An error occurred while starting the broadcast." }).end();
     }
   };
@@ -236,7 +236,7 @@ class APIController {
       const result = await adb.subprocess.noneProtocol.spawnWaitText(command);
       res.json({ result: result }).end();
     } catch (error: any) {
-      Logger.error("Error starting service:", error);
+      Logger.error(`Error starting service: ${error}`);
       res.status(500).json({ message: "An error occurred while starting the service." }).end();
     }
   };
@@ -248,7 +248,7 @@ class APIController {
       await adb.subprocess.noneProtocol.spawnWait(`reboot -p`);
       res.json({ result: "Device shutted down" }).end();
     } catch (error: any) {
-      Logger.error("Error shutting down the device:", error);
+      Logger.error(`Error shutting down the device: ${error}`);
       res.status(500).json({ message: "An error occurred while shutting down the device." }).end();
     }
   };
@@ -260,7 +260,7 @@ class APIController {
       await adb.subprocess.noneProtocol.spawnWait(`reboot`);
       res.json({ result: "Device rebooted" }).end();
     } catch (error: any) {
-      Logger.error("Error rebooting the device:", error);
+      Logger.error(`Error rebooting the device: ${error}`);
       res.status(500).json({ message: "An error occurred while rebooting the device." }).end();
     }
   };
@@ -272,7 +272,7 @@ class APIController {
       const result = await adb.subprocess.noneProtocol.spawnWaitText(`logcat -d -t 500`);
       res.json({ result: result }).end();
     } catch (error: any) {
-      Logger.error("Error dumping logcat:", error);
+      Logger.error(`Error dumping logcat: ${error}`);
       res.status(500).json({ message: "An error occurred while dumping logcat." }).end();
     }
   };
@@ -284,7 +284,7 @@ class APIController {
       await adb.subprocess.noneProtocol.spawn(`logcat -c`);
       res.json({ result: "Logcat cleared" }).end();
     } catch (error: any) {
-      Logger.error("Error clearing logcat:", error);
+      Logger.error(`Error clearing logcat: ${error}`);
       res.status(500).json({ message: "An error occurred while clearing logcat." }).end();
     }
   };
@@ -306,7 +306,7 @@ class APIController {
       const files = parseLsAlOutput(result);
       res.json({ result: files }).end();
     } catch (error: any) {
-      Logger.error("Error getting files:", error);
+      Logger.error(`Error getting files: ${error}`);
       res.status(500).json({ message: "An error occurred while getting files." }).end();
     }
   };
@@ -324,7 +324,7 @@ class APIController {
 
       res.json({ isRunning: isBugreportRunning, isBugreportAvailable: bugreportFileExists }).end();
     } catch (error: any) {
-      Logger.error("Error running bugreportz:", error);
+      Logger.error(`Error running bugreportz: ${error}`);
       res.status(500).json({ message: "An error occurred while running bugreportz." }).end();
     }
   };
@@ -355,7 +355,7 @@ class APIController {
       const bugreportData = await adb.subprocess.noneProtocol?.spawnWait("bugreportz -s");
       await fs.writeFile(filePath, bugreportData);
     } catch (error: any) {
-      Logger.error("Error running bugreportz:", error);
+      Logger.error(`Error running bugreportz: ${error}`);
       // If the command has started we mean the response was already returned to the client (let's just fail kinda silently)
       if (!commandStarted) {
         res.status(500).json({ message: "An error occurred while running bugreportz." }).end();
@@ -377,7 +377,7 @@ class APIController {
       res.setHeader("Content-Disposition", "attachment; filename=bugreport.zip");
       res.status(200).send(bugreportContent);
     } catch (error: any) {
-      Logger.error("Error downloading bugreport:", error);
+      Logger.error(`Error downloading bugreport: ${error}`);
       res.status(500).json({ message: "An error occurred while downloading the bugreport." }).end();
     }
   };
@@ -408,7 +408,7 @@ class APIController {
 
       res.json(packageInfos).end();
     } catch (error: any) {
-      Logger.error("Error getting packages info:", error);
+      Logger.error(`Error getting packages info: ${error}`);
       res.status(500).json({ message: "An error occurred while getting packages info." }).end();
     }
   };
@@ -448,7 +448,7 @@ class APIController {
         res.json({ result: "APK correctly installed." }).end();
       }
     } catch (error) {
-      Logger.error("Error importing database:", error);
+      Logger.error(`Error importing database: ${error}`);
       res.status(500).json({ message: "An error occurred while installing the APK." }).end();
     }
   };

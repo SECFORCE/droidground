@@ -16,8 +16,16 @@ export const resourcesDir = () => {
   return path.resolve(rootDir(), "resources");
 };
 
+export const fridaScriptsDir = () => {
+  return path.resolve(rootDir(), "library");
+};
+
 export const resourceFile = (filename: string) => {
   return path.resolve(resourcesDir(), filename);
+};
+
+export const fridaScript = (filename: string) => {
+  return path.resolve(fridaScriptsDir(), filename);
 };
 
 export const safeFileExists = (filePath: string) => {
