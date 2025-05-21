@@ -8,7 +8,7 @@ import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from "@server/utils/logger";
 import { sleep } from "@shared/helpers";
 import { DroidGroundConfig, FridaState, StreamMetadata } from "@shared/types";
-import { WebsocketClient } from "@server/utils/types";
+import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "./utils/frida";
 import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { setupScrcpy } from "./utils/scrcpy";
@@ -17,7 +17,7 @@ import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
 
-  private initCompleted = false;
+  private appStatus: AppStatus = AppStatus.INIT_PHASE;
   private httpServer: HTTPServer | null = null;
   private scrcpyClient: AdbScrcpyClient<any> | null = null;
   private serverClient: AdbServerClient | null = null;
@@ -80,7 +80,8 @@ export class ManagerSingleton {
     const observer = await client.trackDevices();
 
     observer.onDeviceAdd(async _devices => {
-      if (this.initCompleted) {
+      // Let's do this only when the device is disconnected and everything needs to be setup again
+      if (this.appStatus !== AppStatus.DISCONNECTED_PHASE) {
         return;
       }
 
@@ -100,7 +101,7 @@ export class ManagerSingleton {
         Logger.info(`Restarting DroidGround on http://${host}:${port}.`);
       });
       await setupScrcpy();
-      this.initCompleted = true;
+      this.appStatus = AppStatus.RUNNING_PHASE;
     });
 
     observer.onDeviceRemove(async devices => {
@@ -114,7 +115,7 @@ export class ManagerSingleton {
         if (device.serial === this.device?.serial) {
           Logger.info("Stopping HTTP Server.");
           this.httpServer.close();
-          this.initCompleted = false;
+          this.appStatus = AppStatus.DISCONNECTED_PHASE;
           this.adb = null;
           await this.scrcpyClient?.close();
         }
@@ -122,9 +123,10 @@ export class ManagerSingleton {
     });
   }
 
-  private async setupAdb(): Promise<Adb> {
+  private async setupAdb() {
     const serverClient = this.serverClient as AdbServerClient;
 
+    await serverClient.waitFor({ usb: true, tcp: true }, "device");
     const devices: AdbServerClient.Device[] = await serverClient.getDevices();
     if (devices.length === 0) {
       Logger.error("No device connected");
@@ -140,15 +142,13 @@ export class ManagerSingleton {
     const transport: AdbTransport = await serverClient.createTransport(device);
     Logger.debug("Transport created.");
     const adb: Adb = new Adb(transport);
-    return adb;
+    this.adb = adb;
   }
 
   public async setAdb() {
-    let adb: Adb;
     while (true) {
       try {
-        adb = await this.setupAdb();
-        this.adb = adb;
+        await this.setupAdb();
         break;
       } catch (e) {
         Logger.error(`Error while trying to setup adb connection: ${e}`);
@@ -156,7 +156,7 @@ export class ManagerSingleton {
         await sleep(5000);
       }
     }
-    this.initCompleted = true;
+    this.appStatus = AppStatus.RUNNING_PHASE;
   }
 
   public setScrcpyClient(scrcpyClient: AdbScrcpyClient<any>) {

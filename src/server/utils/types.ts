@@ -3,6 +3,12 @@ import { ScriptExports } from "frida";
 import { WebSocket } from "ws";
 import { StreamingPhase } from "@shared/types";
 
+export enum AppStatus {
+  INIT_PHASE = "init", // Just started, initial status
+  RUNNING_PHASE = "running", // Everything is up & running
+  DISCONNECTED_PHASE = "disconnected", // The device was disconnected
+}
+
 export interface WebsocketClient {
   state: StreamingPhase;
   ws: WebSocket;
