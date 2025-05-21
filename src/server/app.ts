@@ -213,7 +213,9 @@ const setupWs = async (httpServer: HTTPServer) => {
         const onMessage = (m: frida.Message, data: Buffer | null) => {
           const message = m as frida.SendMessage;
           Logger.info(`[Frida message] Payload: ${message.payload} - Data: ${data}`);
-          ws.send(message.payload);
+          if (message.payload) {
+            ws.send(message.payload);
+          }
         };
 
         if (fridaType === "full") {
