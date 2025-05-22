@@ -81,5 +81,5 @@ export interface FridaLibraryResponse {
 
 export interface StartFridaLibraryScriptRequest {
   scriptName: string;
-  args: null | Record<string, any>;
+  args: Record<string, any>;
 }

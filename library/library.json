@@ -38,5 +38,9 @@
   {
     "filename": "debugger_connected_bypass.js",
     "description": "Debugger connected Bypass"
+  },
+  {
+    "filename": "hello.js",
+    "description": "Just a simple Hello World script (for testing purposes)"
   }
 ]

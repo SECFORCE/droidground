@@ -1,13 +1,28 @@
 import fs from "fs/promises";
-import { WebSocketServer, WebSocket } from "ws";
+import { WebSocketServer, WebSocket, RawData } from "ws";
 import frida, { FileDescriptor, ProcessID } from "frida";
 import Ajv from "ajv";
 import { ManagerSingleton } from "@server/manager";
 import Logger from "@server/utils/logger";
 import { IFridaRPC } from "@server/utils/types";
 import { libraryFile } from "@server/utils/helpers";
-
 import { StartFridaLibraryScriptRequest } from "@shared/api";
+import { startFridaLibraryScriptSchema } from "@server/ws/schemas";
+
+const ajv = new Ajv();
+
+const parseWsMessage = (msg: RawData): StartFridaLibraryScriptRequest | undefined => {
+  try {
+    const msgObject = JSON.parse(msg.toString());
+    const isValid = ajv.validate(startFridaLibraryScriptSchema, msgObject);
+    if (!isValid) {
+      throw new Error("Object content is not valid");
+    }
+    return msgObject as StartFridaLibraryScriptRequest;
+  } catch (e) {
+    Logger.error(`Unable to parse WebSocket message: ${e}`);
+  }
+};
 
 export const setupFridaWss = (wssFrida: WebSocketServer) => {
   const singleton = ManagerSingleton.getInstance();
@@ -29,9 +44,13 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
           Logger.info(`onOutput(pid=${pid}, fd=${fd}, data=${description})`);
         };
 
-        const onDetached = (reason: frida.SessionDetachReason) => {
+        const onDetached = (reason: frida.SessionDetachReason, crash: frida.Crash | null) => {
           Logger.info(`onDetached(reason="${reason}")`);
+          if (crash) {
+            ws.send(crash.report);
+          }
           wsFridaSessions.get(ws)?.device?.output.disconnect(onOutput);
+          wsFridaSessions.set(ws, null);
           ws.close();
         };
 
@@ -71,8 +90,12 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
           /*
            * Frida jailed
            */
-          // TODO: Add body validation
-          const { scriptName, args } = JSON.parse(msg.toString()) as StartFridaLibraryScriptRequest;
+          const wsObj = parseWsMessage(msg);
+          if (!wsObj) {
+            return;
+          }
+
+          const { scriptName, args } = wsObj;
           const filename = libraryFile(scriptName);
           const scriptContent = await fs.readFile(filename, "utf-8");
           const device = await frida.getUsbDevice();
@@ -98,24 +121,35 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
           if (schema) {
             const ajv = new Ajv();
             const valid = ajv.validate(schema, args);
+
             if (!valid) {
-              await device.resume(pid);
               throw new Error("Inputs are invalid for the selected Frida script");
             }
-          }
 
-          await rpc.run(args);
-          Logger.info(`Resuming (${pid})`);
-          await device.resume(pid);
+            await rpc.run(args);
+          } else {
+            await rpc.run(); // If the schema is missing run without args
+          }
         }
       } catch (err) {
         ws.send(`An error occurred while running Frida script`);
+        Logger.error(`An error occurred while running the script: ${err}`);
+      } finally {
+        const currentSession = wsFridaSessions.get(ws);
+        if (currentSession && currentSession.device && currentSession.pid) {
+          const { device, pid } = currentSession;
+          Logger.info(`Resuming (${pid})`);
+          await device.resume(pid);
+        }
       }
     });
 
     ws.on("close", async () => {
       Logger.info("Client disconnected");
-      await wsFridaSessions.get(ws)?.script?.unload();
+      const session = wsFridaSessions.get(ws);
+      if (session) {
+        await wsFridaSessions.get(ws)?.script?.unload();
+      }
       wsFridaSessions.delete(ws);
     });
   });

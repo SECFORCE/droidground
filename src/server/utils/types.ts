@@ -41,6 +41,6 @@ export type CompanionAttackSurfaceResponse = {
 };
 
 export interface IFridaRPC extends ScriptExports {
-  run: (args: any) => Promise<void>;
+  run: (args?: Record<string, any>) => Promise<void>;
   schema: () => Promise<null | JSONSchemaType<any>>;
 }
