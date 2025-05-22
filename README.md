@@ -47,17 +47,19 @@ Almost all features are **modular** and defined via environment variables, ensur
 
 ## 📸 Screenshots
 
-| ![Screenshot Overview](docs/images/overview.png)       | ![Screenshot Start Activity](docs/start-activity.png) |
+| ![Screenshot Overview](docs/overview.png)              | ![Screenshot Start Activity](docs/start-activity.png) |
 | ------------------------------------------------------ | ----------------------------------------------------- |
 | Overview                                               | Start Activity                                        |
 | ![Screenshot Frida Jailed Mode](docs/frida-jailed.png) | ![Screenshot Frida Full Mode](docs/frida-full.png)    |
 | Frida Jailed Mode                                      | Frida Full Mode                                       |
 | ![Screenshot File Browser](docs/file-browser.png)      | ![Screenshot App Manager](docs/app-manager.png)       |
 | File Browser                                           | App Manager                                           |
-| ![Screenshot Terminal](docs/terminal.png)              | ![Screenshot Logs](docs/logs.png)                     |
+| ![Screenshot Terminal](docs/terminal.png)              | ![Screenshot Logs](docs/logcat.png)                   |
 | Terminal                                               | Logs                                                  |
 
 ## ⚙️ Configuration
+
+The `.env.sample` file in the root directory is a good starting point.
 
 Server-only (prefix `DG_`)
 
@@ -97,6 +99,27 @@ Here are some ways DroidGround can be used:
 1. **Hidden Activity**: Find and launch an unexposed activity to see the flag (player's app contains a dummy flag).
 2. **RCE**: The app is vulnerable to RCE and the flag is stored on the device.
 3. **Frida Instrumentation**: Overload a method and extract the flag from private memory using a script.
+
+## ⚙️ Usage
+
+A couple of sample _Docker Compose_ files are provided in the [docker](./docker) folder. They are a good starting point, but they also require some work on your end (like setting up the env variables and the init folder with the `setup.sh` and `reset.sh` scripts).
+
+On boot _DroidGround_ does the following:
+
+1. Set up the connection with `adb`
+2. Run the `setup.sh` in the folder specified by `DG_INIT_SCRIPTS_FOLDER` if present. This script can be used to install the target app and do everything else that's needed to init the CTF (e.g. placing the flag in a known location)
+3. (if _Frida_ is enabled) Download the correct `frida-server` based on the version installed and the architecture of the device and start it
+4. Run the target app (the one specified through `DG_APP_PACKAGE_NAME`). If the app is not installed _DroidGround_ will exit.
+5. Setup the _REST APIs_, the _WebSocket_ servers and the display streaming
+
+## 💡 Tips
+
+Here are some suggestions for setting up your Android CTF:
+
+- Be careful when enabling **Frida Full Mode**, the player will have complete control over the device (that's why we made the **Frida Jail Mode** as detailed in [Frida Library](./library)).
+- Be careful when enabling the **Terminal**, the player will have complete control over the device.
+- Be careful when enabling the **Shutdown** feature.
+- If you plan to make the flag directly visible in the UI you may want to find a way to spawn different instances (one for each team/player)
 
 ## 🛠 Development
 
