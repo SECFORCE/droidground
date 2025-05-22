@@ -446,7 +446,7 @@ export const FridaJailed: React.FC = () => {
                 >
                   {isObjectBuilderVisible ? "Run with current object" : "Run without args"}
                 </button>
-                <button disabled={isStopDisabled} className="btn btn-error flex-1" onClick={stopScript}>
+                <button type="button" disabled={isStopDisabled} className="btn btn-error flex-1" onClick={stopScript}>
                   Stop
                 </button>
               </div>

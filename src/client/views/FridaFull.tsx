@@ -96,6 +96,7 @@ export const FridaFull: React.FC = () => {
                 Run
               </button>
               <button
+                type="button"
                 disabled={isStopDisabled}
                 className="absolute btn btn-error z-20 top-2 right-20"
                 onClick={stopScript}
