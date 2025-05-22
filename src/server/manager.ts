@@ -41,7 +41,7 @@ export class ManagerSingleton {
     // private constructor prevents direct instantiation
     const port = process.env.DG_ADB_PORT ?? "";
     this.config = {
-      packageName: process.env.DG_APP_PACKAGE_NAME ?? "", // TODO: Handle case where this is not set!
+      packageName: process.env.DG_APP_PACKAGE_NAME ?? "",
       adb: {
         host: process.env.DG_ADB_HOST ?? "localhost",
         port: isNaN(port as any) || port.trim().length === 0 ? 5037 : parseInt(port),
@@ -94,7 +94,8 @@ export class ManagerSingleton {
       }
 
       await this.setupAdb();
-      this.setCtf();
+      await this.setCtf();
+
       if (this.getConfig().features.fridaEnabled) {
         await setupFrida();
       }
@@ -150,6 +151,18 @@ export class ManagerSingleton {
     this.adb = adb;
   }
 
+  private async checkPackage() {
+    const adb = this.adb as Adb;
+    const res = await adb.subprocess.noneProtocol.spawnWaitText(`pm list packages | grep ${this.config.packageName}`);
+
+    const lines = res.trim().split("\n");
+
+    if (lines.length !== 1 || lines[0].length === 0) {
+      Logger.error(`Invalid or not installed package name: '${this.config.packageName}'`);
+      process.exit(1);
+    }
+  }
+
   public async setAdb() {
     Logger.debug("Adb setup....");
     while (true) {
@@ -162,6 +175,7 @@ export class ManagerSingleton {
         await sleep(5000);
       }
     }
+
     this.appStatus = AppStatus.RUNNING_PHASE;
     Logger.debug("Adb setup done!");
   }
@@ -206,16 +220,19 @@ export class ManagerSingleton {
     }
   }
 
-  public setCtf(): boolean {
+  public async setCtf(): Promise<boolean> {
     const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const setupScript = path.resolve(initDFolder, "setup.sh");
-    if (safeFileExists(setupScript)) {
-      execSync(setupScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
-      return true;
-    } else {
+    if (!safeFileExists(setupScript)) {
       Logger.error(`setup.sh script missing in the ${initDFolder}`);
       return false;
     }
+
+    execSync(setupScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
+
+    // Check if the app is installed, otherwise stop DroidGround
+    await this.checkPackage();
+    return true;
   }
 
   public resetCtf(): boolean {

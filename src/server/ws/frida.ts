@@ -1,10 +1,7 @@
 import fs from "fs/promises";
 import { WebSocketServer, WebSocket } from "ws";
-import "@dotenvx/dotenvx/config";
 import frida, { FileDescriptor, ProcessID } from "frida";
 import Ajv from "ajv";
-
-// Local imports
 import { ManagerSingleton } from "@server/manager";
 import Logger from "@server/utils/logger";
 import { IFridaRPC } from "@server/utils/types";
