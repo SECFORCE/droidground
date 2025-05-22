@@ -126,6 +126,19 @@ On boot _DroidGround_ does the following:
 4. Run the target app (the one specified through `DG_APP_PACKAGE_NAME`). If the app is not installed _DroidGround_ will exit.
 5. Setup the _REST APIs_, the _WebSocket_ servers and the display streaming
 
+Here is a sample `setup.sh` script:
+
+```sh
+#!/usr/bin/env bash
+
+adb shell pm uninstall com.example.app # To do some cleanup
+echo "Sleep for 2 seconds before installing app"
+sleep 2
+echo "Installing app..."
+adb install ./flag.apk # The cwd is set to the "init.d" folder, so the apk file can be accessed with the relative path
+echo "Install command executed"
+```
+
 ## 💡 Tips
 
 Here are some suggestions for setting up your Android CTF:

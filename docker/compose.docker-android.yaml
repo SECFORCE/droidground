@@ -1,3 +1,5 @@
+# The ./init.d folder should contain the "setup.sh" and "reset.sh" scripts
+
 services:
   docker-android:
     image: halimqarroum/docker-android:api-33
