@@ -2,10 +2,7 @@
   "name": "droidground",
   "version": "0.1.0",
   "type": "module",
-  "author": "Angelo Delicato <angelo.delicato@secforce.com>",
-  "bin": {
-    "droidground": "./cli.js"
-  },
+  "author": "Angelo Delicato",
   "scripts": {
     "dev": "tsx server.ts",
     "dev:server": "tsx server.ts",
