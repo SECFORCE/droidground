@@ -83,9 +83,6 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
           script.message.connect(onMessage);
 
           await script.load();
-
-          Logger.info(`Resuming (${pid})`);
-          await device.resume(pid);
         } else {
           /*
            * Frida jailed
