@@ -37,7 +37,9 @@ const TerminalComponent: React.FC<ITerminalComponentProps> = ({
       fitAddon.fit();
     }
 
-    const wsBaseUrl = `ws://${window.location.host}`; //TODO: Move to wss at some point
+    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+    const prefix = isHttps ? "wss" : "ws";
+    const wsBaseUrl = `${prefix}://${window.location.host}`;
     const socket = new WebSocket(`${wsBaseUrl}${WEBSOCKET_ENDPOINTS.TERMINAL}`);
     socketRef.current = socket;
 

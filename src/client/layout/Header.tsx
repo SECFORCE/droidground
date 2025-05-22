@@ -76,7 +76,7 @@ const Navbar: React.FC = () => {
               </button>
             </li>
           ))}
-        <button className="btn btn-error" onClick={reset}>
+        <button className="btn btn-error ml-4" onClick={reset}>
           Reset
         </button>
       </ul>
