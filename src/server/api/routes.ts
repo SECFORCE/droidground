@@ -6,8 +6,10 @@ import multer from "multer";
 // Local imports
 import APIController from "@server/api/controller";
 import { ManagerSingleton } from "@server/manager";
-import { checkFeatureEnabled } from "@server/api/middlewares";
+import { checkFeatureEnabled, validateBody } from "@server/api/middlewares";
+import { getFilesSchema, startActivitySchema, startBroadcastSchema, startServiceSchema } from "@server/api/schemas";
 import { REST_API_ENDPOINTS as E } from "@shared/endpoints";
+import { GetFilesRequest, StartActivityRequest, StartBroadcastRequest, StartServiceRequest } from "@shared/api";
 
 const singleton = ManagerSingleton.getInstance();
 const upload = multer({ dest: path.join(singleton.getTmpDir(), "uploads") });
@@ -27,18 +29,38 @@ export default (app: Router) => {
     next();
   });
 
+  endpoint.post(
+    E.ACTIVITY,
+    checkFeatureEnabled(features.startActivityEnabled),
+    validateBody<StartActivityRequest>(startActivitySchema),
+    APIController.startActivity,
+  );
+  endpoint.post(
+    E.BROADCAST,
+    checkFeatureEnabled(features.startBroadcastReceiverEnabled),
+    validateBody<StartBroadcastRequest>(startBroadcastSchema),
+    APIController.startBroadcast,
+  );
+  endpoint.post(
+    E.SERVICE,
+    checkFeatureEnabled(features.startServiceEnabled),
+    validateBody<StartServiceRequest>(startServiceSchema),
+    APIController.startService,
+  );
+  endpoint.post(
+    E.FILES,
+    checkFeatureEnabled(features.fileBrowserEnabled),
+    validateBody<GetFilesRequest>(getFilesSchema),
+    APIController.files,
+  );
   endpoint.post(E.RESET, APIController.reset);
   endpoint.get(E.FEATURES, APIController.features);
   endpoint.get(E.INFO, APIController.info);
   endpoint.post(E.RESTART, APIController.restartApp);
-  endpoint.post(E.ACTIVITY, checkFeatureEnabled(features.startActivityEnabled), APIController.startActivity);
-  endpoint.post(E.BROADCAST, checkFeatureEnabled(features.startBroadcastReceiverEnabled), APIController.startBroadcast);
-  endpoint.post(E.SERVICE, checkFeatureEnabled(features.startServiceEnabled), APIController.startService);
   endpoint.post(E.SHUTDOWN, checkFeatureEnabled(features.shutdownEnabled), APIController.shutdown);
   endpoint.post(E.REBOOT, checkFeatureEnabled(features.rebootEnabled), APIController.reboot);
   endpoint.post(E.LOGCAT, checkFeatureEnabled(features.logcatEnabled), APIController.dumpLogcat);
   endpoint.delete(E.LOGCAT, checkFeatureEnabled(features.logcatEnabled), APIController.clearLogcat);
-  endpoint.post(E.FILES, checkFeatureEnabled(features.fileBrowserEnabled), APIController.files);
   endpoint.get(E.BUGREPORT_STATUS, checkFeatureEnabled(features.bugReportEnabled), APIController.bugreportzStatus);
   endpoint.post(E.BUGREPORT, checkFeatureEnabled(features.bugReportEnabled), APIController.runBugreportz);
   endpoint.get(E.BUGREPORT, checkFeatureEnabled(features.bugReportEnabled), APIController.downloadBugreport);
