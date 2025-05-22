@@ -21,8 +21,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     const connect = async () => {
       const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
       const prefix = isHttps ? "wss" : "ws";
-
-      const wsBaseUrl = `${prefix}://${window.location.host}`; //TODO: Move to wss at some point
+      const wsBaseUrl = `${prefix}://${window.location.host}`;
       let webSocketURL = `${wsBaseUrl}${WEBSOCKET_ENDPOINTS.STREAMING}`;
       const socket = new WebSocket(webSocketURL);
       socket.binaryType = "arraybuffer";

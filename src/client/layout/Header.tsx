@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import Logo from "@client/assets/logo.png";
 import { PAGES } from "@client/config";
 import { RESTManagerInstance } from "@client/api/rest";
 import toast from "react-hot-toast";
+import { ConfirmModal } from "@client/components";
 
 interface INavItem {
   label: string;
@@ -31,6 +32,7 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [hovered, setHovered] = useState<INavItem | null>(null);
+  const resetCtfDialogRef = useRef<HTMLDialogElement | null>(null);
 
   const reset = async () => {
     try {
@@ -43,44 +45,61 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="px-2 py-1">
-      <ul className="relative flex space-x-8 text-sm font-medium">
-        {navItems
-          .filter(i => i.routeEnabled)
-          .map(item => (
-            <li
-              key={item.to}
-              className="relative m-0 px-2 cursor-pointer"
-              onMouseEnter={() => setHovered(item)}
-              onMouseLeave={() => setHovered(null)}
-            >
-              {hovered === item && (
-                <motion.div
-                  layoutId="hover-bg"
-                  className="absolute inset-0 bg-gray-800 rounded-md z-0"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-              <button
-                onClick={() => navigate(item)}
-                className="cursor-pointer relative z-10 px-3 py-2 rounded-md transition-colors text-gray-300"
+    <>
+      {/*************
+       *    Modals   *
+       ***************/}
+
+      {/* Start Activity Modal */}
+      <ConfirmModal
+        dialogRef={resetCtfDialogRef}
+        title="Reset CTF"
+        description="This will reset the CTF to its original status (usually it will perform some cleanup and uninstall/reinstall the app. Are you sure?"
+        onConfirm={reset}
+      />
+
+      {/*************
+       *   Navbar   *
+       ***************/}
+      <nav className="px-2 py-1">
+        <ul className="relative flex space-x-8 text-sm font-medium">
+          {navItems
+            .filter(i => i.routeEnabled)
+            .map(item => (
+              <li
+                key={item.to}
+                className="relative m-0 px-2 cursor-pointer"
+                onMouseEnter={() => setHovered(item)}
+                onMouseLeave={() => setHovered(null)}
               >
-                {item.label}
-                {location.pathname === item.to && (
+                {hovered === item && (
                   <motion.div
-                    layoutId="underline"
-                    className="absolute bottom-[-18px] left-0 right-0 h-0.5 bg-info rounded z-20"
+                    layoutId="hover-bg"
+                    className="absolute inset-0 bg-gray-800 rounded-md z-0"
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
                 )}
-              </button>
-            </li>
-          ))}
-        <button className="btn btn-error ml-4" onClick={reset}>
-          Reset
-        </button>
-      </ul>
-    </nav>
+                <button
+                  onClick={() => navigate(item)}
+                  className="cursor-pointer relative z-10 px-3 py-2 rounded-md transition-colors text-gray-300"
+                >
+                  {item.label}
+                  {location.pathname === item.to && (
+                    <motion.div
+                      layoutId="underline"
+                      className="absolute bottom-[-18px] left-0 right-0 h-0.5 bg-info rounded z-20"
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                </button>
+              </li>
+            ))}
+          <button className="btn btn-error ml-4" onClick={() => resetCtfDialogRef.current?.showModal()}>
+            Reset
+          </button>
+        </ul>
+      </nav>
+    </>
   );
 };
 
