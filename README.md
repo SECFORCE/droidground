@@ -45,6 +45,18 @@ DroidGround provides a rich set of server-controlled features. Most of them can 
 
 Almost all features are **modular** and defined via environment variables, ensuring precise control over the challenge scope.
 
+## 📸 Screenshots
+
+| ![Screenshot Overview](docs/images/overview.png)       | ![Screenshot Start Activity](docs/start-activity.png) |
+| ------------------------------------------------------ | ----------------------------------------------------- |
+| Overview                                               | Start Activity                                        |
+| ![Screenshot Frida Jailed Mode](docs/frida-jailed.png) | ![Screenshot Frida Full Mode](docs/frida-full.png)    |
+| Frida Jailed Mode                                      | Frida Full Mode                                       |
+| ![Screenshot File Browser](docs/file-browser.png)      | ![Screenshot App Manager](docs/app-manager.png)       |
+| File Browser                                           | App Manager                                           |
+| ![Screenshot Terminal](docs/terminal.png)              | ![Screenshot Logs](docs/logs.png)                     |
+| Terminal                                               | Logs                                                  |
+
 ## ⚙️ Configuration
 
 Server-only (prefix `DG_`)
