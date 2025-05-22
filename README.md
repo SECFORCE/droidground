@@ -6,17 +6,94 @@
     <b>DroidGround</b>
 <p>
 
+<p align="center">
+    <a href="https://github.com/SECFORCE/droidground/blob/main/README.md"><img src="https://img.shields.io/badge/Documentation-complete-green.svg?style=flat"></a>
+    <a href="https://github.com/SECFORCE/droidground/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPL3-blue.svg"></a>
+</p>
+
 In traditional **CTF challenges**, it's common to hide flags in files on a system, requiring attackers to exploit vulnerabilities to retrieve them. However, in the Android world, this approach doesn't work well. APK files are easily downloadable and reversible, so **placing a flag on the device usually makes it trivial** to extract using static analysis or emulator tricks. This severely limits the ability to create realistic, runtime-focused challenges.
 
-*DroidGround* is designed to solve this problem.
+_DroidGround_ is designed to solve this problem.
 
 It is a custom-built platform for hosting Android mobile hacking challenges in a **controlled** and **realistic** environment, where **attackers are constrained just enough** to require solving challenges in the intended way.
 
-Importantly, participants may be **jailed inside the app environment**. The modularity of the tool allows to set if the user can or cannot spawn a shell, read arbitrary files, or sideload tools. Everything can be setup so that the only way to retrieve the flag is through understanding and exploiting the app itself, just like on a real, non-rooted device.
+Importantly, participants may be **jailed inside the app environment**. The modularity of the tool allows to set if the user can or cannot spawn a shell, read arbitrary files, or sideload tools. Everything can be setup so that the only way to retrieve the flag is through understanding and exploiting the app itself.
 
-## Why DroidGround
+## 🧭 Overview
 
-- **No shortcutting**: Flags cannot be extracted by reverse engineering the APK or scanning the filesystem
-- **Realistic attack model**: Simulates real-world constraints where attackers do not have root or full device control
-- **Interactive learning**: Encourages the use of dynamic tools like Frida under controlled conditions
-- **Flexible challenge design**: Supports advanced CTF scenarios including memory inspection, insecure storage, IPC abuse, obfuscation, and more
+_DroidGround_ enables a wide variety of _Android_ challenges that are otherwise hard to implement in traditional CTF setups. For example, in a remote code execution (RCE) challenge, players might receive an APK for local analysis. After discovering a vulnerability, they can develop a Frida script and run it through DroidGround on the real target device to extract the flag from internal storage. Other challenge types can involve hidden activities, custom broadcast intents, service exploitation, or dynamic analysis using preloaded tools.
+
+With real-time device streaming, fine-grained control over features, Frida integration, and customizable setup and reset scripts, DroidGround empowers CTF organizers to build secure, flexible, and realistic Android challenges that go far beyond what is typically possible.
+
+## ✨ Features
+
+DroidGround provides a rich set of server-controlled features. Most of them can be enabled or disabled per challenge using environment variables:
+
+- **Real-Time Device Screen** (via `scrcpy`)
+- **Reset Challenge State**
+- **Restart App / Start Activity / Start Service**
+- **Send Broadcast Intent**
+- **Shutdown / Reboot Device**
+- **Download Bugreport (bugreportz)**
+- **Frida Scripting**
+  - Run from preloaded library (jailed mode)
+  - Run arbitrary scripts (full mode)
+- **File Browser**
+- **Terminal Access**
+- **APK Management**
+- **Logcat Viewer**
+
+Almost all features are **modular** and defined via environment variables, ensuring precise control over the challenge scope.
+
+## ⚙️ Configuration
+
+Server-only (prefix `DG_`)
+
+| Variable                 | Description                                        | Default     |
+| ------------------------ | -------------------------------------------------- | ----------- |
+| `DG_APP_PACKAGE_NAME`    | Package name of target app                         | -           |
+| `DG_ADB_HOST`            | ADB host                                           | `localhost` |
+| `DG_ADB_PORT`            | ADB port                                           | `5037`      |
+| `DG_DEVICE_TYPE`         | `usb` or `network`                                 | `usb`       |
+| `DG_DEVICE_HOST`         | IP of Android device (`adb`) (network mode only)   | -           |
+| `DG_DEVICE_PORT`         | port of Android device (`adb`) (network mode only) | -           |
+| `DG_INIT_SCRIPTS_FOLDER` | Folder containing `setup.sh` and `reset.sh`        | `/init.d`   |
+
+Server + Client (prefix `DROIDGROUND_`)
+
+| Variable                              | Description           | Default   |
+| ------------------------------------- | --------------------- | --------- |
+| `DROIDGROUND_HOST`                    | Bind address          | `0.0.0.0` |
+| `DROIDGROUND_PORT`                    | Bind port             | `4242`    |
+| `DROIDGROUND_APP_MANAGER_DISABLED`    | Disable app manager   | `false`   |
+| `DROIDGROUND_BUG_REPORT_DISABLED`     | Disable bugreport     | `false`   |
+| `DROIDGROUND_FILE_BROWSER_DISABLED`   | Disable file browser  | `false`   |
+| `DROIDGROUND_FRIDA_DISABLED`          | Disable Frida support | `false`   |
+| `DROIDGROUND_FRIDA_TYPE`              | `jail` or `full`      | `jail`    |
+| `DROIDGROUND_LOGCAT_DISABLED`         | Disable logcat        | `false`   |
+| `DROIDGROUND_REBOOT_DISABLED`         | Disable reboot        | `false`   |
+| `DROIDGROUND_SHUTDOWN_DISABLED`       | Disable shutdown      | `false`   |
+| `DROIDGROUND_START_ACTIVITY_DISABLED` | Disable startActivity | `false`   |
+| `DROIDGROUND_START_RECEIVER_DISABLED` | Disable broadcast     | `false`   |
+| `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService  | `false`   |
+| `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal      | `false`   |
+
+## 🧩 Use Cases
+
+Here are some ways DroidGround can be used:
+
+1. **Hidden Activity**: Find and launch an unexposed activity to see the flag (player's app contains a dummy flag).
+2. **RCE**: The app is vulnerable to RCE and the flag is stored on the device.
+3. **Frida Instrumentation**: Overload a method and extract the flag from private memory using a script.
+
+## 🤝 Contributing
+
+Pull requests are welcome! Please open an issue first to discuss major changes. Ideas for new CTF workflows or challenge types are especially appreciated.
+
+## 📚 Credits
+
+Developed by Angelo Delicato [@SECFORCE](https://www.secforce.com)
+
+## 🪪 License
+
+_DroidGround_ is released under the [GPL-3.0 LICENSE](https://github.com/SECFORCE/droidground/blob/main/LICENSE)
