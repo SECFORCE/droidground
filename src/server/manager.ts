@@ -9,12 +9,12 @@ import Logger from "@server/utils/logger";
 import { sleep } from "@shared/helpers";
 import { DroidGroundConfig, FridaState, StreamMetadata } from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";
-import { setupFrida } from "./utils/frida";
+import { setupFrida } from "@server/utils/frida";
 import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
-import { setupScrcpy } from "./utils/scrcpy";
+import { setupScrcpy } from "@server/utils/scrcpy";
 import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
 import { execSync } from "child_process";
-import { safeFileExists } from "./utils/helpers";
+import { safeFileExists } from "@server/utils/helpers";
 
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
