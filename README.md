@@ -86,6 +86,27 @@ Here are some ways DroidGround can be used:
 2. **RCE**: The app is vulnerable to RCE and the flag is stored on the device.
 3. **Frida Instrumentation**: Overload a method and extract the flag from private memory using a script.
 
+## 🛠 Development
+
+Getting it up & running shouldn't be too difficult, but before starting you should have the following tools installed:
+
+- `frida` (only if you enable _Frida_)
+- `node` (it's a Node app, you need to have it!)
+- `adb` (well, we rely on it to talk with the device)
+- _JDK_ (you need it to build the companion app)
+
+After that you may just run the following:
+
+```sh
+git clone https://github.com/SECFORCE/droidground.git
+cd droidground
+npm run install
+```
+
+There is a `postinstall` script which will also try to build it, so if something's missing you'll know pretty soon.
+
+After that you just need to set the **env** variables and then run `npm run dev` and you'll be good to go. Happy dev mode!
+
 ## 🤝 Contributing
 
 Pull requests are welcome! Please open an issue first to discuss major changes. Ideas for new CTF workflows or challenge types are especially appreciated.
@@ -93,6 +114,9 @@ Pull requests are welcome! Please open an issue first to discuss major changes. 
 ## 📚 Credits
 
 Developed by Angelo Delicato [@SECFORCE](https://www.secforce.com)
+
+The _server_ section heavily relies on the amazing work done by [@yume-chan](https://github.com/yume-chan/ya-webadb), probably this app wouldn't exist if it wasn't for his amazing work.
+The _companion_ app is heavily based on the [aya server](https://github.com/liriliri/aya/tree/master/server) which works the same way as the [scrcpy server](https://github.com/Genymobile/scrcpy) as detailed in the specific [README](./companion/README.md)
 
 ## 🪪 License
 

@@ -1,6 +1,6 @@
 # 🤖 DroidGround Companion
 
-This sub-project is heavily inspired the [aya server](https://github.com/liriliri/aya/tree/master/server) which works the same way as the [scrcpy server](https://github.com/Genymobile/scrcpy): a _Java_ application that can be run on _Android_ because the classes are [dexed](<https://en.wikipedia.org/wiki/Dalvik_(software)>). An application built in this way can be run with the following command:
+This sub-project is heavily based on the [aya server](https://github.com/liriliri/aya/tree/master/server) which works the same way as the [scrcpy server](https://github.com/Genymobile/scrcpy): a _Java_ application that can be run on _Android_ because the classes are [dexed](<https://en.wikipedia.org/wiki/Dalvik_(software)>). An application built in this way can be run with the following command:
 
 ```
 adb shell CLASSPATH=/data/local/tmp/classes.dex app_process / my.package.MainClass
