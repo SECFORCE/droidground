@@ -19,6 +19,20 @@ It is a custom-built platform for hosting Android mobile hacking challenges in a
 
 Importantly, participants may be **jailed inside the app environment**. The modularity of the tool allows to set if the user can or cannot spawn a shell, read arbitrary files, or sideload tools. Everything can be setup so that the only way to retrieve the flag is through understanding and exploiting the app itself.
 
+## 📋 Table of Contents
+
+- [🧭 Overview](#-overview)
+- [✨ Features](#-features)
+- [📸 Screenshots](#-screenshots)
+- [⚙️ Configuration](#️-configuration)
+- [🧩 Use Cases](#-use-cases)
+- [⚙️ Usage](#️-usage)
+- [💡 Tips](#-tips)
+- [🛠 Development](#-development)
+- [🤝 Contributing](#-contributing)
+- [📚 Credits](#-credits)
+- [🪪 License](#-license)
+
 ## 🧭 Overview
 
 _DroidGround_ enables a wide variety of _Android_ challenges that are otherwise hard to implement in traditional CTF setups. For example, in a remote code execution (RCE) challenge, players might receive an APK for local analysis. After discovering a vulnerability, they can develop a Frida script and run it through DroidGround on the real target device to extract the flag from internal storage. Other challenge types can involve hidden activities, custom broadcast intents, service exploitation, or dynamic analysis using preloaded tools.
@@ -148,10 +162,11 @@ Pull requests are welcome! Please open an issue first to discuss major changes. 
 
 ## 📚 Credits
 
-Developed by Angelo Delicato [@SECFORCE](https://www.secforce.com)
+Developed by Angelo Delicato [@SECFORCE](https://www.secforce.com).
 
 The _server_ section heavily relies on the amazing work done by [@yume-chan](https://github.com/yume-chan/ya-webadb), probably this app wouldn't exist if it wasn't for his amazing work.
-The _companion_ app is heavily based on the [aya server](https://github.com/liriliri/aya/tree/master/server) which works the same way as the [scrcpy server](https://github.com/Genymobile/scrcpy) as detailed in the specific [README](./companion/README.md)
+
+The _companion_ app is heavily based on the [aya server](https://github.com/liriliri/aya/tree/master/server) which works the same way as the [scrcpy server](https://github.com/Genymobile/scrcpy) as detailed in the specific [README](./companion/README.md).
 
 ## 🪪 License
 
