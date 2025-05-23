@@ -3,16 +3,22 @@ import path from "path";
 import fs from "fs/promises";
 
 // Package imports
-import { RequestHandler } from "express";
+import { RequestHandler, Request, Response } from "express";
 import { ReadableStream } from "@yume-chan/stream-extra";
 
 // Local imports
 import Logger from "@server/utils/logger";
 import { ManagerSingleton } from "@server/manager";
 import {
+  BugreportzStatusResponse,
   CompanionPackageInfos,
   DeviceInfoResponse,
+  DroidGroundFeaturesResponse,
+  FridaLibraryResponse,
   GetFilesRequest,
+  GetFilesResponse,
+  IGenericErrRes,
+  IGenericResultRes,
   StartActivityRequest,
   StartBroadcastRequest,
   StartServiceRequest,
@@ -31,24 +37,24 @@ import { CompanionAttackSurfaceResponse } from "@server/utils/types";
 import { loadFridaLibrary } from "@server/utils/frida";
 
 class APIController {
-  features: RequestHandler = async (req, res) => {
+  features: RequestHandler = async (req: Request, res: Response<DroidGroundFeaturesResponse | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const droidGroundConfig = ManagerSingleton.getInstance().getConfig();
-      res.json({ features: droidGroundConfig.features }).end();
+      res.json(droidGroundConfig.features).end();
     } catch (error: any) {
       Logger.error(`Error getting features config: ${error}`);
-      res.status(500).json({ message: "An error occurred while getting features config." }).end();
+      res.status(500).json({ error: "An error occurred while getting features config." }).end();
     }
   };
 
-  reset: RequestHandler = async (req, res) => {
+  reset: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const singleton = ManagerSingleton.getInstance();
       const resetDone = singleton.resetCtf();
       if (!resetDone) {
-        res.status(500).json({ message: "An error occurred while resetting the CTF" }).end();
+        res.status(500).json({ error: "An error occurred while resetting the CTF" }).end();
         return;
       }
 
@@ -56,22 +62,22 @@ class APIController {
       res.json({ result: "CTF correctly reset" }).end();
     } catch (error: any) {
       Logger.error(`Error resetting the CTF: ${error}`);
-      res.status(500).json({ message: "An error occurred while resetting the CTF" }).end();
+      res.status(500).json({ error: "An error occurred while resetting the CTF" }).end();
     }
   };
 
-  restartApp: RequestHandler = async (req, res) => {
+  restartApp: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       await ManagerSingleton.getInstance().runTargetApp();
       res.json({ result: "Target app correctly restarted" }).end();
     } catch (error: any) {
       Logger.error(`Error restarting target app: ${error}`);
-      res.status(500).json({ message: "An error occurred while restarting the target app." }).end();
+      res.status(500).json({ error: "An error occurred while restarting the target app." }).end();
     }
   };
 
-  info: RequestHandler = async (req, res) => {
+  info: RequestHandler = async (req: Request, res: Response<DeviceInfoResponse | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
@@ -92,11 +98,11 @@ class APIController {
       res.json(response).end();
     } catch (error: any) {
       Logger.error(`Error getting info: ${error}`);
-      res.status(500).json({ message: "An error occurred while getting device info." }).end();
+      res.status(500).json({ error: "An error occurred while getting device info." }).end();
     }
   };
 
-  startActivity: RequestHandler = async (req, res) => {
+  startActivity: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const body = req.body as StartActivityRequest;
@@ -108,7 +114,7 @@ class APIController {
       const exportedActivities = bufRes.attackSurfaces[config.packageName].activities;
 
       if (!exportedActivities.includes(body.activity)) {
-        res.status(400).json({ message: "This activity is not exported by the target app" }).end();
+        res.status(400).json({ error: "This activity is not exported by the target app" }).end();
         return;
       }
 
@@ -165,11 +171,11 @@ class APIController {
       res.json({ result: result }).end();
     } catch (error: any) {
       Logger.error(`Error starting activity: ${error}`);
-      res.status(500).json({ message: "An error occurred while starting the activity." }).end();
+      res.status(500).json({ error: "An error occurred while starting the activity." }).end();
     }
   };
 
-  startBroadcast: RequestHandler = async (req, res) => {
+  startBroadcast: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const body = req.body as StartBroadcastRequest;
@@ -181,7 +187,7 @@ class APIController {
       const exportedReceiver = bufRes.attackSurfaces[config.packageName].receivers;
 
       if (!exportedReceiver.includes(body.receiver)) {
-        res.status(400).json({ message: "This receiver is not exported by the target app" }).end();
+        res.status(400).json({ error: "This receiver is not exported by the target app" }).end();
         return;
       }
 
@@ -216,11 +222,11 @@ class APIController {
       res.json({ result: result }).end();
     } catch (error: any) {
       Logger.error(`Error starting broadcast: ${error}`);
-      res.status(500).json({ message: "An error occurred while starting the broadcast." }).end();
+      res.status(500).json({ error: "An error occurred while starting the broadcast." }).end();
     }
   };
 
-  startService: RequestHandler = async (req, res) => {
+  startService: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const body = req.body as StartServiceRequest;
@@ -232,7 +238,7 @@ class APIController {
       const exportedServices = bufRes.attackSurfaces[config.packageName].services;
 
       if (!exportedServices.includes(body.service)) {
-        res.status(400).json({ message: "This service is not exported by the target app" }).end();
+        res.status(400).json({ error: "This service is not exported by the target app" }).end();
         return;
       }
 
@@ -267,11 +273,11 @@ class APIController {
       res.json({ result: result }).end();
     } catch (error: any) {
       Logger.error(`Error starting service: ${error}`);
-      res.status(500).json({ message: "An error occurred while starting the service." }).end();
+      res.status(500).json({ error: "An error occurred while starting the service." }).end();
     }
   };
 
-  shutdown: RequestHandler = async (req, res) => {
+  shutdown: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
@@ -279,11 +285,11 @@ class APIController {
       res.json({ result: "Device shutted down" }).end();
     } catch (error: any) {
       Logger.error(`Error shutting down the device: ${error}`);
-      res.status(500).json({ message: "An error occurred while shutting down the device." }).end();
+      res.status(500).json({ error: "An error occurred while shutting down the device." }).end();
     }
   };
 
-  reboot: RequestHandler = async (req, res) => {
+  reboot: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
@@ -291,11 +297,11 @@ class APIController {
       res.json({ result: "Device rebooted" }).end();
     } catch (error: any) {
       Logger.error(`Error rebooting the device: ${error}`);
-      res.status(500).json({ message: "An error occurred while rebooting the device." }).end();
+      res.status(500).json({ error: "An error occurred while rebooting the device." }).end();
     }
   };
 
-  dumpLogcat: RequestHandler = async (req, res) => {
+  dumpLogcat: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
@@ -303,11 +309,11 @@ class APIController {
       res.json({ result: result }).end();
     } catch (error: any) {
       Logger.error(`Error dumping logcat: ${error}`);
-      res.status(500).json({ message: "An error occurred while dumping logcat." }).end();
+      res.status(500).json({ error: "An error occurred while dumping logcat." }).end();
     }
   };
 
-  clearLogcat: RequestHandler = async (req, res) => {
+  clearLogcat: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
@@ -315,11 +321,11 @@ class APIController {
       res.json({ result: "Logcat cleared" }).end();
     } catch (error: any) {
       Logger.error(`Error clearing logcat: ${error}`);
-      res.status(500).json({ message: "An error occurred while clearing logcat." }).end();
+      res.status(500).json({ error: "An error occurred while clearing logcat." }).end();
     }
   };
 
-  files: RequestHandler = async (req, res) => {
+  files: RequestHandler = async (req: Request, res: Response<GetFilesResponse | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const body = req.body as GetFilesRequest;
@@ -337,11 +343,14 @@ class APIController {
       res.json({ result: files }).end();
     } catch (error: any) {
       Logger.error(`Error getting files: ${error}`);
-      res.status(500).json({ message: "An error occurred while getting files." }).end();
+      res.status(500).json({ error: "An error occurred while getting files." }).end();
     }
   };
 
-  bugreportzStatus: RequestHandler = async (req, res) => {
+  bugreportzStatus: RequestHandler = async (
+    _req: Request,
+    res: Response<BugreportzStatusResponse | IGenericErrRes>,
+  ) => {
     try {
       const singleton = ManagerSingleton.getInstance();
       const adb = await singleton.getAdb();
@@ -355,11 +364,11 @@ class APIController {
       res.json({ isRunning: isBugreportRunning, isBugreportAvailable: bugreportFileExists }).end();
     } catch (error: any) {
       Logger.error(`Error running bugreportz: ${error}`);
-      res.status(500).json({ message: "An error occurred while running bugreportz." }).end();
+      res.status(500).json({ error: "An error occurred while running bugreportz." }).end();
     }
   };
 
-  runBugreportz: RequestHandler = async (req, res) => {
+  runBugreportz: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     let commandStarted = false;
     try {
@@ -388,18 +397,18 @@ class APIController {
       Logger.error(`Error running bugreportz: ${error}`);
       // If the command has started we mean the response was already returned to the client (let's just fail kinda silently)
       if (!commandStarted) {
-        res.status(500).json({ message: "An error occurred while running bugreportz." }).end();
+        res.status(500).json({ error: "An error occurred while running bugreportz." }).end();
       }
     }
   };
 
-  downloadBugreport: RequestHandler = async (req, res) => {
+  downloadBugreport: RequestHandler = async (req: Request, res: Response<Buffer<ArrayBufferLike> | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const tmpDir = ManagerSingleton.getInstance().getTmpDir();
       const filePath = path.join(tmpDir, BUGREPORT_FILENAME);
       if (!safeFileExists(filePath)) {
-        res.status(400).json({ message: "Missing Bugreport file" }).end();
+        res.status(400).json({ error: "Missing Bugreport file" }).end();
         return;
       }
       const bugreportContent = await fs.readFile(filePath);
@@ -408,11 +417,11 @@ class APIController {
       res.status(200).send(bugreportContent);
     } catch (error: any) {
       Logger.error(`Error downloading bugreport: ${error}`);
-      res.status(500).json({ message: "An error occurred while downloading the bugreport." }).end();
+      res.status(500).json({ error: "An error occurred while downloading the bugreport." }).end();
     }
   };
 
-  getPackageInfos: RequestHandler = async (req, res) => {
+  getPackageInfos: RequestHandler = async (req: Request, res: Response<CompanionPackageInfos[] | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const adb = await ManagerSingleton.getInstance().getAdb();
@@ -439,15 +448,15 @@ class APIController {
       res.json(packageInfos).end();
     } catch (error: any) {
       Logger.error(`Error getting packages info: ${error}`);
-      res.status(500).json({ message: "An error occurred while getting packages info." }).end();
+      res.status(500).json({ error: "An error occurred while getting packages info." }).end();
     }
   };
 
-  apk: RequestHandler = async (req, res) => {
+  apk: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       if (!req.file) {
-        res.status(400).json({ message: "No file uploaded." }).end();
+        res.status(400).json({ error: "No file uploaded." }).end();
         return;
       }
 
@@ -473,29 +482,29 @@ class APIController {
       await fs.unlink(apkFilePath); // Clean up the uploaded file
 
       if (installRes.trim() !== "Success") {
-        res.status(500).json({ message: "An error occurred while installing the APK." }).end();
+        res.status(500).json({ error: "An error occurred while installing the APK." }).end();
       } else {
         res.json({ result: "APK correctly installed." }).end();
       }
     } catch (error) {
       Logger.error(`Error importing database: ${error}`);
-      res.status(500).json({ message: "An error occurred while installing the APK." }).end();
+      res.status(500).json({ error: "An error occurred while installing the APK." }).end();
     }
   };
 
-  getFridaLibrary: RequestHandler = async (req, res) => {
+  getFridaLibrary: RequestHandler = async (req: Request, res: Response<FridaLibraryResponse | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const fridaLibrary = await loadFridaLibrary();
       res.json({ library: fridaLibrary }).end();
     } catch (error: any) {
       Logger.error(`Error getting Frida library: ${error}`);
-      res.status(500).json({ message: "An error occurred while getting the Frida library." }).end();
+      res.status(500).json({ error: "An error occurred while getting the Frida library." }).end();
     }
   };
 
-  genericError: RequestHandler = async (_req, res) => {
-    res.status(400).json({ message: "This feature is either missing or disabled." }).end();
+  genericError: RequestHandler = async (_req: Request, res: Response<IGenericResultRes>) => {
+    res.status(400).json({ result: "This feature is either missing or disabled." }).end();
   };
 }
 
