@@ -41,7 +41,7 @@ With real-time device streaming, fine-grained control over features, Frida integ
 
 ## ✨ Features
 
-DroidGround provides a rich set of server-controlled features. Most of them can be enabled or disabled per challenge using environment variables:
+DroidGround provides a rich set of server-controlled features.
 
 - **Real-Time Device Screen** (via `scrcpy`)
 - **Reset Challenge State**
