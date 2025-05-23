@@ -103,10 +103,10 @@ const AppRoute = () => {
 
 const DefaultRoute = () => {
   return (
-    <APIProvider>
+    <>
       <AppRoute />
       <Toaster position="bottom-right" />
-    </APIProvider>
+    </>
   );
 };
 
@@ -198,44 +198,48 @@ const catchAllRoute = createRoute({
   component: NotFound,
 });
 
-const fridaRouteEnabled = !(import.meta.env.DROIDGROUND_FRIDA_DISABLED === "true");
-const fileBrowserRouteEnabled = !(import.meta.env.DROIDGROUND_FILE_BROWSER_DISABLED === "true");
-const appManagerRouteEnabled = !(import.meta.env.DROIDGROUND_APP_MANAGER_DISABLED === "true");
-const terminalRouteEnabled = !(import.meta.env.DROIDGROUND_TERMINAL_DISABLED === "true");
-const logsRouteEnabled = !(import.meta.env.DROIDGROUND_LOGCAT_DISABLED === "true");
+const Main = () => {
+  const { featuresConfig, deviceInfo } = useAPI();
 
-// Determine the correct Frida route to use. Default value is FridaJailed
-const fridaRoute = import.meta.env.DROIDGROUND_FRIDA_TYPE === "full" ? fridaFullRoute : fridaJailedRoute;
+  if (!featuresConfig || !deviceInfo) {
+    return <></>;
+  }
 
-const allRoutes = [indexRoute, fridaRoute, fileBrowserRoute, appManagerRoute, terminalRoute, logsRoute];
-const routesEnabled = [
-  true,
-  fridaRouteEnabled,
-  fileBrowserRouteEnabled,
-  appManagerRouteEnabled,
-  terminalRouteEnabled,
-  logsRouteEnabled,
-];
+  const { appManagerEnabled, terminalEnabled, fileBrowserEnabled, fridaEnabled, logcatEnabled, fridaType } =
+    featuresConfig;
 
-if (allRoutes.length !== routesEnabled.length) {
-  throw Error("Length mismatch!");
-}
+  // Determine the correct Frida route to use. Default value is FridaJailed
+  const fridaRoute = fridaType === "full" ? fridaFullRoute : fridaJailedRoute;
 
-const enabledRoutes = allRoutes.filter((_, index) => routesEnabled[index]);
+  const allRoutes = [indexRoute, fridaRoute, fileBrowserRoute, appManagerRoute, terminalRoute, logsRoute];
+  const routesEnabled = [true, fridaEnabled, fileBrowserEnabled, appManagerEnabled, terminalEnabled, logcatEnabled];
 
-const routeTree = rootRoute.addChildren([
-  defaultRoute.addChildren(enabledRoutes),
-  notFoundRoute.addChildren([catchAllRoute]),
-]);
+  if (allRoutes.length !== routesEnabled.length) {
+    throw Error("Length mismatch!");
+  }
 
-const router = createRouter({ routeTree });
+  const enabledRoutes = allRoutes.filter((_, index) => routesEnabled[index]);
+
+  const routeTree = rootRoute.addChildren([
+    defaultRoute.addChildren(enabledRoutes),
+    notFoundRoute.addChildren([catchAllRoute]),
+  ]);
+
+  const router = createRouter({ routeTree });
+
+  return <RouterProvider router={router} />;
+};
 
 declare module "@tanstack/react-router" {
   interface Register {
-    router: typeof router;
+    router: ReturnType<typeof createRouter>;
   }
 }
 
 export const App = () => {
-  return <RouterProvider router={router} />;
+  return (
+    <APIProvider>
+      <Main />
+    </APIProvider>
+  );
 };

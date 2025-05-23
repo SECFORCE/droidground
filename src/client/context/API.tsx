@@ -10,24 +10,19 @@ type APIContextType = {
 
 const APIContext = createContext<APIContextType | undefined>(undefined);
 
-const featuresConfig: DroidGroundFeatures = {
-  appManagerEnabled: !(import.meta.env.DROIDGROUND_APP_MANAGER_DISABLED === "true"),
-  bugReportEnabled: !(import.meta.env.DROIDGROUND_BUG_REPORT_DISABLED === "true"),
-  fileBrowserEnabled: !(import.meta.env.DROIDGROUND_FILE_BROWSER_DISABLED === "true"),
-  fridaEnabled: !(import.meta.env.DROIDGROUND_FRIDA_DISABLED === "true"),
-  logcatEnabled: !(import.meta.env.DROIDGROUND_LOGCAT_DISABLED === "true"),
-  rebootEnabled: !(import.meta.env.DROIDGROUND_REBOOT_DISABLED === "true"),
-  shutdownEnabled: !(import.meta.env.DROIDGROUND_SHUTDOWN_DISABLED === "true"),
-  startActivityEnabled: !(import.meta.env.DROIDGROUND_START_ACTIVITY_DISABLED === "true"),
-  startBroadcastReceiverEnabled: !(import.meta.env.DROIDGROUND_START_RECEIVER_DISABLED === "true"),
-  startServiceEnabled: !(import.meta.env.DROIDGROUND_START_SERVICE_DISABLED === "true"),
-  terminalEnabled: !(import.meta.env.DROIDGROUND_TERMINAL_DISABLED === "true"),
-  fridaType: import.meta.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
-};
-
 export const APIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [featuresConfig, setFeaturesConfig] = useState<DroidGroundFeatures>();
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfoResponse>();
   const [error, setError] = useState<Error | null>(null);
+
+  const getFeaturesConfig = async () => {
+    try {
+      const res = await RESTManagerInstance.getFeatures();
+      setFeaturesConfig(res.data);
+    } catch (e) {
+      setError(e instanceof Error ? e : new Error("Unknown error"));
+    }
+  };
 
   const getInfo = async () => {
     try {
@@ -40,6 +35,7 @@ export const APIProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   useEffect(() => {
     getInfo();
+    getFeaturesConfig();
   }, []);
 
   // Throwing during render if an error occurred
@@ -48,7 +44,7 @@ export const APIProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   return (
     <APIContext.Provider
       value={{
-        featuresConfig,
+        featuresConfig: featuresConfig as DroidGroundFeatures,
         deviceInfo: deviceInfo as DeviceInfoResponse,
       }}
     >
