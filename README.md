@@ -116,7 +116,7 @@ Here are some ways DroidGround can be used:
 
 ## ⚙️ Usage
 
-A couple of sample _Docker Compose_ files are provided in the [docker](./docker) folder. They are a good starting point, but they also require some work on your end (like setting up the env variables and the init folder with the `setup.sh` and `reset.sh` scripts).
+A couple of sample _Docker Compose_ files are provided in the [examples](./examples) folder. They use apps from the [DroidGround samples repo](https://github.com/SECFORCE/droidground-samples) which will progressively be enhanced to showcase all the key features. They are also a good starting point to understand how to setup your own CTF.
 
 On boot _DroidGround_ does the following:
 
@@ -179,7 +179,7 @@ Developed by Angelo Delicato [@SECFORCE](https://www.secforce.com).
 
 The _server_ section heavily relies on the amazing work done by [@yume-chan](https://github.com/yume-chan/ya-webadb), probably this app wouldn't exist if it wasn't for his amazing work.
 
-The _companion_ app is heavily based on the [aya server](https://github.com/liriliri/aya/tree/master/server) which works the same way as the [scrcpy server](https://github.com/Genymobile/scrcpy) as detailed in the specific [README](./companion/README.md).
+The _companion_ app is heavily based on the [aya server](https://github.com/liriliri/aya/tree/master/server) which works the same way as the [scrcpy server](https://github.com/Genymobile/scrcpy). More details can be found in the specific [README](./companion/README.md).
 
 ## 🪪 License
 

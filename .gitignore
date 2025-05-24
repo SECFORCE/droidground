@@ -131,6 +131,5 @@ dist
 
 # Custom
 resources
-docker/data
 init.d
 !examples/*/init.d
