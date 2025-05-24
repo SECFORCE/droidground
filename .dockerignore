@@ -1,5 +1,9 @@
+node_modules
+npm-debug.log
+yarn-error.log
+__tests__
 .github
-vscode
+.vscode
 companion/.gradle
 companion/.kotlin
 companion/build
