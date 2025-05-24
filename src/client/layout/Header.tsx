@@ -7,6 +7,7 @@ import { RESTManagerInstance } from "@client/api/rest";
 import toast from "react-hot-toast";
 import { ConfirmModal } from "@client/components";
 import { useAPI } from "@client/context/API";
+import { BsGithub } from "react-icons/bs";
 
 interface INavItem {
   label: string;
@@ -18,7 +19,7 @@ const Navbar: React.FC = () => {
   const { featuresConfig } = useAPI();
   const location = useLocation();
   const navigate = useNavigate();
-  const [hovered, setHovered] = useState<INavItem | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
   const resetCtfDialogRef = useRef<HTMLDialogElement | null>(null);
 
   if (!featuresConfig) {
@@ -64,7 +65,7 @@ const Navbar: React.FC = () => {
       {/*************
        *   Navbar   *
        ***************/}
-      <nav className="px-2 py-1">
+      <nav className="flex px-2 py-1 h-12">
         <ul className="relative flex space-x-8 text-sm font-medium">
           {navItems
             .filter(i => i.routeEnabled)
@@ -72,10 +73,12 @@ const Navbar: React.FC = () => {
               <li
                 key={item.to}
                 className="relative m-0 px-2 cursor-pointer"
-                onMouseEnter={() => setHovered(item)}
+                onMouseEnter={() => {
+                  console.log(item), setHovered(item.to);
+                }}
                 onMouseLeave={() => setHovered(null)}
               >
-                {hovered === item && (
+                {hovered === item.to && (
                   <motion.div
                     layoutId="hover-bg"
                     className="absolute inset-0 bg-gray-800 rounded-md z-0"
@@ -90,17 +93,28 @@ const Navbar: React.FC = () => {
                   {location.pathname === item.to && (
                     <motion.div
                       layoutId="underline"
-                      className="absolute bottom-[-18px] left-0 right-0 h-0.5 bg-info rounded z-20"
+                      className="absolute bottom-[-20px] left-0 right-0 h-0.5 bg-info rounded z-20"
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
                   )}
                 </button>
               </li>
             ))}
-          <button className="btn btn-error ml-4" onClick={() => resetCtfDialogRef.current?.showModal()}>
-            Reset
-          </button>
         </ul>
+        <button className="btn btn-error ml-4" onClick={() => resetCtfDialogRef.current?.showModal()}>
+          Reset
+        </button>
+        <div className="flex h-full items-center justify-center">
+          <div className="flex h-[1.5rem]">
+            <div className="divider divider-horizontal" />
+          </div>
+          <a href="https://github.com/SECFORCE/droidground" target="_blank" className="group">
+            <BsGithub
+              size={24}
+              className="text-gray-400 group-hover:text-white hover:text-white transition-all duration-300"
+            />
+          </a>
+        </div>
       </nav>
     </>
   );
