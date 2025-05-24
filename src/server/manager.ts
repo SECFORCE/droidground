@@ -71,62 +71,76 @@ export class ManagerSingleton {
   }
 
   public async init(httpServer: HTTPServer) {
-    Logger.debug("Singleton init...");
-    this.httpServer = httpServer;
-    const connector: AdbServerNodeTcpConnector = new AdbServerNodeTcpConnector({
-      host: this.config.adb.host,
-      port: this.config.adb.port,
-    });
-
-    const client: AdbServerClient = new AdbServerClient(connector);
-    this.serverClient = client;
-    const observer = await client.trackDevices();
-
-    observer.onDeviceAdd(async _devices => {
-      // Let's do this only when the device is disconnected and everything needs to be setup again
-      if (this.appStatus !== AppStatus.DISCONNECTED_PHASE) {
-        return;
-      }
-
-      if (!this.httpServer) {
-        Logger.error("Missing httpServer, cannot stop the server");
-        return;
-      }
-
-      await this.setupAdb();
-      await this.setCtf();
-
-      if (this.getConfig().features.fridaEnabled) {
-        await setupFrida();
-      }
-
-      const host = process.env.DROIDGROUND_HOST || "0.0.0.0";
-      const port = process.env.DROIDGROUND_PORT || 4242;
-      this.httpServer.listen(Number(port), host, () => {
-        Logger.info(`Restarting DroidGround on http://${host}:${port}.`);
+    try {
+      Logger.debug("Singleton init...");
+      this.httpServer = httpServer;
+      const connector: AdbServerNodeTcpConnector = new AdbServerNodeTcpConnector({
+        host: this.config.adb.host,
+        port: this.config.adb.port,
       });
-      await setupScrcpy();
-      this.appStatus = AppStatus.RUNNING_PHASE;
-      Logger.debug("Singleton init done!");
-    });
 
-    observer.onDeviceRemove(async devices => {
-      for (const device of devices) {
-        Logger.debug(`Device with serial ${device.serial} disconnected`);
+      const client: AdbServerClient = new AdbServerClient(connector);
+      this.serverClient = client;
+      const observer = await client.trackDevices();
+
+      observer.onDeviceAdd(async _devices => {
+        // Let's do this only when the device is disconnected and everything needs to be setup again
+        if (this.appStatus !== AppStatus.DISCONNECTED_PHASE) {
+          return;
+        }
+
         if (!this.httpServer) {
           Logger.error("Missing httpServer, cannot stop the server");
-          continue;
+          return;
         }
 
-        if (device.serial === this.device?.serial) {
-          Logger.info("Stopping HTTP Server.");
-          this.httpServer.close();
-          this.appStatus = AppStatus.DISCONNECTED_PHASE;
-          this.adb = null;
-          await this.scrcpyClient?.close();
+        await this.setupAdb();
+        await this.setCtf();
+
+        if (this.getConfig().features.fridaEnabled) {
+          await setupFrida();
         }
+
+        const host = process.env.DROIDGROUND_HOST || "0.0.0.0";
+        const port = process.env.DROIDGROUND_PORT || 4242;
+        this.httpServer.listen(Number(port), host, () => {
+          Logger.info(`Restarting DroidGround on http://${host}:${port}.`);
+        });
+        await setupScrcpy();
+        this.appStatus = AppStatus.RUNNING_PHASE;
+        Logger.debug("Singleton init done!");
+      });
+
+      observer.onDeviceRemove(async devices => {
+        for (const device of devices) {
+          Logger.debug(`Device with serial ${device.serial} disconnected`);
+          if (!this.httpServer) {
+            Logger.error("Missing httpServer, cannot stop the server");
+            continue;
+          }
+
+          if (device.serial === this.device?.serial) {
+            Logger.info("Stopping HTTP Server.");
+            this.httpServer.close();
+            this.appStatus = AppStatus.DISCONNECTED_PHASE;
+            this.adb = null;
+            await this.scrcpyClient?.close();
+          }
+        }
+      });
+    } catch (e) {
+      if (e instanceof AggregateError) {
+        Logger.error("Multiple errors occurred while setting up the application:");
+        for (const specificError of e.errors) {
+          Logger.error(`\t${specificError}`);
+        }
+      } else {
+        Logger.error(`Error while setting up the application: ${e}`);
       }
-    });
+
+      Logger.error("Check if the 'adb' server is up & running and then restart the app.");
+      process.exit(1);
+    }
   }
 
   private async setupAdb() {
