@@ -1,4 +1,4 @@
-import "@dotenvx/dotenvx/config";
+import { config as dotenvConfig } from "@dotenvx/dotenvx";
 import { Server as HTTPServer } from "http";
 import express from "express";
 import { Application as ExpressApplication } from "express";
@@ -11,6 +11,8 @@ import { resourceFile, safeFileExists } from "@server/utils/helpers";
 import { RESOURCES } from "@server/config";
 import { setupFrida } from "@server/utils/frida";
 import { setupScrcpy } from "@server/utils/scrcpy";
+
+dotenvConfig({ quiet: true });
 
 const checkResources = () => {
   Logger.debug("Check resources...");
