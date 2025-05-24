@@ -9,7 +9,6 @@ companion/.kotlin
 companion/build
 companion/*.dex
 dist
-docker
 docs
 examples
 init.d

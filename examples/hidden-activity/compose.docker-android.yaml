@@ -1,0 +1,34 @@
+# The ./init.d folder should contain the "setup.sh" and "reset.sh" scripts
+
+services:
+  docker-android:
+    image: halimqarroum/docker-android:api-33
+    devices:
+      - /dev/kvm
+    ports:
+      - 5555:5555 # No need to expose this, but it's useful for debugging purposes
+    container_name: docker-android
+  droidground:
+    build: ../..
+    container_name: droidground
+    restart: on-failure
+    ports:
+      - 4242:4242
+    volumes:
+      - ./init.d:/init.d
+    environment:
+      - DG_APP_PACKAGE_NAME=com.droidground.hiddenactivity
+      - DG_ADB_HOST=localhost
+      - DG_ADB_PORT=5037
+      - DG_DEVICE_TYPE=network
+      - DG_DEVICE_HOST=docker-android
+      - DG_DEVICE_PORT=5555
+      - DG_INIT_SCRIPTS_FOLDER=/init.d
+      - DROIDGROUND_HOST=0.0.0.0
+      - DROIDGROUND_PORT=4242
+      - DROIDGROUND_SHUTDOWN_DISABLED=true
+      - DROIDGROUND_APP_MANAGER_DISABLED=true
+      - DROIDGROUND_FRIDA_DISABLED=true
+      - DROIDGROUND_START_RECEIVER_DISABLED=true
+      - DROIDGROUND_START_SERVICE_DISABLED=true
+      - DROIDGROUND_TERMINAL_DISABLED=true
