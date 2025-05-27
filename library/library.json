@@ -1,0 +1,46 @@
+[
+  {
+    "filename": "enum_classes.js",
+    "description": "Enumerate all Java classes"
+  },
+  {
+    "filename": "enum_methods.js",
+    "description": "Enumerate all methods declared in a Java class"
+  },
+  {
+    "filename": "find_pattern.js",
+    "description": "Find all Java classes that match a pattern"
+  },
+  {
+    "filename": "clipboard.js",
+    "description": "Dump the clipboard content"
+  },
+  {
+    "filename": "hook_method.js",
+    "description": "Dynamically hooks all overloads of a specified Java method"
+  },
+  {
+    "filename": "log_interceptor.js",
+    "description": "Intercept and log all calls to Android's logging functions"
+  },
+  {
+    "filename": "get_android_id.js",
+    "description": "Get the unique ANDROID_ID for the target app"
+  },
+  {
+    "filename": "get_app_env_info.js",
+    "description": "Get Env App Info for the target app"
+  },
+  {
+    "filename": "enum_dex_classes.js",
+    "description": "Enumerate Dex classes"
+  },
+  {
+    "filename": "debugger_connected_bypass.js",
+    "description": "Debugger connected Bypass"
+  },
+  {
+    "filename": "hello.js",
+    "description": "Just a simple Hello World script (for testing purposes)"
+  }
+]
