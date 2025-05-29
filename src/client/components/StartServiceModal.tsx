@@ -61,6 +61,9 @@ export const StartServiceModal: React.FC<IModalProps> = ({ dialogRef }) => {
     <dialog ref={dialogRef} className="modal">
       <div className="modal-box max-w-3xl">
         <h3 className="font-bold text-lg mb-4">Start Service</h3>
+        <p className="mb-4">
+          This will allow you start a <i>Service</i> <b>belonging to the target app only</b>!
+        </p>
         <form onSubmit={handleSubmit(startService)} className="space-y-4">
           <input
             type="text"
