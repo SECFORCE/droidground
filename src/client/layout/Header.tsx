@@ -58,7 +58,13 @@ const Navbar: React.FC = () => {
       <ConfirmModal
         dialogRef={resetCtfDialogRef}
         title="Reset CTF"
-        description="This will reset the CTF to its original status (usually it will perform some cleanup and uninstall/reinstall the app. Are you sure?"
+        description={
+          <>
+            This will reset the CTF to its original status (usually it will perform some cleanup and uninstall/reinstall
+            the app). <br />
+            Are you sure?
+          </>
+        }
         onConfirm={reset}
       />
 
