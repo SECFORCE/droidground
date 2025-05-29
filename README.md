@@ -73,7 +73,7 @@ Almost all features are **modular** and defined via environment variables, ensur
 
 ## ⚙️ Configuration
 
-The `.env.sample` file in the root directory is a good starting point.
+The `.env.sample` file in the root directory is a good starting point. This is the full list of all env variables currently supported:
 
 | Variable                              | Description                                        | Default     |
 | ------------------------------------- | -------------------------------------------------- | ----------- |
@@ -168,7 +168,7 @@ Pull requests are welcome! Please open an issue first to discuss major changes. 
 
 ## 📚 Credits
 
-Developed by Angelo Delicato [@SECFORCE](https://www.secforce.com).
+Developed by [Angelo Delicato](https://github.com/thelicato) [@SECFORCE](https://www.secforce.com).
 
 The _server_ section heavily relies on the amazing work done by [@yume-chan](https://github.com/yume-chan/ya-webadb), probably this app wouldn't exist if it wasn't for his amazing work.
 
