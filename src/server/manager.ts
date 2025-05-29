@@ -39,11 +39,11 @@ export class ManagerSingleton {
 
   private constructor() {
     // private constructor prevents direct instantiation
-    const port = process.env.DG_ADB_PORT ?? "";
+    const port = process.env.DROIDGROUND_ADB_PORT ?? "";
     this.config = {
-      packageName: process.env.DG_APP_PACKAGE_NAME ?? "",
+      packageName: process.env.DROIDGROUND_APP_PACKAGE_NAME ?? "",
       adb: {
-        host: process.env.DG_ADB_HOST ?? "localhost",
+        host: process.env.DROIDGROUND_ADB_HOST ?? "localhost",
         port: isNaN(port as any) || port.trim().length === 0 ? 5037 : parseInt(port),
       },
       features: {
@@ -235,14 +235,14 @@ export class ManagerSingleton {
   }
 
   public async setCtf(): Promise<boolean> {
-    const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "/init.d";
+    const initDFolder = process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const setupScript = path.resolve(initDFolder, "setup.sh");
     if (!safeFileExists(setupScript)) {
       Logger.error(`setup.sh script missing in the ${initDFolder}`);
       return false;
     }
 
-    execSync(setupScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
+    execSync(setupScript, { cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER }).toString().trim();
 
     // Check if the app is installed, otherwise stop DroidGround
     await this.checkPackage();
@@ -250,10 +250,10 @@ export class ManagerSingleton {
   }
 
   public resetCtf(): boolean {
-    const initDFolder = process.env.DG_INIT_SCRIPTS_FOLDER ?? "/init.d";
+    const initDFolder = process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const resetScript = path.resolve(initDFolder, "reset.sh");
     if (safeFileExists(resetScript)) {
-      execSync(resetScript, { cwd: process.env.DG_INIT_SCRIPTS_FOLDER }).toString().trim();
+      execSync(resetScript, { cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER }).toString().trim();
       return true;
     } else {
       Logger.error(`reset.sh script missing in the ${initDFolder}`);
