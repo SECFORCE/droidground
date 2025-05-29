@@ -46,7 +46,7 @@
     "frida": "^16.7.14",
     "lottie-react": "^2.4.1",
     "motion": "^12.10.4",
-    "multer": "^1.4.5-lts.2",
+    "multer": "^2.0.0",
     "pino": "^9.6.0",
     "pino-http": "^10.4.0",
     "pino-pretty": "^13.0.0",
