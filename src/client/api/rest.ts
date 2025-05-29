@@ -10,6 +10,7 @@ import {
   IGenericResultRes,
   StartActivityRequest,
   StartBroadcastRequest,
+  StartExploitAppRequest,
   StartServiceRequest,
 } from "@shared/api";
 import { REST_API_ENDPOINTS as E } from "@shared/endpoints";
@@ -46,6 +47,11 @@ class RESTManager {
 
   async startBroadcast(data: StartBroadcastRequest): Promise<AxiosResponse<IGenericResultRes>> {
     const res = await http.post<IGenericResultRes>(E.BROADCAST, data);
+    return res;
+  }
+
+  async startExploitApp(data: StartExploitAppRequest): Promise<AxiosResponse<IGenericResultRes>> {
+    const res = await http.post<IGenericResultRes>(E.EXPLOIT_APP, data);
     return res;
   }
 
