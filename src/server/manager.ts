@@ -213,25 +213,27 @@ export class ManagerSingleton {
     return this.tmpDir;
   }
 
-  public async runTargetApp() {
+  public async runAppByPackageName(packageName: string) {
     const adb = await this.getAdb();
     // Force close the app
-    await adb.subprocess.noneProtocol.spawnWait(`am force-stop ${this.config.packageName} 1`);
+    await adb.subprocess.noneProtocol.spawnWait(`am force-stop ${packageName} 1`);
     // And then reopen it
 
     // Try with resolved activity first
     const activityToLaunch = (
-      await adb.subprocess.noneProtocol.spawnWaitText(
-        `cmd package resolve-activity --brief ${this.config.packageName} | tail -n 1`,
-      )
+      await adb.subprocess.noneProtocol.spawnWaitText(`cmd package resolve-activity --brief ${packageName} | tail -n 1`)
     ).trim();
 
     if (activityToLaunch.length > 0) {
       await adb.subprocess.noneProtocol.spawnWait(`am start ${activityToLaunch}`);
     } else {
       // Otherwise go with monkey
-      await adb.subprocess.noneProtocol.spawnWait(`monkey -p ${this.config.packageName} 1`);
+      await adb.subprocess.noneProtocol.spawnWait(`monkey -p ${packageName} 1`);
     }
+  }
+
+  public async runTargetApp() {
+    await this.runAppByPackageName(this.config.packageName);
   }
 
   public async setCtf(): Promise<boolean> {

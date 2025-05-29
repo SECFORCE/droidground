@@ -1,4 +1,10 @@
-import { GetFilesRequest, StartActivityRequest, StartBroadcastRequest, StartServiceRequest } from "@shared/api";
+import {
+  GetFilesRequest,
+  StartActivityRequest,
+  StartBroadcastRequest,
+  StartExploitAppRequest,
+  StartServiceRequest,
+} from "@shared/api";
 import { IntentExtra, IntentExtraType } from "@shared/types";
 import { JSONSchemaType } from "ajv";
 
@@ -80,5 +86,14 @@ export const getFilesSchema: JSONSchemaType<GetFilesRequest> = {
     path: { type: "string" },
   },
   required: ["path"],
+  additionalProperties: false,
+};
+
+export const runExploitAppSchema: JSONSchemaType<StartExploitAppRequest> = {
+  type: "object",
+  properties: {
+    packageName: { type: "string" },
+  },
+  required: ["packageName"],
   additionalProperties: false,
 };

@@ -83,3 +83,7 @@ export interface StartFridaLibraryScriptRequest {
   scriptName: string;
   args: Record<string, any>;
 }
+
+export interface StartExploitAppRequest {
+  packageName: string;
+}
