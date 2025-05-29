@@ -73,38 +73,31 @@ Almost all features are **modular** and defined via environment variables, ensur
 
 ## ⚙️ Configuration
 
-The `.env.sample` file in the root directory is a good starting point.
+The `.env.sample` file in the root directory is a good starting point. This is the full list of all env variables currently supported:
 
-Server-only (prefix `DG_`)
-
-| Variable                 | Description                                        | Default     |
-| ------------------------ | -------------------------------------------------- | ----------- |
-| `DG_APP_PACKAGE_NAME`    | Package name of target app                         | -           |
-| `DG_ADB_HOST`            | ADB host                                           | `localhost` |
-| `DG_ADB_PORT`            | ADB port                                           | `5037`      |
-| `DG_DEVICE_TYPE`         | `usb` or `network`                                 | `usb`       |
-| `DG_DEVICE_HOST`         | IP of Android device (`adb`) (network mode only)   | -           |
-| `DG_DEVICE_PORT`         | port of Android device (`adb`) (network mode only) | -           |
-| `DG_INIT_SCRIPTS_FOLDER` | Folder containing `setup.sh` and `reset.sh`        | `/init.d`   |
-
-Server + Client (prefix `DROIDGROUND_`)
-
-| Variable                              | Description           | Default   |
-| ------------------------------------- | --------------------- | --------- |
-| `DROIDGROUND_HOST`                    | Bind address          | `0.0.0.0` |
-| `DROIDGROUND_PORT`                    | Bind port             | `4242`    |
-| `DROIDGROUND_APP_MANAGER_DISABLED`    | Disable app manager   | `false`   |
-| `DROIDGROUND_BUG_REPORT_DISABLED`     | Disable bugreport     | `false`   |
-| `DROIDGROUND_FILE_BROWSER_DISABLED`   | Disable file browser  | `false`   |
-| `DROIDGROUND_FRIDA_DISABLED`          | Disable Frida support | `false`   |
-| `DROIDGROUND_FRIDA_TYPE`              | `jail` or `full`      | `jail`    |
-| `DROIDGROUND_LOGCAT_DISABLED`         | Disable logcat        | `false`   |
-| `DROIDGROUND_REBOOT_DISABLED`         | Disable reboot        | `false`   |
-| `DROIDGROUND_SHUTDOWN_DISABLED`       | Disable shutdown      | `false`   |
-| `DROIDGROUND_START_ACTIVITY_DISABLED` | Disable startActivity | `false`   |
-| `DROIDGROUND_START_RECEIVER_DISABLED` | Disable broadcast     | `false`   |
-| `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService  | `false`   |
-| `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal      | `false`   |
+| Variable                              | Description                                        | Default     |
+| ------------------------------------- | -------------------------------------------------- | ----------- |
+| `DROIDGROUND_APP_PACKAGE_NAME`        | Package name of target app                         | -           |
+| `DROIDGROUND_ADB_HOST`                | ADB host                                           | `localhost` |
+| `DROIDGROUND_ADB_PORT`                | ADB port                                           | `5037`      |
+| `DROIDGROUND_DEVICE_TYPE`             | `usb` or `network`                                 | `usb`       |
+| `DROIDGROUND_DEVICE_HOST`             | IP of Android device (`adb`) (network mode only)   | -           |
+| `DROIDGROUND_DEVICE_PORT`             | port of Android device (`adb`) (network mode only) | -           |
+| `DROIDGROUND_INIT_SCRIPTS_FOLDER`     | Folder containing `setup.sh` and `reset.sh`        | `/init.d`   |
+| `DROIDGROUND_HOST`                    | Bind address                                       | `0.0.0.0`   |
+| `DROIDGROUND_PORT`                    | Bind port                                          | `4242`      |
+| `DROIDGROUND_APP_MANAGER_DISABLED`    | Disable app manager                                | `false`     |
+| `DROIDGROUND_BUG_REPORT_DISABLED`     | Disable bugreport                                  | `false`     |
+| `DROIDGROUND_FILE_BROWSER_DISABLED`   | Disable file browser                               | `false`     |
+| `DROIDGROUND_FRIDA_DISABLED`          | Disable Frida support                              | `false`     |
+| `DROIDGROUND_FRIDA_TYPE`              | `jail` or `full`                                   | `jail`      |
+| `DROIDGROUND_LOGCAT_DISABLED`         | Disable logcat                                     | `false`     |
+| `DROIDGROUND_REBOOT_DISABLED`         | Disable reboot                                     | `false`     |
+| `DROIDGROUND_SHUTDOWN_DISABLED`       | Disable shutdown                                   | `false`     |
+| `DROIDGROUND_START_ACTIVITY_DISABLED` | Disable startActivity                              | `false`     |
+| `DROIDGROUND_START_RECEIVER_DISABLED` | Disable broadcast                                  | `false`     |
+| `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService                               | `false`     |
+| `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal                                   | `false`     |
 
 ## 🧩 Use Cases
 
@@ -121,9 +114,9 @@ A couple of sample _Docker Compose_ files are provided in the [examples](./examp
 On boot _DroidGround_ does the following:
 
 1. Set up the connection with `adb`
-2. Run the `setup.sh` in the folder specified by `DG_INIT_SCRIPTS_FOLDER` if present. This script can be used to install the target app and do everything else that's needed to init the CTF (e.g. placing the flag in a known location)
+2. Run the `setup.sh` in the folder specified by `DROIDGROUND_INIT_SCRIPTS_FOLDER` if present. This script can be used to install the target app and do everything else that's needed to init the CTF (e.g. placing the flag in a known location)
 3. (if _Frida_ is enabled) Download the correct `frida-server` based on the version installed and the architecture of the device and start it
-4. Run the target app (the one specified through `DG_APP_PACKAGE_NAME`). If the app is not installed _DroidGround_ will exit.
+4. Run the target app (the one specified through `DROIDGROUND_APP_PACKAGE_NAME`). If the app is not installed _DroidGround_ will exit.
 5. Setup the _REST APIs_, the _WebSocket_ servers and the display streaming
 
 Here is a sample `setup.sh` script:
@@ -175,7 +168,7 @@ Pull requests are welcome! Please open an issue first to discuss major changes. 
 
 ## 📚 Credits
 
-Developed by Angelo Delicato [@SECFORCE](https://www.secforce.com).
+Developed by [Angelo Delicato](https://github.com/thelicato) [@SECFORCE](https://www.secforce.com).
 
 The _server_ section heavily relies on the amazing work done by [@yume-chan](https://github.com/yume-chan/ya-webadb), probably this app wouldn't exist if it wasn't for his amazing work.
 

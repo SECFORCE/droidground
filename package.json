@@ -1,6 +1,6 @@
 {
   "name": "droidground",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "author": "Angelo Delicato",
   "scripts": {
@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.4.0",
-    "@dotenvx/dotenvx": "^1.43.0",
     "@tailwindcss/vite": "^4.1.4",
     "@tanstack/react-router": "^1.120.3",
     "@xterm/addon-fit": "^0.10.0",
@@ -41,6 +40,7 @@
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "follow-redirects": "^1.15.9",
     "frida": "^16.7.14",

@@ -26,13 +26,13 @@ services:
     volumes:
       - ./init.d:/init.d
     environment:
-      - DG_APP_PACKAGE_NAME=com.droidground.hiddenactivity
-      - DG_ADB_HOST=localhost
-      - DG_ADB_PORT=5037
-      - DG_DEVICE_TYPE=network
-      - DG_DEVICE_HOST=redroid
-      - DG_DEVICE_PORT=5555
-      - DG_INIT_SCRIPTS_FOLDER=/init.d
+      - DROIDGROUND_APP_PACKAGE_NAME=com.droidground.hiddenactivity
+      - DROIDGROUND_ADB_HOST=localhost
+      - DROIDGROUND_ADB_PORT=5037
+      - DROIDGROUND_DEVICE_TYPE=network
+      - DROIDGROUND_DEVICE_HOST=redroid
+      - DROIDGROUND_DEVICE_PORT=5555
+      - DROIDGROUND_INIT_SCRIPTS_FOLDER=/init.d
       - DROIDGROUND_HOST=0.0.0.0
       - DROIDGROUND_PORT=4242
       - DROIDGROUND_SHUTDOWN_DISABLED=true

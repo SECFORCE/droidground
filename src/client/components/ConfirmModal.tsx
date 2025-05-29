@@ -1,7 +1,7 @@
 interface IModalProps {
   dialogRef: React.RefObject<HTMLDialogElement | null>;
   title: string;
-  description: string;
+  description: React.ReactNode;
   onConfirm: () => void;
 }
 
