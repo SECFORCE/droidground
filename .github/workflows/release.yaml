@@ -12,6 +12,9 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: ncipollo/release-action@v1
 
       - name: Update changelog
