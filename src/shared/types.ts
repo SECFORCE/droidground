@@ -14,6 +14,7 @@ export interface DroidGroundFeatures {
   terminalEnabled: boolean;
   logcatEnabled: boolean;
   fridaType: "full" | "jail";
+  exploitAppDuration: number;
 }
 
 export interface DroidGroundConfig {

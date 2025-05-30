@@ -39,12 +39,13 @@ export class ManagerSingleton {
 
   private constructor() {
     // private constructor prevents direct instantiation
-    const port = process.env.DROIDGROUND_ADB_PORT ?? "";
+    const port: any = process.env.DROIDGROUND_ADB_PORT ?? "";
+    const exploitAppDuration: any = process.env.DROIDGROUND_EXPLOIT_APP_DURATION ?? "";
     this.config = {
       packageName: process.env.DROIDGROUND_APP_PACKAGE_NAME ?? "",
       adb: {
         host: process.env.DROIDGROUND_ADB_HOST ?? "localhost",
-        port: isNaN(port as any) || port.trim().length === 0 ? 5037 : parseInt(port),
+        port: isNaN(port) || port.trim().length === 0 ? 5037 : parseInt(port),
       },
       features: {
         appManagerEnabled: !(process.env.DROIDGROUND_APP_MANAGER_DISABLED === "true"),
@@ -59,6 +60,8 @@ export class ManagerSingleton {
         startServiceEnabled: !(process.env.DROIDGROUND_START_SERVICE_DISABLED === "true"),
         terminalEnabled: !(process.env.DROIDGROUND_TERMINAL_DISABLED === "true"),
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
+        exploitAppDuration:
+          isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
       },
     };
   }

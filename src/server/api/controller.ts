@@ -33,7 +33,7 @@ import {
 } from "@server/utils/helpers";
 import { capitalize, sleep } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
-import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER } from "@server/config";
+import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER, SECOND } from "@server/config";
 import { CompanionAttackSurfaceResponse } from "@server/utils/types";
 import { loadFridaLibrary } from "@server/utils/frida";
 
@@ -510,15 +510,17 @@ class APIController {
     try {
       const body = req.body as StartExploitAppRequest;
       const singleton = ManagerSingleton.getInstance();
+      const config = singleton.getConfig();
+      const duration = config.features.exploitAppDuration;
 
       const { packageName: exploitApp } = body;
       await singleton.runAppByPackageName(exploitApp);
 
-      res.json({ result: "Exploit app correctly started, it will be up for 10 seconds" }).end();
+      res.json({ result: `Exploit app correctly  for ${duration} seconds` }).end();
       responseSent = true;
 
-      await sleep(10 * 1000);
-      Logger.info("10 seconds have passed, restarting target app...");
+      await sleep(duration * SECOND);
+      Logger.info(`${duration} seconds have passed, restarting target app...`);
       await singleton.runTargetApp();
     } catch (error: any) {
       Logger.error(`Error starting exploit app: ${error}`);
