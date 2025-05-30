@@ -15,6 +15,7 @@ export const REST_API_ENDPOINTS = {
   PACKAGES: "/packages",
   APK: "/apk",
   LIBRARY: "/library",
+  EXPLOIT_APP: "/exploitApp",
 } as const;
 
 export const WEBSOCKET_ENDPOINTS = {

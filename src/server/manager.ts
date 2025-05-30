@@ -39,12 +39,13 @@ export class ManagerSingleton {
 
   private constructor() {
     // private constructor prevents direct instantiation
-    const port = process.env.DROIDGROUND_ADB_PORT ?? "";
+    const port: any = process.env.DROIDGROUND_ADB_PORT ?? "";
+    const exploitAppDuration: any = process.env.DROIDGROUND_EXPLOIT_APP_DURATION ?? "";
     this.config = {
       packageName: process.env.DROIDGROUND_APP_PACKAGE_NAME ?? "",
       adb: {
         host: process.env.DROIDGROUND_ADB_HOST ?? "localhost",
-        port: isNaN(port as any) || port.trim().length === 0 ? 5037 : parseInt(port),
+        port: isNaN(port) || port.trim().length === 0 ? 5037 : parseInt(port),
       },
       features: {
         appManagerEnabled: !(process.env.DROIDGROUND_APP_MANAGER_DISABLED === "true"),
@@ -59,6 +60,8 @@ export class ManagerSingleton {
         startServiceEnabled: !(process.env.DROIDGROUND_START_SERVICE_DISABLED === "true"),
         terminalEnabled: !(process.env.DROIDGROUND_TERMINAL_DISABLED === "true"),
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
+        exploitAppDuration:
+          isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
       },
     };
   }
@@ -213,25 +216,27 @@ export class ManagerSingleton {
     return this.tmpDir;
   }
 
-  public async runTargetApp() {
+  public async runAppByPackageName(packageName: string) {
     const adb = await this.getAdb();
     // Force close the app
-    await adb.subprocess.noneProtocol.spawnWait(`am force-stop ${this.config.packageName} 1`);
+    await adb.subprocess.noneProtocol.spawnWait(`am force-stop ${packageName} 1`);
     // And then reopen it
 
     // Try with resolved activity first
     const activityToLaunch = (
-      await adb.subprocess.noneProtocol.spawnWaitText(
-        `cmd package resolve-activity --brief ${this.config.packageName} | tail -n 1`,
-      )
+      await adb.subprocess.noneProtocol.spawnWaitText(`cmd package resolve-activity --brief ${packageName} | tail -n 1`)
     ).trim();
 
     if (activityToLaunch.length > 0) {
       await adb.subprocess.noneProtocol.spawnWait(`am start ${activityToLaunch}`);
     } else {
       // Otherwise go with monkey
-      await adb.subprocess.noneProtocol.spawnWait(`monkey -p ${this.config.packageName} 1`);
+      await adb.subprocess.noneProtocol.spawnWait(`monkey -p ${packageName} 1`);
     }
+  }
+
+  public async runTargetApp() {
+    await this.runAppByPackageName(this.config.packageName);
   }
 
   public async setCtf(): Promise<boolean> {

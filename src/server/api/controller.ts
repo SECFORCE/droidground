@@ -21,6 +21,7 @@ import {
   IGenericResultRes,
   StartActivityRequest,
   StartBroadcastRequest,
+  StartExploitAppRequest,
   StartServiceRequest,
 } from "@shared/api";
 import {
@@ -30,9 +31,9 @@ import {
   shellEscape,
   versionNumberToCodename,
 } from "@server/utils/helpers";
-import { capitalize } from "@shared/helpers";
+import { capitalize, sleep } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
-import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER } from "@server/config";
+import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER, SECOND } from "@server/config";
 import { CompanionAttackSurfaceResponse } from "@server/utils/types";
 import { loadFridaLibrary } from "@server/utils/frida";
 
@@ -500,6 +501,33 @@ class APIController {
     } catch (error: any) {
       Logger.error(`Error getting Frida library: ${error}`);
       res.status(500).json({ error: "An error occurred while getting the Frida library." }).end();
+    }
+  };
+
+  startExploitApp: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    let responseSent = false;
+    try {
+      const body = req.body as StartExploitAppRequest;
+      const singleton = ManagerSingleton.getInstance();
+      const config = singleton.getConfig();
+      const duration = config.features.exploitAppDuration;
+
+      const { packageName: exploitApp } = body;
+      await singleton.runAppByPackageName(exploitApp);
+
+      res.json({ result: `Exploit app correctly  for ${duration} seconds` }).end();
+      responseSent = true;
+
+      await sleep(duration * SECOND);
+      Logger.info(`${duration} seconds have passed, restarting target app...`);
+      await singleton.runTargetApp();
+    } catch (error: any) {
+      Logger.error(`Error starting exploit app: ${error}`);
+      // Check if the response was already returned to the client (let's just fail kinda silently)
+      if (!responseSent) {
+        res.status(500).json({ error: "An error occurred while starting the exploit app." }).end();
+      }
     }
   };
 

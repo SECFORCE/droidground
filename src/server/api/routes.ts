@@ -7,9 +7,21 @@ import multer from "multer";
 import APIController from "@server/api/controller";
 import { ManagerSingleton } from "@server/manager";
 import { checkFeatureEnabled, validateBody } from "@server/api/middlewares";
-import { getFilesSchema, startActivitySchema, startBroadcastSchema, startServiceSchema } from "@server/api/schemas";
+import {
+  getFilesSchema,
+  runExploitAppSchema,
+  startActivitySchema,
+  startBroadcastSchema,
+  startServiceSchema,
+} from "@server/api/schemas";
 import { REST_API_ENDPOINTS as E } from "@shared/endpoints";
-import { GetFilesRequest, StartActivityRequest, StartBroadcastRequest, StartServiceRequest } from "@shared/api";
+import {
+  GetFilesRequest,
+  StartActivityRequest,
+  StartBroadcastRequest,
+  StartExploitAppRequest,
+  StartServiceRequest,
+} from "@shared/api";
 
 const singleton = ManagerSingleton.getInstance();
 const upload = multer({ dest: path.join(singleton.getTmpDir(), "uploads") });
@@ -52,6 +64,12 @@ export default (app: Router) => {
     checkFeatureEnabled(features.fileBrowserEnabled),
     validateBody<GetFilesRequest>(getFilesSchema),
     APIController.files,
+  );
+  endpoint.post(
+    E.EXPLOIT_APP,
+    checkFeatureEnabled(features.appManagerEnabled),
+    validateBody<StartExploitAppRequest>(runExploitAppSchema),
+    APIController.startExploitApp,
   );
   endpoint.post(E.RESET, APIController.reset);
   endpoint.get(E.FEATURES, APIController.features);

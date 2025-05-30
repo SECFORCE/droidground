@@ -75,29 +75,30 @@ Almost all features are **modular** and defined via environment variables, ensur
 
 The `.env.sample` file in the root directory is a good starting point. This is the full list of all env variables currently supported:
 
-| Variable                              | Description                                        | Default     |
-| ------------------------------------- | -------------------------------------------------- | ----------- |
-| `DROIDGROUND_APP_PACKAGE_NAME`        | Package name of target app                         | -           |
-| `DROIDGROUND_ADB_HOST`                | ADB host                                           | `localhost` |
-| `DROIDGROUND_ADB_PORT`                | ADB port                                           | `5037`      |
-| `DROIDGROUND_DEVICE_TYPE`             | `usb` or `network`                                 | `usb`       |
-| `DROIDGROUND_DEVICE_HOST`             | IP of Android device (`adb`) (network mode only)   | -           |
-| `DROIDGROUND_DEVICE_PORT`             | port of Android device (`adb`) (network mode only) | -           |
-| `DROIDGROUND_INIT_SCRIPTS_FOLDER`     | Folder containing `setup.sh` and `reset.sh`        | `/init.d`   |
-| `DROIDGROUND_HOST`                    | Bind address                                       | `0.0.0.0`   |
-| `DROIDGROUND_PORT`                    | Bind port                                          | `4242`      |
-| `DROIDGROUND_APP_MANAGER_DISABLED`    | Disable app manager                                | `false`     |
-| `DROIDGROUND_BUG_REPORT_DISABLED`     | Disable bugreport                                  | `false`     |
-| `DROIDGROUND_FILE_BROWSER_DISABLED`   | Disable file browser                               | `false`     |
-| `DROIDGROUND_FRIDA_DISABLED`          | Disable Frida support                              | `false`     |
-| `DROIDGROUND_FRIDA_TYPE`              | `jail` or `full`                                   | `jail`      |
-| `DROIDGROUND_LOGCAT_DISABLED`         | Disable logcat                                     | `false`     |
-| `DROIDGROUND_REBOOT_DISABLED`         | Disable reboot                                     | `false`     |
-| `DROIDGROUND_SHUTDOWN_DISABLED`       | Disable shutdown                                   | `false`     |
-| `DROIDGROUND_START_ACTIVITY_DISABLED` | Disable startActivity                              | `false`     |
-| `DROIDGROUND_START_RECEIVER_DISABLED` | Disable broadcast                                  | `false`     |
-| `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService                               | `false`     |
-| `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal                                   | `false`     |
+| Variable                              | Description                                          | Default     |
+| ------------------------------------- | ---------------------------------------------------- | ----------- |
+| `DROIDGROUND_APP_PACKAGE_NAME`        | Package name of target app                           | -           |
+| `DROIDGROUND_ADB_HOST`                | ADB host                                             | `localhost` |
+| `DROIDGROUND_ADB_PORT`                | ADB port                                             | `5037`      |
+| `DROIDGROUND_DEVICE_TYPE`             | `usb` or `network`                                   | `usb`       |
+| `DROIDGROUND_DEVICE_HOST`             | IP of Android device (`adb`) (network mode only)     | -           |
+| `DROIDGROUND_DEVICE_PORT`             | port of Android device (`adb`) (network mode only)   | -           |
+| `DROIDGROUND_INIT_SCRIPTS_FOLDER`     | Folder containing `setup.sh` and `reset.sh`          | `/init.d`   |
+| `DROIDGROUND_HOST`                    | Bind address                                         | `0.0.0.0`   |
+| `DROIDGROUND_PORT`                    | Bind port                                            | `4242`      |
+| `DROIDGROUND_APP_MANAGER_DISABLED`    | Disable app manager                                  | `false`     |
+| `DROIDGROUND_BUG_REPORT_DISABLED`     | Disable bugreport                                    | `false`     |
+| `DROIDGROUND_FILE_BROWSER_DISABLED`   | Disable file browser                                 | `false`     |
+| `DROIDGROUND_FRIDA_DISABLED`          | Disable Frida support                                | `false`     |
+| `DROIDGROUND_FRIDA_TYPE`              | `jail` or `full`                                     | `jail`      |
+| `DROIDGROUND_LOGCAT_DISABLED`         | Disable logcat                                       | `false`     |
+| `DROIDGROUND_REBOOT_DISABLED`         | Disable reboot                                       | `false`     |
+| `DROIDGROUND_SHUTDOWN_DISABLED`       | Disable shutdown                                     | `false`     |
+| `DROIDGROUND_START_ACTIVITY_DISABLED` | Disable startActivity                                | `false`     |
+| `DROIDGROUND_START_RECEIVER_DISABLED` | Disable broadcast                                    | `false`     |
+| `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService                                 | `false`     |
+| `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal                                     | `false`     |
+| `DROIDGROUND_EXPLOIT_APP_DURATION`    | The time (in seconds) the exploit app will be active | `10`        |
 
 ## 🧩 Use Cases
 
