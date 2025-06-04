@@ -80,7 +80,7 @@ const Navbar: React.FC = () => {
                 key={item.to}
                 className="relative m-0 px-2 cursor-pointer"
                 onMouseEnter={() => {
-                  console.log(item), setHovered(item.to);
+                  setHovered(item.to);
                 }}
                 onMouseLeave={() => setHovered(null)}
               >
