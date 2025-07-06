@@ -1,7 +1,7 @@
 
 #!/usr/bin/env bash
 
-wget https://github.com/SECFORCE/droidground-samples/releases/download/v0.1.1/multi-step-flag.apk
+wget https://github.com/SECFORCE/droidground-samples/releases/download/v0.1.2/multi-step-flag.apk
 adb shell pm uninstall com.droidground.multistep
 echo "Sleep for 2 seconds before installing app"
 sleep 2
