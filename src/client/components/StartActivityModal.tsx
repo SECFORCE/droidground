@@ -63,7 +63,7 @@ export const StartActivityModal: React.FC<IModalProps> = ({ dialogRef }) => {
       <div className="modal-box max-w-3xl">
         <h3 className="font-bold text-lg mb-4">Start Activity</h3>
         <p className="mb-4">
-          This will allow you start an activity <b>belonging to the target app only</b>!
+          This will allow you start an <i>Activity</i> <b>belonging to the target app only</b>!
         </p>
         <form onSubmit={handleSubmit(startActivity)} className="space-y-4">
           {/* Main Fields */}
