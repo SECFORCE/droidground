@@ -25,6 +25,7 @@ export interface DroidGroundConfig {
     port: number;
   };
   features: DroidGroundFeatures;
+  debugToken: string;
 }
 
 export enum WSMessageType {

@@ -1,6 +1,7 @@
 import os from "os";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { WebSocket } from "ws";
 import { Server as HTTPServer } from "http";
 import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "@yume-chan/adb";
@@ -64,7 +65,10 @@ export class ManagerSingleton {
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
       },
+      debugToken: crypto.randomBytes(64).toString("hex"),
     };
+
+    Logger.info(`Debug token is: ${this.config.debugToken}`);
   }
 
   public static getInstance(): ManagerSingleton {

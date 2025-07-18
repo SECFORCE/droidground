@@ -34,7 +34,7 @@ import {
 import { capitalize, sleep } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
 import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER, SECOND } from "@server/config";
-import { CompanionAttackSurfaceResponse } from "@server/utils/types";
+import { CompanionAttackSurface, CompanionAttackSurfaceResponse } from "@server/utils/types";
 import { loadFridaLibrary } from "@server/utils/frida";
 
 class APIController {
@@ -100,6 +100,22 @@ class APIController {
     } catch (error: any) {
       Logger.error(`Error getting info: ${error}`);
       res.status(500).json({ error: "An error occurred while getting device info." }).end();
+    }
+  };
+
+  getAttackSurface: RequestHandler = async (req: Request, res: Response<CompanionAttackSurface | IGenericErrRes>) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    try {
+      const client = CompanionClient.getInstance();
+      const config = ManagerSingleton.getInstance().getConfig();
+      const bufRes = await client.sendMessage<CompanionAttackSurfaceResponse>("getAttackSurfaces", {
+        packageNames: [config.packageName],
+      });
+      const attackSurface = bufRes.attackSurfaces[config.packageName];
+      res.json(attackSurface).end();
+    } catch (error: any) {
+      Logger.error(`Error getting attack surface: ${error}`);
+      res.status(500).json({ error: "An error occurred while getting the attack surface." }).end();
     }
   };
 
