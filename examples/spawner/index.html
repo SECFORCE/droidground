@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>My App</title>
+    <!-- Orbitron Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        background: #1d232a;
+        color: #fff;
+        margin: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background-color: #09090b;
+        color: white;
+        height: 72px;
+        text-align: center;
+      }
+
+      header h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: 1.5em;
+        font-weight: 100;
+      }
+
+      header img {
+        width: 40px;
+        height: auto;
+      }
+
+      main {
+        background-color: #1d232a;
+        padding: 30px;
+        text-align: center;
+      }
+
+      main p {
+        font-size: 1.2em;
+        margin-bottom: 20px;
+      }
+
+      button {
+        background-color: #00bafe;
+        border: none;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 1em;
+        padding: 15px 20px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="/logo.png" alt="DroidGround Logo" />
+      <h1>DroidGround</h1>
+    </header>
+
+    <main>
+      <p>
+        This is an extremely simple example of how to create a spawner for DroidGround for production usage. <br />
+        In this case a <i>Traefik</i> proxy is set and up to <b>2</b> different DroidGround instances can be spawned.
+        <br />
+        <br />
+
+        These instances will be available on <code>http://localhost/{{INSTANCE_ID}}</code> where
+        <code>INSTANCE_ID</code> is a random <i>UUIDv4</i> value. <br />
+        After clicking on the button below you'll be redirected there (if the request succeeds). <br />
+        <br />
+
+        The UI takes a while to be up and running, so wait at least ~30 seconds before giving up.
+      </p>
+      <button onclick="sendPost()">Spawn Instance</button>
+    </main>
+
+    <script>
+      function sendPost() {
+        fetch("/api/v1/spawn", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then(response => response.json())
+          .then(data => {
+            alert("Response: " + JSON.stringify(data));
+            window.open(`http://localhost/${data.id}/`, "_blank");
+          })
+          .catch(error => alert("Error: " + error));
+      }
+    </script>
+  </body>
+</html>

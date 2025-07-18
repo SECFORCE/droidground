@@ -26,11 +26,10 @@
     "paths": {
       "@server/*": ["./src/server/*"],
       "@shared/*": ["./src/shared/*"],
-      "@client/*": ["./src/client/*"],
-      "@spawner/*": ["./src/spawner/*"]
+      "@client/*": ["./src/client/*"]
     }
   },
-  "include": ["src/**/*", "server.ts", "spawner.ts", "node_modules/vite/types/*"],
+  "include": ["src/**/*", "server.ts", "node_modules/vite/types/*"],
   "ts-node": {
     "transpileOnly": true,
     "files": true,
