@@ -1,0 +1,19 @@
+services:
+  traefik:
+    image: traefik:v3.4
+    container_name: droidground-proxy
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080" # Traefik dashboard, remove it in prod!
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - droidground
+
+networks:
+  droidground:
+    external: true
