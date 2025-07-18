@@ -5,7 +5,7 @@ import { AdbSocket } from "@yume-chan/adb";
 import { ReadableStream } from "@yume-chan/stream-extra";
 import { RequestSchema, ResponseSchema } from "@server/companion/wire_pb";
 import { create } from "@bufbuild/protobuf";
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 import { ManagerSingleton } from "@server/manager";
 import { sleep } from "@shared/helpers";
 import { sizeDelimitedDecodeStream, sizeDelimitedEncode } from "@bufbuild/protobuf/wire";

@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { WebSocketServer, WebSocket } from "ws";
 import { ManagerSingleton } from "@server/manager";
 import { StreamingPhase, WSMessageType } from "@shared/types";
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 import { WebsocketClient } from "@server/utils/types";
 import { sendStructuredMessage } from "@server/utils/ws";
 

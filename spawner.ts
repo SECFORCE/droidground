@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 
 // Local imports
 import { spawnerApp } from "@spawner/app";
+import Logger from "@shared/logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -82,7 +83,7 @@ const ssrLoader = async (app: express.Application, isProd: boolean) => {
       res.status(200).set({ "Content-Type": "text/html" }).end(html);
     } catch (e: any) {
       !isProd && vite.ssrFixStacktrace(e);
-      //Logger.error(e.stack);
+      Logger.error(e.stack);
       res.status(500).end(e.stack);
     }
   });
@@ -96,7 +97,9 @@ const createServer = async (isProd = process.env.NODE_ENV === "production") => {
   const host = process.env.DROIDGROUND_HOST || "0.0.0.0";
   const port = process.env.DROIDGROUND_PORT || 4242;
   app.listen(Number(port), host, () => {
-    //Logger.info(`DroidGround is running on http://${host}:${port} in ${isProd ? "production" : "development"} mode.`);
+    Logger.info(
+      `DroidGround Spawner is running on http://${host}:${port} in ${isProd ? "production" : "development"} mode.`,
+    );
   });
 };
 

@@ -7,7 +7,7 @@ import { RequestHandler, Request, Response } from "express";
 import { ReadableStream } from "@yume-chan/stream-extra";
 
 // Local imports
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 import { ManagerSingleton } from "@server/manager";
 import {
   BugreportzStatusResponse,

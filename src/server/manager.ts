@@ -5,7 +5,7 @@ import { WebSocket } from "ws";
 import { Server as HTTPServer } from "http";
 import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "@yume-chan/adb";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 import { sleep } from "@shared/helpers";
 import { DroidGroundConfig, FridaState, StreamMetadata } from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";

@@ -7,7 +7,7 @@ import Ajv from "ajv";
 import { ReadableStream } from "@yume-chan/stream-extra";
 import { FridaLibrary, FridaScript } from "@shared/types";
 import { libraryFile, resourceFile, resourcesDir, safeFileExists } from "@server/utils/helpers";
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 import { DEFAULT_UPLOAD_FOLDER, RESOURCES } from "@server/config";
 import { ManagerSingleton } from "@server/manager";
 

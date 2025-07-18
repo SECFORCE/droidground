@@ -3,7 +3,7 @@ import { WebSocketServer, WebSocket, RawData } from "ws";
 import frida, { FileDescriptor, ProcessID } from "frida";
 import Ajv from "ajv";
 import { ManagerSingleton } from "@server/manager";
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 import { IFridaRPC } from "@server/utils/types";
 import { libraryFile } from "@server/utils/helpers";
 import { StartFridaLibraryScriptRequest } from "@shared/api";

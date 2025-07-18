@@ -5,7 +5,7 @@ import cors from "cors";
 import { ManagerSingleton } from "@server/manager";
 import api from "@server/api";
 import { setupWs } from "@server/ws";
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 import { resourceFile, safeFileExists } from "@server/utils/helpers";
 import { RESOURCES } from "@server/config";
 import { setupFrida } from "@server/utils/frida";

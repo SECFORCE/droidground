@@ -11,7 +11,7 @@ import { fileURLToPath } from "url";
 
 // Local imports
 import { serverApp } from "@server/app";
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
