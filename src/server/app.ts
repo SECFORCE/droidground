@@ -26,7 +26,7 @@ const checkResources = () => {
   Logger.debug("Check resources done!");
 };
 
-const setupApi = async (app: ExpressApplication) => {
+const setupApi = async (app: ExpressApplication, basePath: string) => {
   app.use(
     cors({
       exposedHeaders: ["Content-Disposition"],
@@ -35,7 +35,7 @@ const setupApi = async (app: ExpressApplication) => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   // Load routes
-  app.use("/api/v1", api());
+  app.use(`${basePath}/api/v1`, api());
 };
 
 export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer) => {
@@ -47,13 +47,14 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
 
   await manager.setAdb();
   await manager.setCtf();
+  const droidGroundConfig = manager.getConfig();
 
-  if (manager.getConfig().features.fridaEnabled) {
+  if (droidGroundConfig.features.fridaEnabled) {
     await setupFrida();
   }
 
   await manager.runTargetApp(); // Start the target app
-  await setupApi(app);
-  await setupWs(httpServer);
+  await setupApi(app, droidGroundConfig.features.basePath);
+  await setupWs(httpServer, droidGroundConfig.features.basePath);
   await setupScrcpy();
 };

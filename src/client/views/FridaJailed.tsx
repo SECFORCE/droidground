@@ -8,6 +8,7 @@ import { FridaLibrary } from "@shared/types";
 import { StartFridaLibraryScriptRequest } from "@shared/api";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
 import { PiWarningBold } from "react-icons/pi";
+import { useAPI } from "@client/context/API";
 
 type PrimitiveType = "string" | "number" | "boolean";
 type FieldType = PrimitiveType | "array";
@@ -235,6 +236,7 @@ const ObjectBuilder: React.FC = () => {
 };
 
 export const FridaJailed: React.FC = () => {
+  const { featuresConfig } = useAPI();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isObjectBuilderVisible, setIsObjectBuilderVisible] = useState<boolean>(false);
   const [fridaLibrary, setFridaLibrary] = useState<FridaLibrary>([]);
@@ -250,7 +252,8 @@ export const FridaJailed: React.FC = () => {
   const socketSetup = (data: StartFridaLibraryScriptRequest) => {
     const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
     const prefix = isHttps ? "wss" : "ws";
-    const wsBaseUrl = `${prefix}://${window.location.host}`;
+    const suffix = featuresConfig.basePath.length > 0 ? featuresConfig.basePath : "";
+    const wsBaseUrl = `${prefix}://${window.location.host}${suffix}`;
     const socket = new WebSocket(`${wsBaseUrl}${WEBSOCKET_ENDPOINTS.FRIDA}`);
     socketRef.current = socket;
 

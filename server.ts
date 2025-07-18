@@ -60,6 +60,12 @@ const ssrLoader = async (app: express.Application, isProd: boolean) => {
 
   app.use("*all", async (req: Request, res: Response) => {
     try {
+      if (process.env.DROIDGROUND_BASE_PATH && !req.originalUrl.startsWith(`${process.env.DROIDGROUND_BASE_PATH}/`)) {
+        const newPath = `${process.env.DROIDGROUND_BASE_PATH}/`;
+        res.redirect(newPath);
+        return;
+      }
+
       const url = req.originalUrl;
 
       let template, render;

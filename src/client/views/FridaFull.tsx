@@ -3,6 +3,7 @@ import { sleep } from "@shared/helpers";
 import { FaCode } from "react-icons/fa";
 import { PiWarningBold } from "react-icons/pi";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
+import { useAPI } from "@client/context/API";
 
 const fridaScriptPlaceholder = `// Dummy Frida script
 setImmediate(function() {
@@ -10,6 +11,7 @@ setImmediate(function() {
 });`;
 
 export const FridaFull: React.FC = () => {
+  const { featuresConfig } = useAPI();
   const [isRunDisabled, setIsRunDisabled] = useState<boolean>(false);
   const [isStopDisabled, setIsStopDisabled] = useState<boolean>(true);
   const [code, setCode] = useState<string>(fridaScriptPlaceholder);
@@ -20,7 +22,8 @@ export const FridaFull: React.FC = () => {
   const socketSetup = () => {
     const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
     const prefix = isHttps ? "wss" : "ws";
-    const wsBaseUrl = `${prefix}://${window.location.host}`;
+    const suffix = featuresConfig.basePath.length > 0 ? featuresConfig.basePath : "";
+    const wsBaseUrl = `${prefix}://${window.location.host}${suffix}`;
     const socket = new WebSocket(`${wsBaseUrl}${WEBSOCKET_ENDPOINTS.FRIDA}`);
     socketRef.current = socket;
 

@@ -5,6 +5,7 @@ import { SearchAddon } from "@xterm/addon-search";
 import { IoTerminalSharp } from "react-icons/io5";
 import "@xterm/xterm/css/xterm.css";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
+import { useAPI } from "@client/context/API";
 
 const fitAddon = new FitAddon();
 const searchAddon = new SearchAddon();
@@ -16,6 +17,7 @@ interface ITerminalComponentProps {
 const TerminalComponent: React.FC<ITerminalComponentProps> = ({
   setReconnectButtonVisible,
 }: ITerminalComponentProps) => {
+  const { featuresConfig } = useAPI();
   const terminalRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const termRef = useRef<XTerminal | null>(null);
@@ -39,7 +41,8 @@ const TerminalComponent: React.FC<ITerminalComponentProps> = ({
 
     const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
     const prefix = isHttps ? "wss" : "ws";
-    const wsBaseUrl = `${prefix}://${window.location.host}`;
+    const suffix = featuresConfig.basePath.length > 0 ? featuresConfig.basePath : "";
+    const wsBaseUrl = `${prefix}://${window.location.host}${suffix}`;
     const socket = new WebSocket(`${wsBaseUrl}${WEBSOCKET_ENDPOINTS.TERMINAL}`);
     socketRef.current = socket;
 

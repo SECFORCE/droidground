@@ -48,6 +48,7 @@ export class ManagerSingleton {
         port: isNaN(port) || port.trim().length === 0 ? 5037 : parseInt(port),
       },
       features: {
+        basePath: process.env.DROIDGROUND_BASE_PATH ?? "",
         appManagerEnabled: !(process.env.DROIDGROUND_APP_MANAGER_DISABLED === "true"),
         bugReportEnabled: !(process.env.DROIDGROUND_BUG_REPORT_DISABLED === "true"),
         fileBrowserEnabled: !(process.env.DROIDGROUND_FILE_BROWSER_DISABLED === "true"),

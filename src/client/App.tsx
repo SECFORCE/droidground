@@ -225,7 +225,7 @@ const Main = () => {
     notFoundRoute.addChildren([catchAllRoute]),
   ]);
 
-  const router = createRouter({ routeTree });
+  const router = createRouter({ basepath: featuresConfig.basePath, routeTree });
 
   return <RouterProvider router={router} />;
 };
