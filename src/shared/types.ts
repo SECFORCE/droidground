@@ -2,6 +2,7 @@ import frida from "frida";
 import { ScrcpyVideoStreamMetadata } from "@yume-chan/scrcpy";
 
 export interface DroidGroundFeatures {
+  basePath: string;
   startActivityEnabled: boolean;
   startBroadcastReceiverEnabled: boolean;
   startServiceEnabled: boolean;
