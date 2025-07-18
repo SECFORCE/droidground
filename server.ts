@@ -20,13 +20,14 @@ const isTest = process.env.NODE_ENV === "test" || !!process.env.VITE_TEST_BUILD;
 const ssrLoader = async (app: express.Application, isProd: boolean) => {
   const root = __dirname;
   const resolve = (p: string) => path.resolve(__dirname, p);
+  const basePath = process.env.DROIDGROUND_BASE_PATH ?? "";
 
   const indexProd = isProd ? fs.readFileSync(resolve("client/index.html"), "utf-8") : "";
 
   const requestHandler = express.static(resolve("assets"));
 
   app.use(requestHandler);
-  app.use("/assets", requestHandler);
+  app.use(`${basePath}/assets`, requestHandler);
 
   /**
    * @type {import('vite').ViteDevServer}
