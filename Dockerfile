@@ -65,6 +65,7 @@ RUN apt-get update && \
     python3-pip \
     build-essential \
     curl \
+    wget \
     git \
     unzip \
     libglib2.0-dev \

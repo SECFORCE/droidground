@@ -1,11 +1,12 @@
 import os from "os";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { WebSocket } from "ws";
 import { Server as HTTPServer } from "http";
 import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "@yume-chan/adb";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 import { sleep } from "@shared/helpers";
 import { DroidGroundConfig, FridaState, StreamMetadata } from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";
@@ -48,6 +49,7 @@ export class ManagerSingleton {
         port: isNaN(port) || port.trim().length === 0 ? 5037 : parseInt(port),
       },
       features: {
+        basePath: process.env.DROIDGROUND_BASE_PATH ?? "",
         appManagerEnabled: !(process.env.DROIDGROUND_APP_MANAGER_DISABLED === "true"),
         bugReportEnabled: !(process.env.DROIDGROUND_BUG_REPORT_DISABLED === "true"),
         fileBrowserEnabled: !(process.env.DROIDGROUND_FILE_BROWSER_DISABLED === "true"),
@@ -63,7 +65,10 @@ export class ManagerSingleton {
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
       },
+      debugToken: crypto.randomBytes(64).toString("hex"),
     };
+
+    Logger.info(`Debug token is: ${this.config.debugToken}`);
   }
 
   public static getInstance(): ManagerSingleton {

@@ -132,4 +132,5 @@ dist
 # Custom
 resources
 init.d
-!examples/*/init.d
+!examples/**/init.d/
+examples/**/*.apk*

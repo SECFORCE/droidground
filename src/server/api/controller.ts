@@ -7,7 +7,7 @@ import { RequestHandler, Request, Response } from "express";
 import { ReadableStream } from "@yume-chan/stream-extra";
 
 // Local imports
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 import { ManagerSingleton } from "@server/manager";
 import {
   BugreportzStatusResponse,
@@ -34,7 +34,7 @@ import {
 import { capitalize, sleep } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
 import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER, SECOND } from "@server/config";
-import { CompanionAttackSurfaceResponse } from "@server/utils/types";
+import { CompanionAttackSurface, CompanionAttackSurfaceResponse } from "@server/utils/types";
 import { loadFridaLibrary } from "@server/utils/frida";
 
 class APIController {
@@ -103,6 +103,22 @@ class APIController {
     }
   };
 
+  getAttackSurface: RequestHandler = async (req: Request, res: Response<CompanionAttackSurface | IGenericErrRes>) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    try {
+      const client = CompanionClient.getInstance();
+      const config = ManagerSingleton.getInstance().getConfig();
+      const bufRes = await client.sendMessage<CompanionAttackSurfaceResponse>("getAttackSurfaces", {
+        packageNames: [config.packageName],
+      });
+      const attackSurface = bufRes.attackSurfaces[config.packageName];
+      res.json(attackSurface).end();
+    } catch (error: any) {
+      Logger.error(`Error getting attack surface: ${error}`);
+      res.status(500).json({ error: "An error occurred while getting the attack surface." }).end();
+    }
+  };
+
   startActivity: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
@@ -163,7 +179,7 @@ class APIController {
       }
 
       // Activity
-      parts.push(shellEscape(`${config.packageName}/${body.activity}`));
+      parts.push(shellEscape(`-n ${config.packageName}/${body.activity}`));
 
       const command = parts.join(" ");
       Logger.debug(`Running command: "${command}"`);

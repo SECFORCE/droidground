@@ -10,7 +10,7 @@ import { TinyH264Decoder } from "@yume-chan/scrcpy-decoder-tinyh264";
 // Local imports
 import { ManagerSingleton } from "@server/manager";
 import { DataMetadata, StreamingPhase, WSMessageType } from "@shared/types";
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 import { broadcastForPhase } from "@server/utils/ws";
 import { resourceFile } from "@server/utils/helpers";
 import { RESOURCES } from "@server/config";

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>DroidGround Sample Spawner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        background: #1d232a;
+        color: #fff;
+        margin: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background-color: #09090b;
+        color: white;
+        height: 72px;
+        text-align: center;
+      }
+
+      header h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: 1.5em;
+        font-weight: 100;
+      }
+
+      header img {
+        width: 40px;
+        height: auto;
+      }
+
+      main {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #1d232a;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .container {
+        max-width: 96rem;
+      }
+
+      .container p {
+        font-size: 1.2em;
+        margin-bottom: 20px;
+      }
+
+      button {
+        background-color: #00bafe;
+        border: none;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 1em;
+        padding: 15px 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover:not(:disabled) {
+        background-color: #0090c0;
+      }
+
+      button:disabled {
+        background-color: #888;
+        cursor: not-allowed;
+      }
+
+      .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #333;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      table {
+        width: 100%;
+        margin-top: 30px;
+        border-collapse: collapse;
+        color: #fff;
+      }
+
+      th,
+      td {
+        padding: 10px;
+      }
+
+      th {
+        background-color: #15191e;
+      }
+
+      td button {
+        padding: 5px 10px;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="/logo.png" alt="DroidGround Logo" />
+      <h1>DroidGround</h1>
+    </header>
+
+    <main>
+      <div class="container">
+        <p>
+          This is an extremely simple example of how to create a spawner for DroidGround for production usage.<br />
+          Instances will be available on <code>http://localhost/{{INSTANCE_ID}}</code>.<br />
+          After clicking on the button below you'll be redirected there (if the request succeeds).<br /><br />
+          The UI takes a while to be up and running, so wait at least ~30 seconds before giving up.
+        </p>
+
+        <button id="spawnButton" onclick="sendPost()">
+          Spawn Instance
+          <span id="spinner" class="spinner" style="display: none"></span>
+        </button>
+
+        <table id="instancesTable" style="display: none">
+          <thead>
+            <tr>
+              <th>Instance ID</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="instancesBody"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <script>
+      function sendPost() {
+        const button = document.getElementById("spawnButton");
+        const spinner = document.getElementById("spinner");
+
+        button.disabled = true;
+        spinner.style.display = "inline-block";
+
+        fetch("/api/v1/spawn", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then(response => response.json())
+          .then(data => {
+            window.open(`http://localhost/${data.id}/`, "_blank");
+            loadInstances();
+          })
+          .catch(error => alert("Error: " + error))
+          .finally(() => {
+            button.disabled = false;
+            spinner.style.display = "none";
+          });
+      }
+
+      function loadInstances() {
+        fetch("/api/v1/instances")
+          .then(response => response.json())
+          .then(data => {
+            const table = document.getElementById("instancesTable");
+            const tbody = document.getElementById("instancesBody");
+            tbody.innerHTML = "";
+            data.instances.forEach(id => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${id}</td>
+                <td><button onclick="window.open('http://localhost/${id}/', '_blank')">View</button></td>
+              `;
+              tbody.appendChild(row);
+            });
+            table.style.display = "table";
+          })
+          .catch(error => {
+            console.error("Failed to load instances:", error);
+          });
+      }
+
+      window.onload = loadInstances;
+    </script>
+  </body>
+</html>

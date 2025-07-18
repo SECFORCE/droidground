@@ -21,3 +21,13 @@ export const validateBody = <T>(schema: JSONSchemaType<T>) => {
     isValid ? next() : res.status(400).json({ message: "Invalid body" }).end();
   };
 };
+
+export const checkDebugToken = (token: string) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const authHeader = req.headers.authorization ?? "";
+
+    authHeader.trim() === token
+      ? next()
+      : res.status(400).json({ message: "This feature is either missing or disabled." }).end();
+  };
+};

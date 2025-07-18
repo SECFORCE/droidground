@@ -1,6 +1,6 @@
 {
   "name": "droidground",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
   "author": "Angelo Delicato",
   "scripts": {
@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "serve": "npm run build && cross-env NODE_ENV=production node ./dist/server",
     "serve:local": "vite serve",
+    "spawner": "tsx examples/spawner/spawner.ts",
     "clean": "rimraf dist/",
     "copy-files": "copyfiles \"public/**/*\" dist && copyfiles -u 2 \"dist/client/**/*\" dist && copyfiles -u 2 \"dist/client/assets/**/*\" dist/public",
     "format": "prettier --write src",

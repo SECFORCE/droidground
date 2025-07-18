@@ -16,6 +16,7 @@ export const REST_API_ENDPOINTS = {
   APK: "/apk",
   LIBRARY: "/library",
   EXPLOIT_APP: "/exploitApp",
+  ATTACK_SURFACE: "/attackSurface",
 } as const;
 
 export const WEBSOCKET_ENDPOINTS = {

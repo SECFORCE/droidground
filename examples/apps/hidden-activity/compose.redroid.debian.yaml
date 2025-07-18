@@ -18,15 +18,15 @@ services:
     container_name: redroid14
     image: redroid/redroid:14.0.0-latest
   droidground:
-    build: ../..
+    build: ../../..
     container_name: droidground
-    restart: on-failure
+    restart: unless-stopped
     ports:
       - 4242:4242
     volumes:
       - ./init.d:/init.d
     environment:
-      - DROIDGROUND_APP_PACKAGE_NAME=com.droidground.multistep
+      - DROIDGROUND_APP_PACKAGE_NAME=com.droidground.hiddenactivity
       - DROIDGROUND_ADB_HOST=localhost
       - DROIDGROUND_ADB_PORT=5037
       - DROIDGROUND_DEVICE_TYPE=network

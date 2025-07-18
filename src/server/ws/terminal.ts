@@ -1,7 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { Adb, decodeUtf8, encodeUtf8 } from "@yume-chan/adb";
 import { ManagerSingleton } from "@server/manager";
-import Logger from "@server/utils/logger";
+import Logger from "@shared/logger";
 
 export const setupTerminalWss = (wssTerminal: WebSocketServer) => {
   const singleton = ManagerSingleton.getInstance();

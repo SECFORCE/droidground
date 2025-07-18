@@ -2,6 +2,7 @@ import { createContext, useEffect, useRef, useContext, ReactNode, useCallback, u
 import { StreamingPhase, WSCallback, WSMessageType } from "@shared/types";
 import toast from "react-hot-toast";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
+import { useAPI } from "@client/context/API";
 
 type WebSocketContextType = {
   sendMessage: (message: string) => void;
@@ -13,6 +14,7 @@ type WebSocketContextType = {
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
 
 export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { featuresConfig } = useAPI();
   const [streamingPhase, setStreamingPhase] = useState<StreamingPhase>(StreamingPhase.INIT);
   const socketRef = useRef<WebSocket | null>(null);
   const listeners = useRef<Map<WSMessageType, Set<WSCallback>>>(new Map());
@@ -21,7 +23,8 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     const connect = async () => {
       const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
       const prefix = isHttps ? "wss" : "ws";
-      const wsBaseUrl = `${prefix}://${window.location.host}`;
+      const suffix = featuresConfig.basePath.length > 0 ? featuresConfig.basePath : "";
+      const wsBaseUrl = `${prefix}://${window.location.host}${suffix}`;
       let webSocketURL = `${wsBaseUrl}${WEBSOCKET_ENDPOINTS.STREAMING}`;
       const socket = new WebSocket(webSocketURL);
       socket.binaryType = "arraybuffer";

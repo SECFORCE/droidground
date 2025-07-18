@@ -110,7 +110,7 @@ Here are some ways DroidGround can be used:
 
 ## ⚙️ Usage
 
-A couple of sample _Docker Compose_ files are provided in the [examples](./examples) folder. They use apps from the [DroidGround samples repo](https://github.com/SECFORCE/droidground-samples) which will progressively be enhanced to showcase all the key features. They are also a good starting point to understand how to setup your own CTF.
+A couple of sample _Docker Compose_ files are provided in the [examples](./examples/apps) folder. They use apps from the [DroidGround samples repo](https://github.com/SECFORCE/droidground-samples) which will progressively be enhanced to showcase all the key features. They are also a good starting point to understand how to setup your own CTF.
 
 On boot _DroidGround_ does the following:
 
@@ -132,6 +132,8 @@ echo "Installing app..."
 adb install ./flag.apk # The cwd is set to the "init.d" folder, so the apk file can be accessed with the relative path
 echo "Install command executed"
 ```
+
+For a production deploy (in a real CTF) you may want to provision a pre-defined number of DroidGround instances beforehand or you may want to allow the users to spawn instances (with a limitation or maybe associate each team/user with a specific instance). For this reason we also added a simple [spawner example](./examples/spawner).
 
 ## 💡 Tips
 

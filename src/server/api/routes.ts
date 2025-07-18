@@ -6,7 +6,7 @@ import multer from "multer";
 // Local imports
 import APIController from "@server/api/controller";
 import { ManagerSingleton } from "@server/manager";
-import { checkFeatureEnabled, validateBody } from "@server/api/middlewares";
+import { checkDebugToken, checkFeatureEnabled, validateBody } from "@server/api/middlewares";
 import {
   getFilesSchema,
   runExploitAppSchema,
@@ -26,7 +26,8 @@ import {
 const singleton = ManagerSingleton.getInstance();
 const upload = multer({ dest: path.join(singleton.getTmpDir(), "uploads") });
 const endpoint = Router(); // Define an Express Router
-const features = singleton.getConfig().features;
+const currentConfig = singleton.getConfig();
+const features = currentConfig.features;
 const fridaJailEnabled = features.fridaType === "full" ? false : true;
 
 // Endpoint implementation
@@ -85,6 +86,7 @@ export default (app: Router) => {
   endpoint.get(E.PACKAGES, checkFeatureEnabled(features.appManagerEnabled), APIController.getPackageInfos);
   endpoint.post(E.APK, checkFeatureEnabled(features.appManagerEnabled), upload.single("apkFile"), APIController.apk);
   endpoint.get(E.LIBRARY, checkFeatureEnabled(fridaJailEnabled), APIController.getFridaLibrary);
+  endpoint.get(E.ATTACK_SURFACE, checkDebugToken(currentConfig.debugToken), APIController.getAttackSurface);
 
   endpoint.all("/*all", APIController.genericError);
 };
