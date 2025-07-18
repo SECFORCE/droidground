@@ -100,6 +100,10 @@ const destroyComposeProject = async (composeFile: string, projectName?: string):
 };
 
 class APIController {
+  getInstances: RequestHandler = async (_req: Request, res: Response) => {
+    res.json({ instances: currentInstances }).end();
+  };
+
   startInstance: RequestHandler = async (_req: Request, res: Response) => {
     if (currentInstances.length >= MAX_INSTANCES) {
       res.status(400).json({ result: "Max number of instances reached" }).end();
@@ -131,6 +135,7 @@ const routes = (app: Router) => {
     next();
   });
 
+  endpoint.get("/instances", controllerInstance.getInstances);
   endpoint.post("/spawn", controllerInstance.startInstance);
   endpoint.all("/*all", controllerInstance.genericError);
 };
