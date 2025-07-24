@@ -253,6 +253,7 @@ export class ManagerSingleton {
       return false;
     }
 
+    Logger.info("Running setup.sh script...");
     execSync(setupScript, { cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER }).toString().trim();
 
     // Check if the app is installed, otherwise stop DroidGround
