@@ -107,9 +107,11 @@ const Navbar: React.FC = () => {
               </li>
             ))}
         </ul>
-        <button className="btn btn-error ml-4" onClick={() => resetCtfDialogRef.current?.showModal()}>
-          Reset
-        </button>
+        {featuresConfig.resetEnabled && (
+          <button className="btn btn-error ml-4" onClick={() => resetCtfDialogRef.current?.showModal()}>
+            Reset
+          </button>
+        )}
         <div className="flex h-full items-center justify-center">
           <div className="flex h-[1.5rem]">
             <div className="divider divider-horizontal" />
