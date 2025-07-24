@@ -61,6 +61,7 @@ export class ManagerSingleton {
         startBroadcastReceiverEnabled: !(process.env.DROIDGROUND_START_RECEIVER_DISABLED === "true"),
         startServiceEnabled: !(process.env.DROIDGROUND_START_SERVICE_DISABLED === "true"),
         terminalEnabled: !(process.env.DROIDGROUND_TERMINAL_DISABLED === "true"),
+        resetEnabled: !(process.env.DROIDGROUND_RESET_DISABLED === "true"),
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
@@ -252,6 +253,7 @@ export class ManagerSingleton {
       return false;
     }
 
+    Logger.info("Running setup.sh script...");
     execSync(setupScript, { cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER }).toString().trim();
 
     // Check if the app is installed, otherwise stop DroidGround

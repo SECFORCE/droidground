@@ -77,6 +77,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 
 | Variable                              | Description                                          | Default     |
 | ------------------------------------- | ---------------------------------------------------- | ----------- |
+| `DROIDGROUND_BASE_PATH`               | Path of the webapp (useful for hosting on subpaths)  | -           |
 | `DROIDGROUND_APP_PACKAGE_NAME`        | Package name of target app                           | -           |
 | `DROIDGROUND_ADB_HOST`                | ADB host                                             | `localhost` |
 | `DROIDGROUND_ADB_PORT`                | ADB port                                             | `5037`      |
@@ -98,6 +99,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_START_RECEIVER_DISABLED` | Disable broadcast                                    | `false`     |
 | `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService                                 | `false`     |
 | `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal                                     | `false`     |
+| `DROIDGROUND_RESET_DISABLED`          | Disable reset                                        | `false`     |
 | `DROIDGROUND_EXPLOIT_APP_DURATION`    | The time (in seconds) the exploit app will be active | `10`        |
 
 ## 🧩 Use Cases
@@ -143,6 +145,10 @@ Here are some suggestions for setting up your Android CTF:
 - Be careful when enabling the **Terminal**, the player will have complete control over the device.
 - Be careful when enabling the **Shutdown** feature.
 - If you plan to make the flag directly visible in the UI you may want to find a way to spawn different instances (one for each team/player)
+
+While testing the setup before going in production it could be useful to get the **attack surface** of the target app. This is something that players shouldn't see because it's part of their job to discover and analyze the attack surface!
+
+Therefore, a `GET` endpoint reachable at `/attackSurface` is provided and protected with a token (that needs to be used as the value of the `Authorization` header) that is randomly generated during the boot and printed in the logs (therefore accessible only by sysadmins).
 
 ## 🛠 Development
 

@@ -72,7 +72,7 @@ export default (app: Router) => {
     validateBody<StartExploitAppRequest>(runExploitAppSchema),
     APIController.startExploitApp,
   );
-  endpoint.post(E.RESET, APIController.reset);
+  endpoint.post(E.RESET, checkFeatureEnabled(features.resetEnabled), APIController.reset);
   endpoint.get(E.FEATURES, APIController.features);
   endpoint.get(E.INFO, APIController.info);
   endpoint.post(E.RESTART, APIController.restartApp);
