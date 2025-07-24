@@ -77,6 +77,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 
 | Variable                              | Description                                          | Default     |
 | ------------------------------------- | ---------------------------------------------------- | ----------- |
+| `DROIDGROUND_BASE_PATH`               | Path of the webapp (useful for hosting on subpaths)  | -           |
 | `DROIDGROUND_APP_PACKAGE_NAME`        | Package name of target app                           | -           |
 | `DROIDGROUND_ADB_HOST`                | ADB host                                             | `localhost` |
 | `DROIDGROUND_ADB_PORT`                | ADB port                                             | `5037`      |
@@ -98,6 +99,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_START_RECEIVER_DISABLED` | Disable broadcast                                    | `false`     |
 | `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService                                 | `false`     |
 | `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal                                     | `false`     |
+| `DROIDGROUND_RESET_DISABLED`          | Disable reset                                        | `false`     |
 | `DROIDGROUND_EXPLOIT_APP_DURATION`    | The time (in seconds) the exploit app will be active | `10`        |
 
 ## 🧩 Use Cases
