@@ -146,6 +146,10 @@ Here are some suggestions for setting up your Android CTF:
 - Be careful when enabling the **Shutdown** feature.
 - If you plan to make the flag directly visible in the UI you may want to find a way to spawn different instances (one for each team/player)
 
+While testing the setup before going in production it could be useful to get the **attack surface** of the target app. This is something that players shouldn't see because it's part of their job to discover and analyze the attack surface!
+
+Therefore, a `GET` endpoint reachable at `/attackSurface` is provided and protected with a token (that needs to be used as the value of the `Authorization` header) that is randomly generated during the boot and printed in the logs (therefore accessible only by sysadmins).
+
 ## 🛠 Development
 
 Getting it up & running shouldn't be too difficult, but before starting you should have the following tools installed:
