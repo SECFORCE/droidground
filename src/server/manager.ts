@@ -203,6 +203,21 @@ export class ManagerSingleton {
     Logger.debug("Adb setup done!");
   }
 
+  // Only run this after setup to ensure Adb is set
+  public async waitBootCompletion() {
+    Logger.debug("Waiting for boot completion...");
+    while (true) {
+      const bootCompletedProp = await (this.adb as Adb).getProp("sys.boot_completed");
+      const bootCompleted = bootCompletedProp.trim() === "1";
+      if (bootCompleted) {
+        break;
+      } else {
+        Logger.error("Boot is not completed yet, waiting 5 seconds before checking again...");
+        await sleep(5000);
+      }
+    }
+  }
+
   public setScrcpyClient(scrcpyClient: AdbScrcpyClient<any>) {
     this.scrcpyClient = scrcpyClient;
   }

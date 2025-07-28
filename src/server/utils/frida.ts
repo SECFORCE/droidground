@@ -140,6 +140,8 @@ export const setupFrida = async () => {
   }
   // Start frida-server
   await adb.subprocess.noneProtocol.spawnWaitText("killall frida-server");
+  // Just try different formats (it changes based on the version of 'su' available)
   adb.subprocess.noneProtocol.spawn(`su -c '${fridaServerDevicePath}'`);
+  adb.subprocess.noneProtocol.spawn(`su root '${fridaServerDevicePath}'`);
   Logger.info("Frida server started");
 };

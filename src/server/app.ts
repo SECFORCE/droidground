@@ -46,6 +46,7 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
   // A device is needed, otherwise there's nothing to do here
 
   await manager.setAdb();
+  await manager.waitBootCompletion();
   await manager.setCtf();
   const droidGroundConfig = manager.getConfig();
 
