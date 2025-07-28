@@ -179,7 +179,8 @@ class APIController {
       }
 
       // Activity
-      parts.push(shellEscape(`-n ${config.packageName}/${body.activity}`));
+      const activityName = `${config.packageName}/${body.activity}`;
+      parts.push(`-n ${shellEscape(activityName)}`);
 
       const command = parts.join(" ");
       Logger.debug(`Running command: "${command}"`);
