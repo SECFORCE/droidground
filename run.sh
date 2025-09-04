@@ -8,6 +8,8 @@ if [ "$DROIDGROUND_DEVICE_TYPE" == "network" ]; then
   echo "DROIDGROUND_DEVICE_TYPE is set to 'network'. Trying to connect to the Android device..."
 
   while true; do
+    adb kill-server
+    adb start-server
     adb connect $DROIDGROUND_DEVICE_HOST:$DROIDGROUND_DEVICE_PORT
 
     # List connected devices
