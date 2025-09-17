@@ -54,7 +54,7 @@ class APIController {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const singleton = ManagerSingleton.getInstance();
-      const resetDone = singleton.resetCtf();
+      const resetDone = await singleton.resetCtf();
       if (!resetDone) {
         res.status(500).json({ error: "An error occurred while resetting the CTF" }).end();
         return;

@@ -37,6 +37,8 @@ export class ManagerSingleton {
   // Scrcpy
   public sharedVideoMetadata: StreamMetadata | null = null;
   public sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;
+  // Device apps
+  public deviceApps: string[] = [];
 
   private constructor() {
     // private constructor prevents direct instantiation
@@ -273,10 +275,23 @@ export class ManagerSingleton {
 
     // Check if the app is installed, otherwise stop DroidGround
     await this.checkPackage();
+
+    // Set device apps
+    const packagesRes = await this.adb!.subprocess.noneProtocol.spawnWaitText("pm list packages -a");
+    this.deviceApps = packagesRes.split("\n").map(el => el.split("package:")[1]);
     return true;
   }
 
-  public resetCtf(): boolean {
+  public async resetCtf(): Promise<boolean> {
+    const packagesRes = await this.adb!.subprocess.noneProtocol.spawnWaitText("pm list packages -a");
+    const currentApps = packagesRes.split("\n").map(el => el.split("package:")[1]);
+    const appsToDelete = currentApps.filter((app: string) => !this.deviceApps.includes(app));
+    // appsToDelete now contains all the exploit apps to delete
+    for await (const appToDelete of appsToDelete) {
+      const uninstallRes = await this.adb!.subprocess.noneProtocol.spawnWaitText(`pm uninstall ${appToDelete}`);
+      Logger.info(`App ${appToDelete} uninstall result: ${uninstallRes}`);
+    }
+
     const initDFolder = process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const resetScript = path.resolve(initDFolder, "reset.sh");
     if (safeFileExists(resetScript)) {
