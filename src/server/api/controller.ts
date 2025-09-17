@@ -532,6 +532,11 @@ class APIController {
       const duration = config.features.exploitAppDuration;
 
       const { packageName: exploitApp } = body;
+
+      if (singleton.deviceApps.includes(exploitApp)) {
+        throw new Error("This is not an exploit app!");
+      }
+
       await singleton.runAppByPackageName(exploitApp);
 
       res.json({ result: `Exploit app correctly  for ${duration} seconds` }).end();
