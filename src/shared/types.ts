@@ -81,7 +81,7 @@ export enum IntentExtraType {
 export interface IntentExtra {
   key: string;
   type: IntentExtraType;
-  value?: string | number | boolean; // undefined if type is 'null'
+  value: string | number | boolean; // undefined if type is 'null'
 }
 
 export interface FridaState {

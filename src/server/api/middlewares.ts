@@ -17,7 +17,9 @@ export const validateBody = <T>(schema: JSONSchemaType<T>) => {
       res.status(400).json({ message: "The body cannot be empty." }).end();
       return;
     }
+
     const isValid = ajv.validate(schema, req.body);
+
     isValid ? next() : res.status(400).json({ message: "Invalid body" }).end();
   };
 };

@@ -54,7 +54,8 @@ export const StartBroadcastModal: React.FC<IModalProps> = ({ dialogRef }) => {
 
     try {
       const res = await RESTManagerInstance.startBroadcast(data);
-      setActionResult(res.data.result.split("\n"));
+      const resultLines = res.data.result.split("\n");
+      setActionResult([`Command executed: ${res.data.command}`, ...resultLines]);
     } catch (e) {
       console.error(e);
       toast.error("Failed to send broadcast intent.");
@@ -93,7 +94,7 @@ export const StartBroadcastModal: React.FC<IModalProps> = ({ dialogRef }) => {
               <button
                 type="button"
                 className="btn btn-sm btn-outline"
-                onClick={() => append({ key: "", type: IntentExtraType.STRING })}
+                onClick={() => append({ key: "", type: IntentExtraType.STRING, value: "" })}
               >
                 + Add Extra
               </button>
@@ -120,6 +121,14 @@ export const StartBroadcastModal: React.FC<IModalProps> = ({ dialogRef }) => {
                     </select>
                   </div>
 
+                  <input
+                    {...register(`extras.${index}.value`, { required: true })}
+                    type="text"
+                    placeholder="Value"
+                    className="input input-bordered w-full"
+                  />
+
+                  {/*
                   {watch(`extras.${index}.type`) !== IntentExtraType.NULL && (
                     <Controller
                       name={`extras.${index}.value`}
@@ -129,6 +138,7 @@ export const StartBroadcastModal: React.FC<IModalProps> = ({ dialogRef }) => {
                       )}
                     />
                   )}
+                  */}
 
                   <div className="text-right">
                     <button type="button" className="btn btn-sm btn-error" onClick={() => remove(index)}>

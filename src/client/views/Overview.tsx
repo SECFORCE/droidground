@@ -167,10 +167,9 @@ export const Overview: React.FC = () => {
           </div>
         </div>
         {/* Actions */}
-        <div className="collapse collapse-arrow bg-base-300 border border-base-300">
-          <input type="checkbox" name="actions-accordion" className="peer" />
-          <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Actions</div>
-          <div className="collapse-content text-sm flex flex-col items-center justify-between gap-4">
+        <div className="card bg-base-300 border border-base-300">
+          <div className="card-body p-4">
+            <div className="font-semibold text-lg peer-hover:bg-gray-600 peer-checked:mb-4">Actions</div>
             <div className="flex w-full justify-between items-center">
               <p>
                 Restart <b>App</b>
@@ -235,7 +234,9 @@ export const Overview: React.FC = () => {
         {isPowerMenuEnabled && (
           <div className="collapse collapse-arrow bg-base-300 border border-base-300">
             <input type="checkbox" name="power-accordion" className="peer" />
-            <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Power Menu</div>
+            <div className="collapse-title text-lg font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">
+              Power Menu
+            </div>
             <div className="collapse-content text-sm flex items-center justify-between">
               <p>Power options let you shutdown or reboot the device.</p>
               <div className="flex gap-2">
@@ -257,7 +258,9 @@ export const Overview: React.FC = () => {
         {featuresConfig.bugReportEnabled && (
           <div className="collapse collapse-arrow bg-base-300 border border-base-300">
             <input type="checkbox" name="bug-report-accordion" className="peer" />
-            <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">Bug Report</div>
+            <div className="collapse-title text-lg font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">
+              Bug Report
+            </div>
             <div className="collapse-content text-sm flex items-center justify-between">
               <span>
                 Run the <pre className="inline">bugreportz</pre> tool and get the output file
@@ -280,7 +283,7 @@ export const Overview: React.FC = () => {
         {/* README */}
         <div className="collapse collapse-arrow bg-base-300 border border-base-300">
           <input type="checkbox" name="readme-accordion" className="peer" />
-          <div className="collapse-title font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">README</div>
+          <div className="collapse-title text-lg font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">README</div>
           <div className="collapse-content text-sm leading-[1.5]">
             <h3 className="text-base font-semibold my-2">What is DroidGround?</h3>
             <p>
