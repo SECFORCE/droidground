@@ -16,14 +16,23 @@ const intentExtraSchema: JSONSchemaType<IntentExtra> = {
     },
     type: {
       type: "string",
-      enum: Object.keys(IntentExtraType) as readonly IntentExtraType[],
+      enum: Object.values(IntentExtraType) as readonly IntentExtraType[],
     },
     value: {
-      type: ["string", "number", "boolean"],
-      nullable: true,
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "number",
+        },
+        {
+          type: "boolean",
+        },
+      ],
     },
   },
-  required: ["key", "type"],
+  required: ["key", "type", "value"],
   additionalProperties: false,
 };
 

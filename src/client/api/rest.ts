@@ -1,5 +1,6 @@
 import { http } from "@client/api/axios";
 import {
+  ActionResponse,
   BugreportzStatusResponse,
   CompanionPackageInfos,
   DeviceInfoResponse,
@@ -40,13 +41,13 @@ class RESTManager {
     return res;
   }
 
-  async startActivity(data: StartActivityRequest): Promise<AxiosResponse<IGenericResultRes>> {
-    const res = await http.post<IGenericResultRes>(E.ACTIVITY, data);
+  async startActivity(data: StartActivityRequest): Promise<AxiosResponse<ActionResponse>> {
+    const res = await http.post<ActionResponse>(E.ACTIVITY, data);
     return res;
   }
 
-  async startBroadcast(data: StartBroadcastRequest): Promise<AxiosResponse<IGenericResultRes>> {
-    const res = await http.post<IGenericResultRes>(E.BROADCAST, data);
+  async startBroadcast(data: StartBroadcastRequest): Promise<AxiosResponse<ActionResponse>> {
+    const res = await http.post<ActionResponse>(E.BROADCAST, data);
     return res;
   }
 
@@ -55,8 +56,8 @@ class RESTManager {
     return res;
   }
 
-  async startService(data: StartServiceRequest): Promise<AxiosResponse<IGenericResultRes>> {
-    const res = await http.post<IGenericResultRes>(E.SERVICE, data);
+  async startService(data: StartServiceRequest): Promise<AxiosResponse<ActionResponse>> {
+    const res = await http.post<ActionResponse>(E.SERVICE, data);
     return res;
   }
 

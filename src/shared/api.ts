@@ -75,6 +75,10 @@ export interface StartServiceRequest {
   //user?: number;
 }
 
+export interface ActionResponse extends IGenericResultRes {
+  command: string;
+}
+
 export interface FridaLibraryResponse {
   library: FridaLibrary;
 }

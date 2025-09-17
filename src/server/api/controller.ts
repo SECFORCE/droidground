@@ -10,6 +10,7 @@ import { ReadableStream } from "@yume-chan/stream-extra";
 import Logger from "@shared/logger";
 import { ManagerSingleton } from "@server/manager";
 import {
+  ActionResponse,
   BugreportzStatusResponse,
   CompanionPackageInfos,
   DeviceInfoResponse,
@@ -119,7 +120,7 @@ class APIController {
     }
   };
 
-  startActivity: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
+  startActivity: RequestHandler = async (req: Request, res: Response<ActionResponse | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const body = req.body as StartActivityRequest;
@@ -186,14 +187,14 @@ class APIController {
       Logger.debug(`Running command: "${command}"`);
       const adb = await ManagerSingleton.getInstance().getAdb();
       const result = await adb.subprocess.noneProtocol.spawnWaitText(command);
-      res.json({ result: result }).end();
+      res.json({ command, result }).end();
     } catch (error: any) {
       Logger.error(`Error starting activity: ${error}`);
       res.status(500).json({ error: "An error occurred while starting the activity." }).end();
     }
   };
 
-  startBroadcast: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
+  startBroadcast: RequestHandler = async (req: Request, res: Response<ActionResponse | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const body = req.body as StartBroadcastRequest;
@@ -237,14 +238,14 @@ class APIController {
       Logger.debug(`Running command: "${command}"`);
       const adb = await ManagerSingleton.getInstance().getAdb();
       const result = await adb.subprocess.noneProtocol.spawnWaitText(command);
-      res.json({ result: result }).end();
+      res.json({ command, result }).end();
     } catch (error: any) {
       Logger.error(`Error starting broadcast: ${error}`);
       res.status(500).json({ error: "An error occurred while starting the broadcast." }).end();
     }
   };
 
-  startService: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
+  startService: RequestHandler = async (req: Request, res: Response<ActionResponse | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
       const body = req.body as StartServiceRequest;
@@ -288,7 +289,7 @@ class APIController {
       Logger.debug(`Running command: "${command}"`);
       const adb = await ManagerSingleton.getInstance().getAdb();
       const result = await adb.subprocess.noneProtocol.spawnWaitText(command);
-      res.json({ result: result }).end();
+      res.json({ command, result }).end();
     } catch (error: any) {
       Logger.error(`Error starting service: ${error}`);
       res.status(500).json({ error: "An error occurred while starting the service." }).end();
