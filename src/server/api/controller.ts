@@ -296,6 +296,18 @@ class APIController {
     }
   };
 
+  closeDialogs: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    try {
+      const adb = await ManagerSingleton.getInstance().getAdb();
+      await adb.subprocess.noneProtocol.spawnWait(`am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS`);
+      res.json({ result: "System dialogs closed" }).end();
+    } catch (error: any) {
+      Logger.error(`Error closing system dialogs: ${error}`);
+      res.status(500).json({ error: "An error occurred while closing system dialogs." }).end();
+    }
+  };
+
   shutdown: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
     try {
