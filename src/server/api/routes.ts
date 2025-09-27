@@ -76,6 +76,7 @@ export default (app: Router) => {
   endpoint.get(E.FEATURES, APIController.features);
   endpoint.get(E.INFO, APIController.info);
   endpoint.post(E.RESTART, APIController.restartApp);
+  endpoint.post(E.DIALOGS, APIController.closeDialogs);
   endpoint.post(E.SHUTDOWN, checkFeatureEnabled(features.shutdownEnabled), APIController.shutdown);
   endpoint.post(E.REBOOT, checkFeatureEnabled(features.rebootEnabled), APIController.reboot);
   endpoint.post(E.LOGCAT, checkFeatureEnabled(features.logcatEnabled), APIController.dumpLogcat);

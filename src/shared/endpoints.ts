@@ -6,6 +6,7 @@ export const REST_API_ENDPOINTS = {
   ACTIVITY: "/activity",
   BROADCAST: "/broadcast",
   SERVICE: "/service",
+  DIALOGS: "/closeDialogs",
   SHUTDOWN: "/shutdown",
   REBOOT: "/reboot",
   LOGCAT: "/logcat",

@@ -76,6 +76,11 @@ class RESTManager {
     return res;
   }
 
+  async closeDialogs(): Promise<AxiosResponse<IGenericResultRes>> {
+    const res = await http.post<IGenericResultRes>(E.DIALOGS);
+    return res;
+  }
+
   async shutdown(): Promise<AxiosResponse<IGenericResultRes>> {
     const res = await http.post<IGenericResultRes>(E.SHUTDOWN);
     return res;
