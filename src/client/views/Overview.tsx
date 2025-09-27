@@ -41,6 +41,16 @@ export const Overview: React.FC = () => {
     }
   };
 
+  const closeDialogs = async () => {
+    try {
+      await RESTManagerInstance.closeDialogs();
+      toast.success("Request issued correctly");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error while closing system dialogs.");
+    }
+  };
+
   const runBugreportz = async () => {
     try {
       await RESTManagerInstance.startBugreportz();
@@ -177,6 +187,17 @@ export const Overview: React.FC = () => {
               <div className="join">
                 <button className="btn btn-accent join-item rounded-r-md" onClick={restartApp}>
                   Restart
+                </button>
+              </div>
+            </div>
+
+            <div className="flex w-full justify-between items-center">
+              <p>
+                Close <b>System Dialogs</b>
+              </p>
+              <div className="join">
+                <button className="btn btn-accent join-item rounded-r-md" onClick={closeDialogs}>
+                  Close
                 </button>
               </div>
             </div>
