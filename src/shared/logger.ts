@@ -1,6 +1,6 @@
-import { pino } from "pino";
+import { pino, transport } from "pino";
 
-const transports = pino.transport({
+const transports = transport({
   targets: [
     {
       level: "debug",
