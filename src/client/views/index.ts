@@ -7,6 +7,7 @@ export { FridaJailed } from "@client/views/FridaJailed";
 export { FileBrowser } from "@client/views/FileBrowser";
 export { AppManager } from "@client/views/AppManager";
 export { Logs } from "@client/views/Logs";
+export { Debug } from "@client/views/Debug";
 export { NotFound } from "@client/views/NotFound";
 export { Error } from "@client/views/Error";
 

@@ -91,3 +91,7 @@ export interface StartFridaLibraryScriptRequest {
 export interface StartExploitAppRequest {
   packageName: string;
 }
+
+export interface GetAttackSurfaceRequest {
+  debugToken: string;
+}
