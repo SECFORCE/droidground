@@ -12,6 +12,7 @@ import {
   AppManager,
   Terminal,
   Logs,
+  Debug,
   Error,
 } from "@client/views";
 import { PAGES } from "@client/config";
@@ -191,6 +192,11 @@ const logsRoute = createRoute({
   path: PAGES.LOGS,
   component: Logs,
 });
+const debugRoute = createRoute({
+  getParentRoute: () => defaultRoute,
+  path: PAGES.DEBUG,
+  component: Debug,
+});
 
 const catchAllRoute = createRoute({
   getParentRoute: () => notFoundRoute,
@@ -211,8 +217,16 @@ const Main = () => {
   // Determine the correct Frida route to use. Default value is FridaJailed
   const fridaRoute = fridaType === "full" ? fridaFullRoute : fridaJailedRoute;
 
-  const allRoutes = [indexRoute, fridaRoute, fileBrowserRoute, appManagerRoute, terminalRoute, logsRoute];
-  const routesEnabled = [true, fridaEnabled, fileBrowserEnabled, appManagerEnabled, terminalEnabled, logcatEnabled];
+  const allRoutes = [indexRoute, debugRoute, fridaRoute, fileBrowserRoute, appManagerRoute, terminalRoute, logsRoute];
+  const routesEnabled = [
+    true,
+    true,
+    fridaEnabled,
+    fileBrowserEnabled,
+    appManagerEnabled,
+    terminalEnabled,
+    logcatEnabled,
+  ];
 
   if (allRoutes.length !== routesEnabled.length) {
     throw Error("Length mismatch!");

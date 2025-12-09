@@ -1,4 +1,5 @@
 import { http } from "@client/api/axios";
+import { CompanionAttackSurface } from "@server/utils/types";
 import {
   ActionResponse,
   BugreportzStatusResponse,
@@ -118,6 +119,11 @@ class RESTManager {
 
   async getFridaLibrary(): Promise<AxiosResponse<FridaLibraryResponse>> {
     const res = await http.get<FridaLibraryResponse>(E.LIBRARY);
+    return res;
+  }
+
+  async getAttackSurface(debugToken: string): Promise<AxiosResponse<CompanionAttackSurface>> {
+    const res = await http.get<CompanionAttackSurface>(E.ATTACK_SURFACE, { headers: { Authorization: debugToken } });
     return res;
   }
 }

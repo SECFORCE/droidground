@@ -93,8 +93,8 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_FRIDA_DISABLED`          | Disable Frida support                                | `false`     |
 | `DROIDGROUND_FRIDA_TYPE`              | `jail` or `full`                                     | `jail`      |
 | `DROIDGROUND_LOGCAT_DISABLED`         | Disable logcat                                       | `false`     |
-| `DROIDGROUND_REBOOT_DISABLED`         | Disable reboot                                       | `false`     |
-| `DROIDGROUND_SHUTDOWN_DISABLED`       | Disable shutdown                                     | `false`     |
+| `DROIDGROUND_REBOOT_ENABLED`          | Enable reboot                                        | `false`     |
+| `DROIDGROUND_SHUTDOWN_ENABLED`        | Enable shutdown                                      | `false`     |
 | `DROIDGROUND_START_ACTIVITY_DISABLED` | Disable startActivity                                | `false`     |
 | `DROIDGROUND_START_RECEIVER_DISABLED` | Disable broadcast                                    | `false`     |
 | `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService                                 | `false`     |
