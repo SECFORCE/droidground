@@ -26,6 +26,7 @@ export interface DroidGroundConfig {
     port: number;
   };
   features: DroidGroundFeatures;
+  teamTokens: string[];
   debugToken: string;
 }
 

@@ -7,7 +7,7 @@ import { Server as HTTPServer } from "http";
 import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "@yume-chan/adb";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from "@shared/logger";
-import { sleep } from "@shared/helpers";
+import { randomString, sleep } from "@shared/helpers";
 import { DroidGroundConfig, FridaState, StreamMetadata } from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "@server/utils/frida";
@@ -44,6 +44,10 @@ export class ManagerSingleton {
     // private constructor prevents direct instantiation
     const port: any = process.env.DROIDGROUND_ADB_PORT ?? "";
     const exploitAppDuration: any = process.env.DROIDGROUND_EXPLOIT_APP_DURATION ?? "";
+    // Check team-mode
+    const teamNumEnv: any = process.env.DROIDGROUND_NUM_TEAMS ?? 0;
+    const teamNum = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : teamNumEnv;
+    const teamTokens = this.setupTeamTokens(teamNum);
     this.config = {
       packageName: process.env.DROIDGROUND_APP_PACKAGE_NAME ?? "",
       adb: {
@@ -68,10 +72,17 @@ export class ManagerSingleton {
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
       },
+      teamTokens: teamTokens,
       debugToken: crypto.randomBytes(64).toString("hex"),
     };
 
     Logger.info(`Debug token is: ${this.config.debugToken}`);
+    if (teamNum > 0) {
+      Logger.info(`Team mode is enabled, ${teamNum} tokens are available:`);
+      for (let i = 0; i < teamNum; i++) {
+        Logger.info(`\tTeam #${i}: ${teamTokens[i]}`);
+      }
+    }
   }
 
   public static getInstance(): ManagerSingleton {
@@ -156,8 +167,6 @@ export class ManagerSingleton {
 
   private async setupAdb() {
     const serverClient = this.serverClient as AdbServerClient;
-
-    await serverClient.waitFor(undefined, "device");
     const devices: AdbServerClient.Device[] = await serverClient.getDevices();
     if (devices.length === 0) {
       Logger.error("No device connected");
@@ -170,10 +179,22 @@ export class ManagerSingleton {
 
     this.device = device;
 
+    await serverClient.waitFor(device, "device");
+
     const transport: AdbTransport = await serverClient.createTransport(device);
     Logger.debug("Transport created.");
     const adb: Adb = new Adb(transport);
     this.adb = adb;
+  }
+
+  private setupTeamTokens(numTeams: number): string[] {
+    const tokens: string[] = [];
+    for (let i = 0; i < numTeams; i++) {
+      const teamTokenEnv: any = process.env[`DROIDGROUND_TEAM_TOKEN_${i + 1}`] ?? "";
+      const teamToken = teamTokenEnv.trim().length === 0 ? randomString(32) : teamTokenEnv.trim();
+      tokens.push(teamToken);
+    }
+    return tokens;
   }
 
   private async checkPackage() {
