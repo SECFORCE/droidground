@@ -11,5 +11,6 @@ export const PAGES = {
   APP_MANAGER: "/app-manager",
   TERMINAL: "/terminal",
   LOGS: "/logs",
+  EXPLOIT_SERVER: "/exploit-server",
   DEBUG: "/debug",
 } as const;

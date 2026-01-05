@@ -95,3 +95,7 @@ export interface StartExploitAppRequest {
 export interface GetAttackSurfaceRequest {
   debugToken: string;
 }
+
+export interface ConnectToExploitServerRequest {
+  teamToken: string;
+}

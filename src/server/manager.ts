@@ -2,19 +2,19 @@ import os from "os";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { execSync } from "child_process";
 import { WebSocket } from "ws";
 import { Server as HTTPServer } from "http";
 import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "@yume-chan/adb";
+import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from "@shared/logger";
 import { randomString, sleep } from "@shared/helpers";
 import { DroidGroundConfig, FridaState, StreamMetadata } from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "@server/utils/frida";
-import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { setupScrcpy } from "@server/utils/scrcpy";
 import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
-import { execSync } from "child_process";
 import { safeFileExists } from "@server/utils/helpers";
 
 export class ManagerSingleton {
@@ -34,6 +34,7 @@ export class ManagerSingleton {
   public wsStreamingClients: Map<string, WebsocketClient> = new Map<string, WebsocketClient>();
   public wsTerminalSessions: Map<WebSocket, any> = new Map<WebSocket, { process: AdbShellProtocolPtyProcess }>();
   public wsFridaSessions: Map<WebSocket, FridaState | null> = new Map<WebSocket, FridaState | null>();
+  public wsExploitServerSessions: Map<WebSocket, any> = new Map<WebSocket, { teamToken: string }>();
   // Scrcpy
   public sharedVideoMetadata: StreamMetadata | null = null;
   public sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;
@@ -68,6 +69,7 @@ export class ManagerSingleton {
         startServiceEnabled: !(process.env.DROIDGROUND_START_SERVICE_DISABLED === "true"),
         terminalEnabled: !(process.env.DROIDGROUND_TERMINAL_DISABLED === "true"),
         resetEnabled: !(process.env.DROIDGROUND_RESET_DISABLED === "true"),
+        teamModeEnabled: teamNum > 0,
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
@@ -322,5 +324,9 @@ export class ManagerSingleton {
       Logger.error(`reset.sh script missing in the ${initDFolder}`);
       return false;
     }
+  }
+
+  public isTeamTokenValid(teamToken: string): boolean {
+    return this.config.teamTokens.includes(teamToken);
   }
 }
