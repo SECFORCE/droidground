@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { IoApps } from "react-icons/io5";
 import { FiRefreshCcw } from "react-icons/fi";
-import { StartExploitAppModal } from "@client/components";
+import { InstallExploitAppModal, StartExploitAppModal } from "@client/components";
 
 const toDatestring = (ts: number) => {
   return new Date(ts).toLocaleDateString("en-US", {
@@ -32,6 +32,7 @@ const toHumanReadableSize = (bytes: number, decimals = 2) => {
 export const AppManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [packages, setPackages] = useState<CompanionPackageInfos[]>([]);
+  const installExploitAppDialogRef = useRef<HTMLDialogElement | null>(null);
   const startExploitAppDialogRef = useRef<HTMLDialogElement | null>(null);
 
   const getPackageInfos = async () => {
@@ -53,29 +54,13 @@ export const AppManager: React.FC = () => {
     getPackageInfos();
   }, []);
 
-  const handleInstall = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
-    e.preventDefault();
-
-    const fileToUpload = e.target.files && e.target.files.length > 0 ? e.target.files[0] : null;
-    if (!fileToUpload) {
-      toast.error("Please select an APK file to upload.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("apkFile", fileToUpload);
-
+  const handleOnInstall = async () => {
     try {
       setIsLoading(true);
-      await RESTManagerInstance.installApk(formData);
       const result = await RESTManagerInstance.getPackageInfos();
       setPackages(result.data);
-      await sleep(500);
-      // Display the upload summary
-      toast.success("APK correctly installed");
     } catch (error) {
       console.error(error);
-      toast.error("Failed to upload file.");
     } finally {
       setIsLoading(false);
     }
@@ -103,6 +88,9 @@ export const AppManager: React.FC = () => {
        *    Modals   *
        ***************/}
 
+      {/* Install Exploit App Modal */}
+      <InstallExploitAppModal dialogRef={installExploitAppDialogRef} onInstall={handleOnInstall} />
+
       {/* Start Exploit App Modal */}
       <StartExploitAppModal dialogRef={startExploitAppDialogRef} />
 
@@ -122,12 +110,12 @@ export const AppManager: React.FC = () => {
                 <button className="btn btn-info" onClick={getPackageInfos}>
                   <FiRefreshCcw />
                 </button>
-                <div>
-                  <input type="file" accept=".apk" id="apk-upload" className="hidden" onChange={handleInstall} />
-                  <label htmlFor="apk-upload" className="btn btn-accent cursor-pointer whitespace-nowrap">
-                    Install APK
-                  </label>
-                </div>
+                <button
+                  className="btn btn-accent cursor-pointer whitespace-nowrap"
+                  onClick={() => installExploitAppDialogRef.current?.showModal()}
+                >
+                  Install APK
+                </button>
                 <button
                   className="btn btn-error join-item rounded-r-md"
                   onClick={() => startExploitAppDialogRef.current?.showModal()}
