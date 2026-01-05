@@ -65,6 +65,10 @@ class Connection(private val client: LocalSocket) : Thread() {
                 result.put("packageInfos", getPackageInfos(JSONObject(params)))
             }
 
+            "getAPKInfos" -> {
+                result.put("apkInfos", getAPKInfos(JSONObject(params)))
+            }
+
             else -> {
                 Log.e(TAG, "Unknown method: $method")
             }
@@ -103,6 +107,21 @@ class Connection(private val client: LocalSocket) : Thread() {
                 result.put(getPackageInfo(it))
             } catch (e: Exception) {
                 Log.e(TAG, "Fail to get package info", e)
+            }
+        }
+
+        return result
+    }
+
+    private fun getAPKInfos(params: JSONObject): JSONArray {
+        val packagePaths = Util.jsonArrayToStringArray(params.getJSONArray("packagePaths"))
+        val result = JSONArray()
+
+        packagePaths.forEach {
+            try {
+                result.put(getPackageArchiveInfo(it))
+            } catch (e: Exception) {
+                Log.e(TAG, "Fail to get apk info", e)
             }
         }
 
@@ -264,6 +283,24 @@ class Connection(private val client: LocalSocket) : Thread() {
                 Log.e(TAG, "Failed to get storage stats for $packageName")
             }
         }
+
+        return info
+    }
+
+    @TargetApi(Build.VERSION_CODES.P)
+    private fun getPackageArchiveInfo(packagePath: String): JSONObject {
+        var flags = PackageManager.GET_ACTIVITIES
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            flags = flags or PackageManager.GET_SIGNING_CERTIFICATES
+        } else {
+            flags = flags or PackageManager.GET_SIGNATURES
+        }
+
+        val packageInfo =
+            ServiceManager.packageManager.getPackageArchiveInfo(packagePath, flags)
+
+        val info = JSONObject()
+        info.put("packageName", packageInfo.packageName)
 
         return info
     }

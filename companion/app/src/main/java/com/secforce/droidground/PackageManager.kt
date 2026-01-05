@@ -26,4 +26,13 @@ class PackageManager(private val manager: IInterface) {
 
         return getPackageInfoMethod.invoke(manager, packageName, flags, 0) as PackageInfo
     }
+
+    fun getPackageArchiveInfo(apkPath: String, flags: Int): PackageInfo {
+        Log.i(TAG, "Get APK info: $apkPath")
+
+        val pm = Framework.systemContext().packageManager
+
+        val result = pm.getPackageArchiveInfo(apkPath, flags)
+        return requireNotNull(result) { "getPackageArchiveInfo returned null for $apkPath" }
+    }
 }
