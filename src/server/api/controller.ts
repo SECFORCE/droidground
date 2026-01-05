@@ -35,7 +35,7 @@ import {
 import { capitalize, sleep } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
 import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER, SECOND } from "@server/config";
-import { CompanionAttackSurface, CompanionAttackSurfaceResponse } from "@server/utils/types";
+import { CompanionAPKInfoResponse, CompanionAttackSurface, CompanionAttackSurfaceResponse } from "@server/utils/types";
 import { loadFridaLibrary } from "@server/utils/frida";
 import { execSync } from "child_process";
 
@@ -507,14 +507,6 @@ class APIController {
       const file = req.file as Express.Multer.File;
       const apkFilePath = file.path;
 
-      // Get the file package name before installation
-      const aaptOutput = execSync(`aapt dump badging ${apkFilePath}`).toString();
-      const packageName = aaptOutput.split("package: name='")[1].split("'")[0];
-
-      if (manager.getConfig().features.teamModeEnabled) {
-        manager.linkExploitAppToTeam(req.body.teamToken, packageName);
-      }
-
       const apkBuffer: Buffer = await fs.readFile(apkFilePath);
       const uploadedFilePath = path.resolve(DEFAULT_UPLOAD_FOLDER, file.filename);
 
@@ -527,6 +519,23 @@ class APIController {
           },
         }),
       });
+
+      // Get the file package name before installation
+      const client = CompanionClient.getInstance();
+      const bufRes = await client.sendMessage<CompanionAPKInfoResponse>("getAPKPackageName", {
+        apkPath: uploadedFilePath,
+      });
+      const packageName = bufRes.packageName;
+
+      if (packageName === "") {
+        throw new Error("Unable to get package name for this exploit app.");
+      }
+
+      Logger.debug(`Installing app with package name '${packageName} for team with token ${req.body.teamToken}`);
+
+      if (manager.getConfig().features.teamModeEnabled) {
+        manager.linkExploitAppToTeam(req.body.teamToken, packageName);
+      }
 
       const installRes = await adb.subprocess.noneProtocol.spawnWaitText(`pm install ${uploadedFilePath}`);
       await adb.rm(uploadedFilePath);

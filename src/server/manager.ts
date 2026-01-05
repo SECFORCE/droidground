@@ -46,7 +46,7 @@ export class ManagerSingleton {
     const port: any = process.env.DROIDGROUND_ADB_PORT ?? "";
     const exploitAppDuration: any = process.env.DROIDGROUND_EXPLOIT_APP_DURATION ?? "";
     // Check team-mode
-    const teamNumEnv: any = process.env.DROIDGROUND_NUM_TEAMS ?? 0;
+    const teamNumEnv: any = process.env.DROIDGROUND_NUM_TEAMS ?? "";
     const teamNum = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : teamNumEnv;
     const teamTokens = this.setupTeamTokens(teamNum);
     const teams: DroidGroundTeam[] = teamTokens.map(t => ({ token: t, exploitApps: [] }));

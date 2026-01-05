@@ -65,8 +65,8 @@ class Connection(private val client: LocalSocket) : Thread() {
                 result.put("packageInfos", getPackageInfos(JSONObject(params)))
             }
 
-            "getAPKInfos" -> {
-                result.put("apkInfos", getAPKInfos(JSONObject(params)))
+            "getAPKPackageName" -> {
+                result.put("packageName", getAPKPackageName(JSONObject(params)))
             }
 
             else -> {
@@ -113,16 +113,14 @@ class Connection(private val client: LocalSocket) : Thread() {
         return result
     }
 
-    private fun getAPKInfos(params: JSONObject): JSONArray {
-        val packagePaths = Util.jsonArrayToStringArray(params.getJSONArray("packagePaths"))
-        val result = JSONArray()
+    private fun getAPKPackageName(params: JSONObject): String {
+        var result = ""
+        val apkPath = params.getString("apkPath")
 
-        packagePaths.forEach {
-            try {
-                result.put(getPackageArchiveInfo(it))
-            } catch (e: Exception) {
-                Log.e(TAG, "Fail to get apk info", e)
-            }
+        try {
+            result = getPackageArchiveInfo(apkPath)
+        } catch (e: Exception) {
+            Log.e(TAG, "Fail to get apk info", e)
         }
 
         return result
@@ -288,7 +286,7 @@ class Connection(private val client: LocalSocket) : Thread() {
     }
 
     @TargetApi(Build.VERSION_CODES.P)
-    private fun getPackageArchiveInfo(packagePath: String): JSONObject {
+    private fun getPackageArchiveInfo(packagePath: String): String {
         var flags = PackageManager.GET_ACTIVITIES
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             flags = flags or PackageManager.GET_SIGNING_CERTIFICATES
@@ -299,10 +297,7 @@ class Connection(private val client: LocalSocket) : Thread() {
         val packageInfo =
             ServiceManager.packageManager.getPackageArchiveInfo(packagePath, flags)
 
-        val info = JSONObject()
-        info.put("packageName", packageInfo.packageName)
-
-        return info
+        return packageInfo.packageName
     }
 
     private fun getResources(apkPath: String): Resources {
