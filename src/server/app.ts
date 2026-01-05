@@ -68,7 +68,7 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
   }
 
   await manager.runTargetApp(); // Start the target app
-  await setupApi(app, droidGroundConfig.features.basePath, droidGroundConfig.teamTokens);
+  await setupApi(app, droidGroundConfig.features.basePath, manager.getTeamTokens());
   await setupWs(httpServer, droidGroundConfig.features.basePath);
   await setupScrcpy();
 };

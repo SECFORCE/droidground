@@ -10,7 +10,7 @@ import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from "@shared/logger";
 import { randomString, sleep } from "@shared/helpers";
-import { DroidGroundConfig, FridaState, StreamMetadata } from "@shared/types";
+import { DroidGroundConfig, DroidGroundTeam, FridaState, StreamMetadata } from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "@server/utils/frida";
 import { setupScrcpy } from "@server/utils/scrcpy";
@@ -49,6 +49,7 @@ export class ManagerSingleton {
     const teamNumEnv: any = process.env.DROIDGROUND_NUM_TEAMS ?? 0;
     const teamNum = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : teamNumEnv;
     const teamTokens = this.setupTeamTokens(teamNum);
+    const teams: DroidGroundTeam[] = teamTokens.map(t => ({ token: t, exploitApps: [] }));
     this.config = {
       packageName: process.env.DROIDGROUND_APP_PACKAGE_NAME ?? "",
       adb: {
@@ -74,7 +75,7 @@ export class ManagerSingleton {
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
       },
-      teamTokens: teamTokens,
+      teams: teams,
       debugToken: crypto.randomBytes(64).toString("hex"),
     };
 
@@ -315,6 +316,11 @@ export class ManagerSingleton {
       Logger.info(`App ${appToDelete} uninstall result: ${uninstallRes}`);
     }
 
+    // Unlink all exploit apps
+    for (const team of this.config.teams) {
+      team.exploitApps = [];
+    }
+
     const initDFolder = process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const resetScript = path.resolve(initDFolder, "reset.sh");
     if (safeFileExists(resetScript)) {
@@ -326,7 +332,23 @@ export class ManagerSingleton {
     }
   }
 
+  public getTeamTokens(): string[] {
+    return this.config.teams.map(t => t.token);
+  }
+
   public isTeamTokenValid(teamToken: string): boolean {
-    return this.config.teamTokens.includes(teamToken);
+    return this.getTeamTokens().includes(teamToken);
+  }
+
+  public linkExploitAppToTeam(teamToken: string, exploitApp: string) {
+    for (const team of this.config.teams) {
+      if (team.token === teamToken) {
+        team.exploitApps.push(exploitApp);
+      }
+    }
+  }
+
+  public getExploitAppsLinkedToTeam(teamToken: string): string[] {
+    return this.config.teams.find(t => t.token === teamToken)?.exploitApps ?? [];
   }
 }

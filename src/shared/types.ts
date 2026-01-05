@@ -20,6 +20,11 @@ export interface DroidGroundFeatures {
   exploitAppDuration: number;
 }
 
+export interface DroidGroundTeam {
+  token: string;
+  exploitApps: string[];
+}
+
 export interface DroidGroundConfig {
   packageName: string;
   adb: {
@@ -27,7 +32,7 @@ export interface DroidGroundConfig {
     port: number;
   };
   features: DroidGroundFeatures;
-  teamTokens: string[];
+  teams: DroidGroundTeam[];
   debugToken: string;
 }
 
