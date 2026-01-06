@@ -18,6 +18,7 @@ export interface DroidGroundFeatures {
   teamModeEnabled: boolean;
   fridaType: "full" | "jail";
   exploitAppDuration: number;
+  ipAddress: string;
 }
 
 export interface DroidGroundTeam {

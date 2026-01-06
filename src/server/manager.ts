@@ -15,7 +15,7 @@ import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "@server/utils/frida";
 import { setupScrcpy } from "@server/utils/scrcpy";
 import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
-import { safeFileExists } from "@server/utils/helpers";
+import { getIP, safeFileExists } from "@server/utils/helpers";
 
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
@@ -45,6 +45,9 @@ export class ManagerSingleton {
     // private constructor prevents direct instantiation
     const port: any = process.env.DROIDGROUND_ADB_PORT ?? "";
     const exploitAppDuration: any = process.env.DROIDGROUND_EXPLOIT_APP_DURATION ?? "";
+    // Check if IP address should be displayed
+    const iface = process.env.DROIDGROUND_IP_IFACE ?? "";
+    const ipAddress = getIP(iface); // Either an empty string or the IP address
     // Check team-mode
     const teamNumEnv: any = process.env.DROIDGROUND_NUM_TEAMS ?? "";
     const teamNum = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : teamNumEnv;
@@ -74,6 +77,7 @@ export class ManagerSingleton {
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
+        ipAddress: ipAddress,
       },
       teams: teams,
       debugToken: crypto.randomBytes(64).toString("hex"),
