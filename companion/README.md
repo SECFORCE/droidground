@@ -14,6 +14,7 @@ The application currently supports the following methods:
 - `getVersion`: which returns the value of `BuildConfig.VERSION_NAME`
 - `getPackageInfos`: which returns structured info about the applications
 - `getAttackSurfaces`: which returns the exported activities, broadcast receivers, services and content providers for the requested applications.
+- `getAPKPackageName`: which returns the package name of an APK file on the device.
 
 ## ✍ Usage
 
