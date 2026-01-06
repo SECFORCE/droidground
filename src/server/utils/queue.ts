@@ -1,5 +1,5 @@
 import Logger from "@shared/logger";
-import { QueueJob, JobStatus } from "@shared/types";
+import { QueueJob, JobInfo, JobStatusType } from "@shared/types";
 
 export class FairQueue<UserId extends string> {
   private readonly perUser = new Map<UserId, QueueJob<UserId>[]>();
@@ -153,11 +153,11 @@ export class FairQueue<UserId extends string> {
     }
   }
 
-  public getQueueStatus(): JobStatus[] {
+  public getQueueStatus(): JobInfo[] {
     return [...this.perUser.values()].flat().map(qj => ({
       id: qj.id,
       packageName: qj.packageName,
-      status: "waiting",
+      status: JobStatusType.WAITING,
       createdAt: qj.createdAt,
     }));
   }

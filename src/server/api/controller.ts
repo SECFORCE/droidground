@@ -37,9 +37,8 @@ import { CompanionClient } from "@server/companion";
 import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER, SECOND } from "@server/config";
 import { CompanionAPKInfoResponse, CompanionAttackSurface, CompanionAttackSurfaceResponse } from "@server/utils/types";
 import { loadFridaLibrary } from "@server/utils/frida";
-import { execSync } from "child_process";
 import { randomUUID } from "crypto";
-import { JobStatus } from "@shared/types";
+import { JobInfo, JobStatusType } from "@shared/types";
 
 class APIController {
   features: RequestHandler = async (req: Request, res: Response<DroidGroundFeaturesResponse | IGenericErrRes>) => {
@@ -567,7 +566,7 @@ class APIController {
     }
   };
 
-  sendNotification = (job: JobStatus | undefined) => {
+  sendNotification = (job: JobInfo | undefined) => {
     if (!job) return;
 
     const singleton = ManagerSingleton.getInstance();
@@ -578,11 +577,11 @@ class APIController {
   };
 
   startExploitApp = async (jobId: string, exploitApp: string, createdAt: number) => {
-    const job: JobStatus = {
+    const job: JobInfo = {
       id: jobId,
       packageName: exploitApp,
       createdAt: createdAt,
-      status: "running",
+      status: JobStatusType.RUNNIG,
     };
 
     this.sendNotification(job);
@@ -596,7 +595,7 @@ class APIController {
     Logger.info(`Exploit app ${exploitApp} correctly started. It will stay up for ${duration} seconds`);
     await sleep(duration * SECOND);
     Logger.info(`${duration} seconds have passed, restarting target app...`);
-    this.sendNotification({ ...job, status: "completed" });
+    this.sendNotification({ ...job, status: JobStatusType.COMPLETED });
     await singleton.runTargetApp();
   };
 
@@ -639,11 +638,11 @@ class APIController {
       if (!result.ok) {
         res.status(429).json({ error: result.reason }).end();
       } else {
-        const job: JobStatus = {
+        const job: JobInfo = {
           id: jobId,
           packageName: exploitApp,
           createdAt: result.createdAt,
-          status: "waiting",
+          status: JobStatusType.WAITING,
         };
         this.sendNotification(job);
         res.status(202).json({ result: "Exploit App execution was correctly enqueued" }).end();

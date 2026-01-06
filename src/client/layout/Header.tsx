@@ -6,7 +6,7 @@ import Logo from "@client/assets/logo.png";
 import { PAGES } from "@client/config";
 import { RESTManagerInstance } from "@client/api/rest";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
-import { JobStatus } from "@shared/types";
+import { JobInfo, JobStatusType } from "@shared/types";
 import { ConfirmModal } from "@client/components";
 import { useAPI } from "@client/context/API";
 import { BsGithub } from "react-icons/bs";
@@ -25,10 +25,7 @@ const statusMappings = {
   running: 1,
   completed: 2,
 };
-const isJobStatusNewer = (
-  statusA: "waiting" | "running" | "completed",
-  statusB: "waiting" | "running" | "completed",
-) => {
+const isJobStatusNewer = (statusA: JobStatusType, statusB: JobStatusType) => {
   return statusMappings[statusA] > statusMappings[statusB];
 };
 
@@ -38,7 +35,7 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState<string | null>(null);
   const resetCtfDialogRef = useRef<HTMLDialogElement | null>(null);
-  const [queueStatus, setQueueStatus] = useState<JobStatus[]>([]);
+  const [queueStatus, setQueueStatus] = useState<JobInfo[]>([]);
 
   if (!featuresConfig) {
     return <></>;
@@ -71,9 +68,9 @@ const Navbar: React.FC = () => {
 
     // When data comes from backend, write to terminal
     socket.addEventListener("message", event => {
-      const jobs: JobStatus[] = JSON.parse(event.data);
+      const jobs: JobInfo[] = JSON.parse(event.data);
       setQueueStatus(prevQueueStatus => {
-        let jobMappings: { [id: string]: JobStatus } = prevQueueStatus.reduce((prev, curr) => {
+        let jobMappings: { [id: string]: JobInfo } = prevQueueStatus.reduce((prev, curr) => {
           return { ...prev, [curr.id]: curr };
         }, {});
 
@@ -83,11 +80,11 @@ const Navbar: React.FC = () => {
           }
         }
 
-        return Object.values(jobMappings).filter(j => j.status !== "completed");
+        return Object.values(jobMappings).filter(j => j.status !== JobStatusType.COMPLETED);
       });
 
-      for (const j of jobs.filter(j => j.status !== "waiting")) {
-        const action = j.status === "running" ? "started" : "completed";
+      for (const j of jobs.filter(j => j.status !== JobStatusType.WAITING)) {
+        const action = j.status === JobStatusType.RUNNIG ? "started" : "completed";
         toast.success(`Exploit App ${j.packageName} correctly ${action}!`);
       }
     });
@@ -195,23 +192,22 @@ const Navbar: React.FC = () => {
                     </li>
                   )}
 
-                  {queueStatus
-                    .filter(j => j.status !== "completed")
-                    .map(jobStatus => (
-                      <li key={jobStatus.id} className="flex items-center gap-4 bg-base-100 rounded-box p-2 text-sm">
-                        {jobStatus.status === "running" ? (
-                          <span className="loading loading-spinner text-orange-400" />
-                        ) : (
-                          <CiStopwatch size={24} className="text-accent" />
-                        )}
-                        <div>
-                          <p>Exploit App '{jobStatus.packageName}' queued</p>
-                          <span className="text-xs text-gray-400">
-                            {new Date(jobStatus.createdAt).toLocaleString()}
-                          </span>
-                        </div>
-                      </li>
-                    ))}
+                  {queueStatus.map(jobStatus => (
+                    <li key={jobStatus.id} className="flex items-center gap-4 bg-base-100 rounded-box p-2 text-sm">
+                      {jobStatus.status === JobStatusType.RUNNIG ? (
+                        <span className="loading loading-spinner text-orange-400" />
+                      ) : (
+                        <CiStopwatch size={24} className="text-accent" />
+                      )}
+                      <div>
+                        <p>
+                          Exploit App '{jobStatus.packageName}'{" "}
+                          {jobStatus.status === JobStatusType.RUNNIG ? "running" : "queued"}
+                        </p>
+                        <span className="text-xs text-gray-400">{new Date(jobStatus.createdAt).toLocaleString()}</span>
+                      </div>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
