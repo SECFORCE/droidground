@@ -16,6 +16,7 @@ import { setupFrida } from "@server/utils/frida";
 import { setupScrcpy } from "@server/utils/scrcpy";
 import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
 import { getIP, safeFileExists } from "@server/utils/helpers";
+import { FairQueue } from "@server/utils/queue";
 
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
@@ -35,11 +36,14 @@ export class ManagerSingleton {
   public wsTerminalSessions: Map<WebSocket, any> = new Map<WebSocket, { process: AdbShellProtocolPtyProcess }>();
   public wsFridaSessions: Map<WebSocket, FridaState | null> = new Map<WebSocket, FridaState | null>();
   public wsExploitServerSessions: Map<WebSocket, any> = new Map<WebSocket, { teamToken: string }>();
+  public wsNotificationSessions: Map<string, WebSocket> = new Map<string, WebSocket>();
   // Scrcpy
   public sharedVideoMetadata: StreamMetadata | null = null;
   public sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;
-  // Device apps
-  public deviceApps: string[] = [];
+  // Exploit apps (keeping a list in order to quickly delete them on reset)
+  public exploitApps: string[] = [];
+  // Exploit App Run Queue
+  public queue;
 
   private constructor() {
     // private constructor prevents direct instantiation
@@ -50,9 +54,16 @@ export class ManagerSingleton {
     const ipAddress = getIP(iface); // Either an empty string or the IP address
     // Check team-mode
     const teamNumEnv: any = process.env.DROIDGROUND_NUM_TEAMS ?? "";
-    const teamNum = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : teamNumEnv;
+    const teamNum: number = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : parseInt(teamNumEnv);
     const teamTokens = this.setupTeamTokens(teamNum);
     const teams: DroidGroundTeam[] = teamTokens.map(t => ({ token: t, exploitApps: [] }));
+    // Exploit App Run Queue
+    this.queue = new FairQueue<string>({
+      concurrency: 1,
+      maxPerUserQueue: 1,
+      maxTotalQueue: teamNum !== 0 ? teamNum : 10, // Size of the queue is 10 by default if no teams
+    });
+    // Config
     this.config = {
       packageName: process.env.DROIDGROUND_APP_PACKAGE_NAME ?? "",
       adb: {
@@ -304,23 +315,17 @@ export class ManagerSingleton {
     // Check if the app is installed, otherwise stop DroidGround
     await this.checkPackage();
 
-    // Set device apps
-    const packagesRes = await this.adb!.subprocess.noneProtocol.spawnWaitText("pm list packages -a");
-    this.deviceApps = packagesRes.split("\n").map(el => el.split("package:")[1]);
     return true;
   }
 
   public async resetCtf(): Promise<boolean> {
-    const packagesRes = await this.adb!.subprocess.noneProtocol.spawnWaitText("pm list packages -a");
-    const currentApps = packagesRes.split("\n").map(el => el.split("package:")[1]);
-    const appsToDelete = currentApps.filter((app: string) => !this.deviceApps.includes(app));
-    // appsToDelete now contains all the exploit apps to delete
-    for await (const appToDelete of appsToDelete) {
+    for await (const appToDelete of this.exploitApps) {
       const uninstallRes = await this.adb!.subprocess.noneProtocol.spawnWaitText(`pm uninstall ${appToDelete}`);
       Logger.info(`App ${appToDelete} uninstall result: ${uninstallRes}`);
     }
 
     // Unlink all exploit apps
+    this.exploitApps = [];
     for (const team of this.config.teams) {
       team.exploitApps = [];
     }

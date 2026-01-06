@@ -7,6 +7,7 @@ import { setupScrcpyWss } from "@server/ws/scrcpy";
 import { setupTerminalWss } from "@server/ws/terminal";
 import { setupFridaWss } from "@server/ws/frida";
 import { setupExploitTerminalWss } from "@server/ws/exploitServer";
+import { setupNotificationsWss } from "@server/ws/notifications";
 
 export const setupWs = async (httpServer: HTTPServer, basePath: string) => {
   const singleton = ManagerSingleton.getInstance();
@@ -16,6 +17,7 @@ export const setupWs = async (httpServer: HTTPServer, basePath: string) => {
   const wssTerminal = new WebSocketServer({ noServer: true });
   const wssFrida = new WebSocketServer({ noServer: true });
   const wssExploitServer = new WebSocketServer({ noServer: true });
+  const wssNotificationsServer = new WebSocketServer({ noServer: true });
 
   // Handle upgrade requests
   httpServer.on("upgrade", (request, socket, head) => {
@@ -36,6 +38,10 @@ export const setupWs = async (httpServer: HTTPServer, basePath: string) => {
       wssExploitServer.handleUpgrade(request, socket, head, ws => {
         wssExploitServer.emit("connection", ws, request);
       });
+    } else if (pathname === `${basePath}${WEBSOCKET_ENDPOINTS.NOTIFICATIONS}` && features.appManagerEnabled) {
+      wssNotificationsServer.handleUpgrade(request, socket, head, ws => {
+        wssNotificationsServer.emit("connection", ws, request);
+      });
     } else {
       socket.destroy();
     }
@@ -45,4 +51,5 @@ export const setupWs = async (httpServer: HTTPServer, basePath: string) => {
   setupTerminalWss(wssTerminal);
   setupFridaWss(wssFrida);
   setupExploitTerminalWss(wssExploitServer);
+  setupNotificationsWss(wssNotificationsServer);
 };
