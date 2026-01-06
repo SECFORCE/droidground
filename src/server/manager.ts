@@ -16,6 +16,7 @@ import { setupFrida } from "@server/utils/frida";
 import { setupScrcpy } from "@server/utils/scrcpy";
 import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
 import { getIP, safeFileExists } from "@server/utils/helpers";
+import { FairQueue } from "@server/utils/queue";
 
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
@@ -40,6 +41,8 @@ export class ManagerSingleton {
   public sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;
   // Device apps
   public deviceApps: string[] = [];
+  // Exploit App Run Queue
+  public queue;
 
   private constructor() {
     // private constructor prevents direct instantiation
@@ -50,9 +53,16 @@ export class ManagerSingleton {
     const ipAddress = getIP(iface); // Either an empty string or the IP address
     // Check team-mode
     const teamNumEnv: any = process.env.DROIDGROUND_NUM_TEAMS ?? "";
-    const teamNum = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : teamNumEnv;
+    const teamNum: number = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : parseInt(teamNumEnv);
     const teamTokens = this.setupTeamTokens(teamNum);
     const teams: DroidGroundTeam[] = teamTokens.map(t => ({ token: t, exploitApps: [] }));
+    // Exploit App Run Queue
+    this.queue = new FairQueue<string>({
+      concurrency: 1,
+      maxPerUserQueue: 1,
+      maxTotalQueue: teamNum !== 0 ? teamNum : 10, // Size of the queue is 10 by default if no teams
+    });
+    // Config
     this.config = {
       packageName: process.env.DROIDGROUND_APP_PACKAGE_NAME ?? "",
       adb: {

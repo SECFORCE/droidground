@@ -38,6 +38,7 @@ import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER, SECOND } from "@server/confi
 import { CompanionAPKInfoResponse, CompanionAttackSurface, CompanionAttackSurfaceResponse } from "@server/utils/types";
 import { loadFridaLibrary } from "@server/utils/frida";
 import { execSync } from "child_process";
+import { randomUUID } from "crypto";
 
 class APIController {
   features: RequestHandler = async (req: Request, res: Response<DroidGroundFeaturesResponse | IGenericErrRes>) => {
@@ -531,7 +532,7 @@ class APIController {
         throw new Error("Unable to get package name for this exploit app.");
       }
 
-      Logger.debug(`Installing app with package name '${packageName} for team with token ${req.body.teamToken}`);
+      Logger.debug(`Installing app with package name '${packageName}`);
 
       if (manager.getConfig().features.teamModeEnabled) {
         manager.linkExploitAppToTeam(req.body.teamToken, packageName);
@@ -563,9 +564,21 @@ class APIController {
     }
   };
 
-  startExploitApp: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
+  startExploitApp = async (exploitApp: string) => {
+    const singleton = ManagerSingleton.getInstance();
+    const config = singleton.getConfig();
+
+    const duration = config.features.exploitAppDuration;
+
+    await singleton.runAppByPackageName(exploitApp);
+    Logger.info(`Exploit app ${exploitApp} correctly started. It will stay up for ${duration} seconds`);
+    await sleep(duration * SECOND);
+    Logger.info(`${duration} seconds have passed, restarting target app...`);
+    await singleton.runTargetApp();
+  };
+
+  enqueueStartExploitApp: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
-    let responseSent = false;
     try {
       const body = req.body as StartExploitAppRequest;
       const singleton = ManagerSingleton.getInstance();
@@ -581,7 +594,9 @@ class APIController {
         throw new Error("Missing or invalid Team Token.");
       }
 
-      const duration = config.features.exploitAppDuration;
+      // If teams behaviour is enabled use the teamToken as userId, otherwise generate a random value for each request
+      const userId = config.features.teamModeEnabled ? (body.teamToken as string) : randomUUID();
+      const jobId = randomUUID();
 
       const { packageName: exploitApp } = body;
 
@@ -589,20 +604,25 @@ class APIController {
         throw new Error("This is not an exploit app!");
       }
 
-      await singleton.runAppByPackageName(exploitApp);
+      console.log(jobId);
+      console.log(userId);
 
-      res.json({ result: `Exploit app correctly  for ${duration} seconds` }).end();
-      responseSent = true;
+      const result = singleton.queue.enqueue({
+        id: jobId,
+        userId,
+        run: async () => {
+          await this.startExploitApp(exploitApp);
+        },
+      });
 
-      await sleep(duration * SECOND);
-      Logger.info(`${duration} seconds have passed, restarting target app...`);
-      await singleton.runTargetApp();
-    } catch (error: any) {
-      Logger.error(`Error starting exploit app: ${error}`);
-      // Check if the response was already returned to the client (let's just fail kinda silently)
-      if (!responseSent) {
-        res.status(500).json({ error: "An error occurred while starting the exploit app." }).end();
+      if (!result.ok) {
+        res.status(429).json({ error: result.reason }).end();
+      } else {
+        res.status(202).json({ result: "Exploit App execution was correctly enqueued" }).end();
       }
+    } catch (error: any) {
+      Logger.error(`Error enqueueing exploit app: ${error}`);
+      res.status(500).json({ error: "An error occurred while trying to run the exploit app." }).end();
     }
   };
 
