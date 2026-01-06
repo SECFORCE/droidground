@@ -535,6 +535,8 @@ class APIController {
 
       Logger.debug(`Installing app with package name '${packageName}`);
 
+      manager.exploitApps.push(packageName);
+      // Duplicate but it shouldn't be a big problem
       if (manager.getConfig().features.teamModeEnabled) {
         manager.linkExploitAppToTeam(req.body.teamToken, packageName);
       }
@@ -621,7 +623,7 @@ class APIController {
 
       const { packageName: exploitApp } = body;
 
-      if (singleton.deviceApps.includes(exploitApp)) {
+      if (!singleton.exploitApps.includes(exploitApp)) {
         throw new Error("This is not an exploit app!");
       }
 

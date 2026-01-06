@@ -20,6 +20,18 @@ interface INavItem {
   routeEnabled: boolean;
 }
 
+const statusMappings = {
+  waiting: 0,
+  running: 1,
+  completed: 2,
+};
+const isJobStatusNewer = (
+  statusA: "waiting" | "running" | "completed",
+  statusB: "waiting" | "running" | "completed",
+) => {
+  return statusMappings[statusA] > statusMappings[statusB];
+};
+
 const Navbar: React.FC = () => {
   const { featuresConfig } = useAPI();
   const location = useLocation();
@@ -47,6 +59,10 @@ const Navbar: React.FC = () => {
   ];
 
   useEffect(() => {
+    if (!appManagerEnabled) {
+      return;
+    }
+
     const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
     const prefix = isHttps ? "wss" : "ws";
     const suffix = featuresConfig.basePath.length > 0 ? featuresConfig.basePath : "";
@@ -56,10 +72,18 @@ const Navbar: React.FC = () => {
     // When data comes from backend, write to terminal
     socket.addEventListener("message", event => {
       const jobs: JobStatus[] = JSON.parse(event.data);
-      setQueueStatus(prev => {
-        const jobsToKeep = prev.filter(prevJ => !jobs.some(j => prevJ.id === j.id));
+      setQueueStatus(prevQueueStatus => {
+        let jobMappings: { [id: string]: JobStatus } = prevQueueStatus.reduce((prev, curr) => {
+          return { ...prev, [curr.id]: curr };
+        }, {});
 
-        return [...jobsToKeep, ...jobs.filter(j => j.status !== "completed")];
+        for (const j of jobs) {
+          if (!jobMappings[j.id] || isJobStatusNewer(j.status, jobMappings[j.id].status)) {
+            jobMappings[j.id] = j;
+          }
+        }
+
+        return Object.values(jobMappings).filter(j => j.status !== "completed");
       });
 
       for (const j of jobs.filter(j => j.status !== "waiting")) {
@@ -71,7 +95,7 @@ const Navbar: React.FC = () => {
     return () => {
       socket.close();
     };
-  }, []);
+  }, [appManagerEnabled]);
 
   const reset = async () => {
     try {
@@ -152,41 +176,45 @@ const Navbar: React.FC = () => {
             <div className="divider divider-horizontal" />
           </div>
           <div className="flex gap-4">
-            <div className="dropdown dropdown-center">
-              <HiQueueList
-                size={24}
-                tabIndex={0}
-                role="button"
-                className="cursor-pointer text-gray-400 group-hover:text-white hover:text-white transition-all duration-300"
-              />
-              <ul
-                tabIndex={-1}
-                className="dropdown-content bg-base-300 rounded-box z-1 w-80 p-2 mt-4 shadow-sm flex flex-col gap-2"
-              >
-                {queueStatus.length === 0 && (
-                  <li className="flex items-center gap-4 bg-base-100 rounded-box p-2 text-sm">
-                    <PiEmptyDuotone size={24} className="text-error" />
-                    <p>Exploit app queue is empty.</p>
-                  </li>
-                )}
-
-                {queueStatus
-                  .filter(j => j.status !== "completed")
-                  .map(jobStatus => (
-                    <li key={jobStatus.id} className="flex items-center gap-4 bg-base-100 rounded-box p-2 text-sm">
-                      {jobStatus.status === "running" ? (
-                        <span className="loading loading-spinner text-orange-400" />
-                      ) : (
-                        <CiStopwatch size={24} className="text-accent" />
-                      )}
-                      <div>
-                        <p>Exploit App '{jobStatus.packageName}' queued</p>
-                        <span className="text-xs text-gray-400">{jobStatus.createdAt}</span>
-                      </div>
+            {appManagerEnabled && (
+              <div className="dropdown dropdown-center">
+                <HiQueueList
+                  size={24}
+                  tabIndex={0}
+                  role="button"
+                  className="cursor-pointer text-gray-400 group-hover:text-white hover:text-white transition-all duration-300"
+                />
+                <ul
+                  tabIndex={-1}
+                  className="dropdown-content bg-base-300 rounded-box z-1 w-80 p-2 mt-4 shadow-sm flex flex-col gap-2"
+                >
+                  {queueStatus.length === 0 && (
+                    <li className="flex items-center gap-4 bg-base-100 rounded-box p-2 text-sm">
+                      <PiEmptyDuotone size={24} className="text-error" />
+                      <p>Exploit app queue is empty.</p>
                     </li>
-                  ))}
-              </ul>
-            </div>
+                  )}
+
+                  {queueStatus
+                    .filter(j => j.status !== "completed")
+                    .map(jobStatus => (
+                      <li key={jobStatus.id} className="flex items-center gap-4 bg-base-100 rounded-box p-2 text-sm">
+                        {jobStatus.status === "running" ? (
+                          <span className="loading loading-spinner text-orange-400" />
+                        ) : (
+                          <CiStopwatch size={24} className="text-accent" />
+                        )}
+                        <div>
+                          <p>Exploit App '{jobStatus.packageName}' queued</p>
+                          <span className="text-xs text-gray-400">
+                            {new Date(jobStatus.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
             <a href="https://github.com/SECFORCE/droidground" target="_blank" className="group">
               <BsGithub
                 size={24}
