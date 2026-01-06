@@ -13,6 +13,7 @@ import {
   startActivitySchema,
   startBroadcastSchema,
   startServiceSchema,
+  teamTokenGenericReqSchema,
 } from "@server/api/schemas";
 import { REST_API_ENDPOINTS as E } from "@shared/endpoints";
 import {

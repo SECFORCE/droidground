@@ -4,6 +4,7 @@ import {
   StartBroadcastRequest,
   StartExploitAppRequest,
   StartServiceRequest,
+  TeamTokenGenericRequest,
 } from "@shared/api";
 import { IntentExtra, IntentExtraType } from "@shared/types";
 import { JSONSchemaType } from "ajv";
@@ -102,7 +103,17 @@ export const runExploitAppSchema: JSONSchemaType<StartExploitAppRequest> = {
   type: "object",
   properties: {
     packageName: { type: "string" },
+    teamToken: { type: "string", nullable: true },
   },
   required: ["packageName"],
+  additionalProperties: false,
+};
+
+export const teamTokenGenericReqSchema: JSONSchemaType<TeamTokenGenericRequest> = {
+  type: "object",
+  properties: {
+    teamToken: { type: "string" },
+  },
+  required: ["teamToken"],
   additionalProperties: false,
 };

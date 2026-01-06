@@ -65,6 +65,10 @@ class Connection(private val client: LocalSocket) : Thread() {
                 result.put("packageInfos", getPackageInfos(JSONObject(params)))
             }
 
+            "getAPKPackageName" -> {
+                result.put("packageName", getAPKPackageName(JSONObject(params)))
+            }
+
             else -> {
                 Log.e(TAG, "Unknown method: $method")
             }
@@ -104,6 +108,19 @@ class Connection(private val client: LocalSocket) : Thread() {
             } catch (e: Exception) {
                 Log.e(TAG, "Fail to get package info", e)
             }
+        }
+
+        return result
+    }
+
+    private fun getAPKPackageName(params: JSONObject): String {
+        var result = ""
+        val apkPath = params.getString("apkPath")
+
+        try {
+            result = getPackageArchiveInfo(apkPath)
+        } catch (e: Exception) {
+            Log.e(TAG, "Fail to get apk info", e)
         }
 
         return result
@@ -266,6 +283,21 @@ class Connection(private val client: LocalSocket) : Thread() {
         }
 
         return info
+    }
+
+    @TargetApi(Build.VERSION_CODES.P)
+    private fun getPackageArchiveInfo(packagePath: String): String {
+        var flags = PackageManager.GET_ACTIVITIES
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            flags = flags or PackageManager.GET_SIGNING_CERTIFICATES
+        } else {
+            flags = flags or PackageManager.GET_SIGNATURES
+        }
+
+        val packageInfo =
+            ServiceManager.packageManager.getPackageArchiveInfo(packagePath, flags)
+
+        return packageInfo.packageName
     }
 
     private fun getResources(apkPath: String): Resources {

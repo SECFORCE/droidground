@@ -26,7 +26,7 @@ const checkResources = () => {
   Logger.debug("Check resources done!");
 };
 
-const setupApi = async (app: ExpressApplication, basePath: string) => {
+const setupApi = async (app: ExpressApplication, basePath: string, teamTokens: string[]) => {
   app.use(
     cors({
       exposedHeaders: ["Content-Disposition"],
@@ -36,6 +36,19 @@ const setupApi = async (app: ExpressApplication, basePath: string) => {
   app.use(express.urlencoded({ extended: true }));
   // Load routes
   app.use(`${basePath}/api/v1`, api());
+  // Specific routes for exploit server
+  for (const teamToken of teamTokens) {
+    app.all(`${basePath}/exploit/${teamToken}`, (req, res) => {
+      const { wsExploitServerSessions } = ManagerSingleton.getInstance();
+      const sessions = Array.from(wsExploitServerSessions.entries())
+        .filter(([, value]) => value.teamToken === teamToken)
+        .map(([ws]) => ws);
+      for (const session of sessions) {
+        session.send(`[${new Date().toLocaleString()}] "${req.method} ${req.originalUrl}"`);
+      }
+      res.send("Request correctly sent to Exploit Server");
+    });
+  }
 };
 
 export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer) => {
@@ -55,7 +68,7 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
   }
 
   await manager.runTargetApp(); // Start the target app
-  await setupApi(app, droidGroundConfig.features.basePath);
+  await setupApi(app, droidGroundConfig.features.basePath, manager.getTeamTokens());
   await setupWs(httpServer, droidGroundConfig.features.basePath);
   await setupScrcpy();
 };

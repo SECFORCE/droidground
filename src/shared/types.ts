@@ -15,8 +15,15 @@ export interface DroidGroundFeatures {
   terminalEnabled: boolean;
   logcatEnabled: boolean;
   resetEnabled: boolean;
+  teamModeEnabled: boolean;
   fridaType: "full" | "jail";
   exploitAppDuration: number;
+  ipAddress: string;
+}
+
+export interface DroidGroundTeam {
+  token: string;
+  exploitApps: string[];
 }
 
 export interface DroidGroundConfig {
@@ -26,6 +33,7 @@ export interface DroidGroundConfig {
     port: number;
   };
   features: DroidGroundFeatures;
+  teams: DroidGroundTeam[];
   debugToken: string;
 }
 

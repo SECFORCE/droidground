@@ -90,8 +90,13 @@ export interface StartFridaLibraryScriptRequest {
 
 export interface StartExploitAppRequest {
   packageName: string;
+  teamToken?: string;
 }
 
 export interface GetAttackSurfaceRequest {
   debugToken: string;
+}
+
+export interface TeamTokenGenericRequest {
+  teamToken: string;
 }

@@ -40,6 +40,10 @@ export type CompanionAttackSurfaceResponse = {
   };
 };
 
+export type CompanionAPKInfoResponse = {
+  packageName: string;
+};
+
 export interface IFridaRPC extends ScriptExports {
   run: (args?: Record<string, any>) => Promise<void>;
   schema: () => Promise<null | JSONSchemaType<any>>;

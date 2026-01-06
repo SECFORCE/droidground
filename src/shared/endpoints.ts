@@ -24,4 +24,5 @@ export const WEBSOCKET_ENDPOINTS = {
   STREAMING: "/streaming",
   TERMINAL: "/terminal",
   FRIDA: "/frida",
+  EXPLOIT_SERVER: "/exploitServer",
 } as const;

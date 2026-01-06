@@ -75,32 +75,42 @@ Almost all features are **modular** and defined via environment variables, ensur
 
 The `.env.sample` file in the root directory is a good starting point. This is the full list of all env variables currently supported:
 
-| Variable                              | Description                                          | Default     |
-| ------------------------------------- | ---------------------------------------------------- | ----------- |
-| `DROIDGROUND_BASE_PATH`               | Path of the webapp (useful for hosting on subpaths)  | -           |
-| `DROIDGROUND_APP_PACKAGE_NAME`        | Package name of target app                           | -           |
-| `DROIDGROUND_ADB_HOST`                | ADB host                                             | `localhost` |
-| `DROIDGROUND_ADB_PORT`                | ADB port                                             | `5037`      |
-| `DROIDGROUND_DEVICE_TYPE`             | `usb` or `network`                                   | `usb`       |
-| `DROIDGROUND_DEVICE_HOST`             | IP of Android device (`adb`) (network mode only)     | -           |
-| `DROIDGROUND_DEVICE_PORT`             | port of Android device (`adb`) (network mode only)   | -           |
-| `DROIDGROUND_INIT_SCRIPTS_FOLDER`     | Folder containing `setup.sh` and `reset.sh`          | `/init.d`   |
-| `DROIDGROUND_HOST`                    | Bind address                                         | `0.0.0.0`   |
-| `DROIDGROUND_PORT`                    | Bind port                                            | `4242`      |
-| `DROIDGROUND_APP_MANAGER_DISABLED`    | Disable app manager                                  | `false`     |
-| `DROIDGROUND_BUG_REPORT_DISABLED`     | Disable bugreport                                    | `false`     |
-| `DROIDGROUND_FILE_BROWSER_DISABLED`   | Disable file browser                                 | `false`     |
-| `DROIDGROUND_FRIDA_DISABLED`          | Disable Frida support                                | `false`     |
-| `DROIDGROUND_FRIDA_TYPE`              | `jail` or `full`                                     | `jail`      |
-| `DROIDGROUND_LOGCAT_DISABLED`         | Disable logcat                                       | `false`     |
-| `DROIDGROUND_REBOOT_ENABLED`          | Enable reboot                                        | `false`     |
-| `DROIDGROUND_SHUTDOWN_ENABLED`        | Enable shutdown                                      | `false`     |
-| `DROIDGROUND_START_ACTIVITY_DISABLED` | Disable startActivity                                | `false`     |
-| `DROIDGROUND_START_RECEIVER_DISABLED` | Disable broadcast                                    | `false`     |
-| `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService                                 | `false`     |
-| `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal                                     | `false`     |
-| `DROIDGROUND_RESET_DISABLED`          | Disable reset                                        | `false`     |
-| `DROIDGROUND_EXPLOIT_APP_DURATION`    | The time (in seconds) the exploit app will be active | `10`        |
+| Variable                              | Description                                                                       | Default     |
+| ------------------------------------- | --------------------------------------------------------------------------------- | ----------- |
+| `DROIDGROUND_BASE_PATH`               | Path of the webapp (useful for hosting on subpaths)                               | -           |
+| `DROIDGROUND_APP_PACKAGE_NAME`        | Package name of target app                                                        | -           |
+| `DROIDGROUND_ADB_HOST`                | ADB host                                                                          | `localhost` |
+| `DROIDGROUND_ADB_PORT`                | ADB port                                                                          | `5037`      |
+| `DROIDGROUND_DEVICE_TYPE`             | `usb` or `network`                                                                | `usb`       |
+| `DROIDGROUND_DEVICE_HOST`             | IP of Android device (`adb`) (network mode only)                                  | -           |
+| `DROIDGROUND_DEVICE_PORT`             | port of Android device (`adb`) (network mode only)                                | -           |
+| `DROIDGROUND_INIT_SCRIPTS_FOLDER`     | Folder containing `setup.sh` and `reset.sh`                                       | `/init.d`   |
+| `DROIDGROUND_HOST`                    | Bind address                                                                      | `0.0.0.0`   |
+| `DROIDGROUND_PORT`                    | Bind port                                                                         | `4242`      |
+| `DROIDGROUND_APP_MANAGER_DISABLED`    | Disable app manager                                                               | `false`     |
+| `DROIDGROUND_BUG_REPORT_DISABLED`     | Disable bugreport                                                                 | `false`     |
+| `DROIDGROUND_FILE_BROWSER_DISABLED`   | Disable file browser                                                              | `false`     |
+| `DROIDGROUND_FRIDA_DISABLED`          | Disable Frida support                                                             | `false`     |
+| `DROIDGROUND_FRIDA_TYPE`              | `jail` or `full`                                                                  | `jail`      |
+| `DROIDGROUND_LOGCAT_DISABLED`         | Disable logcat                                                                    | `false`     |
+| `DROIDGROUND_REBOOT_ENABLED`          | Enable reboot                                                                     | `false`     |
+| `DROIDGROUND_SHUTDOWN_ENABLED`        | Enable shutdown                                                                   | `false`     |
+| `DROIDGROUND_START_ACTIVITY_DISABLED` | Disable startActivity                                                             | `false`     |
+| `DROIDGROUND_START_RECEIVER_DISABLED` | Disable broadcast                                                                 | `false`     |
+| `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService                                                              | `false`     |
+| `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal                                                                  | `false`     |
+| `DROIDGROUND_RESET_DISABLED`          | Disable reset                                                                     | `false`     |
+| `DROIDGROUND_EXPLOIT_APP_DURATION`    | The time (in seconds) the exploit app will be active                              | `10`        |
+| `DROIDGROUND_NUM_TEAMS`               | The number of teams playing simultaneously                                        | -           |
+| `DROIDGROUND_TEAM_TOKEN_<N>`          | The token for the nth team. Auto-generated if missing                             | -           |
+| `DROIDGROUND_IP_IFACE`                | The network interface for the displayed IP address. No IP is displayed if missing | -           |
+
+The usage of the `DROIDGROUND_NUM_TEAMS` variable slightly changes the behaviour of the application under the hood. If this option is set:
+
+1. The exploit server feature is enabled, allowing each team to be able to use their own (very simple) exploit server via their **_team token_**.
+2. The team token will be **required** to install and run exploit apps. Each installed app will be tied to a team and other teams won't be able to run it.
+
+This allows to share the same DroidGround instance with multiple teams in challenges where the flag can be exfiltrated via a network request. This **massively reduces deploy costs of DroidGround** for CTF competitions.
 
 ## 🧩 Use Cases
 

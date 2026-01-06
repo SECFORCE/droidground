@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Controller, SubmitHandler, useFieldArray, useForm } from "react-hook-form";
+import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { RESTManagerInstance } from "@client/api/rest";
 import { StartServiceRequest } from "@shared/api";
@@ -15,7 +15,6 @@ export const StartServiceModal: React.FC<IModalProps> = ({ dialogRef }) => {
     register,
     handleSubmit,
     reset,
-    watch,
     control,
     formState: { errors },
   } = useForm<StartServiceRequest>({

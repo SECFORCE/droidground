@@ -27,7 +27,8 @@ const Navbar: React.FC = () => {
   }
 
   // Routes
-  const { fridaEnabled, fileBrowserEnabled, appManagerEnabled, terminalEnabled, logcatEnabled } = featuresConfig;
+  const { fridaEnabled, fileBrowserEnabled, appManagerEnabled, terminalEnabled, logcatEnabled, teamModeEnabled } =
+    featuresConfig;
 
   const navItems: INavItem[] = [
     { label: "Overview", to: PAGES.OVERVIEW, routeEnabled: true },
@@ -36,6 +37,7 @@ const Navbar: React.FC = () => {
     { label: "App Manager", to: PAGES.APP_MANAGER, routeEnabled: appManagerEnabled },
     { label: "Terminal", to: PAGES.TERMINAL, routeEnabled: terminalEnabled },
     { label: "Logs", to: PAGES.LOGS, routeEnabled: logcatEnabled },
+    { label: "Exploit Server", to: PAGES.EXPLOIT_SERVER, routeEnabled: teamModeEnabled },
   ];
 
   const reset = async () => {

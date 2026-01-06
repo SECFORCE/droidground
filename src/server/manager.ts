@@ -2,20 +2,20 @@ import os from "os";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { execSync } from "child_process";
 import { WebSocket } from "ws";
 import { Server as HTTPServer } from "http";
 import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "@yume-chan/adb";
+import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from "@shared/logger";
-import { sleep } from "@shared/helpers";
-import { DroidGroundConfig, FridaState, StreamMetadata } from "@shared/types";
+import { randomString, sleep } from "@shared/helpers";
+import { DroidGroundConfig, DroidGroundTeam, FridaState, StreamMetadata } from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "@server/utils/frida";
-import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { setupScrcpy } from "@server/utils/scrcpy";
 import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
-import { execSync } from "child_process";
-import { safeFileExists } from "@server/utils/helpers";
+import { getIP, safeFileExists } from "@server/utils/helpers";
 
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
@@ -34,6 +34,7 @@ export class ManagerSingleton {
   public wsStreamingClients: Map<string, WebsocketClient> = new Map<string, WebsocketClient>();
   public wsTerminalSessions: Map<WebSocket, any> = new Map<WebSocket, { process: AdbShellProtocolPtyProcess }>();
   public wsFridaSessions: Map<WebSocket, FridaState | null> = new Map<WebSocket, FridaState | null>();
+  public wsExploitServerSessions: Map<WebSocket, any> = new Map<WebSocket, { teamToken: string }>();
   // Scrcpy
   public sharedVideoMetadata: StreamMetadata | null = null;
   public sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;
@@ -44,6 +45,14 @@ export class ManagerSingleton {
     // private constructor prevents direct instantiation
     const port: any = process.env.DROIDGROUND_ADB_PORT ?? "";
     const exploitAppDuration: any = process.env.DROIDGROUND_EXPLOIT_APP_DURATION ?? "";
+    // Check if IP address should be displayed
+    const iface = process.env.DROIDGROUND_IP_IFACE ?? "";
+    const ipAddress = getIP(iface); // Either an empty string or the IP address
+    // Check team-mode
+    const teamNumEnv: any = process.env.DROIDGROUND_NUM_TEAMS ?? "";
+    const teamNum = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : teamNumEnv;
+    const teamTokens = this.setupTeamTokens(teamNum);
+    const teams: DroidGroundTeam[] = teamTokens.map(t => ({ token: t, exploitApps: [] }));
     this.config = {
       packageName: process.env.DROIDGROUND_APP_PACKAGE_NAME ?? "",
       adb: {
@@ -64,14 +73,23 @@ export class ManagerSingleton {
         startServiceEnabled: !(process.env.DROIDGROUND_START_SERVICE_DISABLED === "true"),
         terminalEnabled: !(process.env.DROIDGROUND_TERMINAL_DISABLED === "true"),
         resetEnabled: !(process.env.DROIDGROUND_RESET_DISABLED === "true"),
+        teamModeEnabled: teamNum > 0,
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
+        ipAddress: ipAddress,
       },
+      teams: teams,
       debugToken: crypto.randomBytes(64).toString("hex"),
     };
 
     Logger.info(`Debug token is: ${this.config.debugToken}`);
+    if (teamNum > 0) {
+      Logger.info(`Team mode is enabled, ${teamNum} tokens are available:`);
+      for (let i = 0; i < teamNum; i++) {
+        Logger.info(`\tTeam #${i}: ${teamTokens[i]}`);
+      }
+    }
   }
 
   public static getInstance(): ManagerSingleton {
@@ -156,8 +174,6 @@ export class ManagerSingleton {
 
   private async setupAdb() {
     const serverClient = this.serverClient as AdbServerClient;
-
-    await serverClient.waitFor(undefined, "device");
     const devices: AdbServerClient.Device[] = await serverClient.getDevices();
     if (devices.length === 0) {
       Logger.error("No device connected");
@@ -170,10 +186,22 @@ export class ManagerSingleton {
 
     this.device = device;
 
+    await serverClient.waitFor(device, "device");
+
     const transport: AdbTransport = await serverClient.createTransport(device);
     Logger.debug("Transport created.");
     const adb: Adb = new Adb(transport);
     this.adb = adb;
+  }
+
+  private setupTeamTokens(numTeams: number): string[] {
+    const tokens: string[] = [];
+    for (let i = 0; i < numTeams; i++) {
+      const teamTokenEnv: any = process.env[`DROIDGROUND_TEAM_TOKEN_${i + 1}`] ?? "";
+      const teamToken = teamTokenEnv.trim().length === 0 ? randomString(32) : teamTokenEnv.trim();
+      tokens.push(teamToken);
+    }
+    return tokens;
   }
 
   private async checkPackage() {
@@ -292,6 +320,11 @@ export class ManagerSingleton {
       Logger.info(`App ${appToDelete} uninstall result: ${uninstallRes}`);
     }
 
+    // Unlink all exploit apps
+    for (const team of this.config.teams) {
+      team.exploitApps = [];
+    }
+
     const initDFolder = process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const resetScript = path.resolve(initDFolder, "reset.sh");
     if (safeFileExists(resetScript)) {
@@ -301,5 +334,25 @@ export class ManagerSingleton {
       Logger.error(`reset.sh script missing in the ${initDFolder}`);
       return false;
     }
+  }
+
+  public getTeamTokens(): string[] {
+    return this.config.teams.map(t => t.token);
+  }
+
+  public isTeamTokenValid(teamToken: string): boolean {
+    return this.getTeamTokens().includes(teamToken);
+  }
+
+  public linkExploitAppToTeam(teamToken: string, exploitApp: string) {
+    for (const team of this.config.teams) {
+      if (team.token === teamToken) {
+        team.exploitApps.push(exploitApp);
+      }
+    }
+  }
+
+  public getExploitAppsLinkedToTeam(teamToken: string): string[] {
+    return this.config.teams.find(t => t.token === teamToken)?.exploitApps ?? [];
   }
 }

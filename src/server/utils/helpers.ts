@@ -1,5 +1,6 @@
 // Package imports
 import * as fs from "fs";
+import { NetworkInterfaceInfo, networkInterfaces } from "os";
 import { LsEntry } from "@server/utils/types";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
@@ -163,4 +164,22 @@ export const buildExtra = (extra: IntentExtra): string[] => {
 
 export const shellEscape = (value: string): string => {
   return `'${value.replace(/'/g, `'\\''`)}'`;
+};
+
+export const getIP = (name: string) => {
+  // Return an empty string by default
+  let ipAddress = "";
+
+  const interfaces = networkInterfaces();
+  if (!Object.keys(interfaces).includes(name)) {
+    return ipAddress;
+  }
+
+  const iface = (interfaces[name] as NetworkInterfaceInfo[]).find(i => i.family === "IPv4");
+
+  if (!iface || iface.internal) {
+    return ipAddress;
+  }
+
+  return iface.address;
 };

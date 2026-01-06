@@ -35,8 +35,9 @@ import {
 import { capitalize, sleep } from "@shared/helpers";
 import { CompanionClient } from "@server/companion";
 import { BUGREPORT_FILENAME, DEFAULT_UPLOAD_FOLDER, SECOND } from "@server/config";
-import { CompanionAttackSurface, CompanionAttackSurfaceResponse } from "@server/utils/types";
+import { CompanionAPKInfoResponse, CompanionAttackSurface, CompanionAttackSurfaceResponse } from "@server/utils/types";
 import { loadFridaLibrary } from "@server/utils/frida";
+import { execSync } from "child_process";
 
 class APIController {
   features: RequestHandler = async (req: Request, res: Response<DroidGroundFeaturesResponse | IGenericErrRes>) => {
@@ -491,10 +492,21 @@ class APIController {
         return;
       }
 
-      const adb = await ManagerSingleton.getInstance().getAdb();
+      const manager = ManagerSingleton.getInstance();
+
+      // Check if teamToken is needed and valid
+      if (
+        manager.getConfig().features.teamModeEnabled &&
+        (!Object.keys(req.body).includes("teamToken") || !manager.isTeamTokenValid(req.body.teamToken))
+      ) {
+        throw new Error("Missing or invalid Team Token.");
+      }
+
+      const adb = await manager.getAdb();
       const sync = await adb.sync();
       const file = req.file as Express.Multer.File;
       const apkFilePath = file.path;
+
       const apkBuffer: Buffer = await fs.readFile(apkFilePath);
       const uploadedFilePath = path.resolve(DEFAULT_UPLOAD_FOLDER, file.filename);
 
@@ -508,6 +520,23 @@ class APIController {
         }),
       });
 
+      // Get the file package name before installation
+      const client = CompanionClient.getInstance();
+      const bufRes = await client.sendMessage<CompanionAPKInfoResponse>("getAPKPackageName", {
+        apkPath: uploadedFilePath,
+      });
+      const packageName = bufRes.packageName;
+
+      if (packageName === "") {
+        throw new Error("Unable to get package name for this exploit app.");
+      }
+
+      Logger.debug(`Installing app with package name '${packageName} for team with token ${req.body.teamToken}`);
+
+      if (manager.getConfig().features.teamModeEnabled) {
+        manager.linkExploitAppToTeam(req.body.teamToken, packageName);
+      }
+
       const installRes = await adb.subprocess.noneProtocol.spawnWaitText(`pm install ${uploadedFilePath}`);
       await adb.rm(uploadedFilePath);
       await fs.unlink(apkFilePath); // Clean up the uploaded file
@@ -518,7 +547,7 @@ class APIController {
         res.json({ result: "APK correctly installed." }).end();
       }
     } catch (error) {
-      Logger.error(`Error importing database: ${error}`);
+      Logger.error(`An error occurred while installing the APK: ${error}`);
       res.status(500).json({ error: "An error occurred while installing the APK." }).end();
     }
   };
@@ -541,6 +570,17 @@ class APIController {
       const body = req.body as StartExploitAppRequest;
       const singleton = ManagerSingleton.getInstance();
       const config = singleton.getConfig();
+
+      // Check if teamToken is needed and valid
+      if (
+        config.features.teamModeEnabled &&
+        (!body.teamToken ||
+          !singleton.isTeamTokenValid(body.teamToken) ||
+          !singleton.getExploitAppsLinkedToTeam(body.teamToken).includes(body.packageName))
+      ) {
+        throw new Error("Missing or invalid Team Token.");
+      }
+
       const duration = config.features.exploitAppDuration;
 
       const { packageName: exploitApp } = body;

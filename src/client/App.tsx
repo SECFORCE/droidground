@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useState } from "react";
-import { RouterProvider } from "@tanstack/react-router";
+import { Route, RouterProvider } from "@tanstack/react-router";
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
 import { WebSocketProvider } from "@client/context/WebSocket";
 import { Header, VideoRenderer } from "@client/layout";
@@ -14,6 +14,7 @@ import {
   Logs,
   Debug,
   Error,
+  ExploitServer,
 } from "@client/views";
 import { PAGES } from "@client/config";
 import { APIProvider, useAPI } from "@client/context/API";
@@ -192,6 +193,11 @@ const logsRoute = createRoute({
   path: PAGES.LOGS,
   component: Logs,
 });
+const exploitServerRoute = createRoute({
+  getParentRoute: () => defaultRoute,
+  path: PAGES.EXPLOIT_SERVER,
+  component: ExploitServer,
+});
 const debugRoute = createRoute({
   getParentRoute: () => defaultRoute,
   path: PAGES.DEBUG,
@@ -204,6 +210,14 @@ const catchAllRoute = createRoute({
   component: NotFound,
 });
 
+type PageValues = (typeof PAGES)[keyof typeof PAGES];
+type PageMapping = {
+  [K in PageValues]: {
+    route: any;
+    enabled: boolean;
+  };
+};
+
 const Main = () => {
   const { featuresConfig, deviceInfo } = useAPI();
 
@@ -211,28 +225,57 @@ const Main = () => {
     return <></>;
   }
 
-  const { appManagerEnabled, terminalEnabled, fileBrowserEnabled, fridaEnabled, logcatEnabled, fridaType } =
-    featuresConfig;
+  const {
+    appManagerEnabled,
+    terminalEnabled,
+    fileBrowserEnabled,
+    fridaEnabled,
+    logcatEnabled,
+    teamModeEnabled,
+    fridaType,
+  } = featuresConfig;
 
   // Determine the correct Frida route to use. Default value is FridaJailed
   const fridaRoute = fridaType === "full" ? fridaFullRoute : fridaJailedRoute;
 
-  const allRoutes = [indexRoute, debugRoute, fridaRoute, fileBrowserRoute, appManagerRoute, terminalRoute, logsRoute];
-  const routesEnabled = [
-    true,
-    true,
-    fridaEnabled,
-    fileBrowserEnabled,
-    appManagerEnabled,
-    terminalEnabled,
-    logcatEnabled,
-  ];
+  const routesMapping: PageMapping = {
+    [PAGES.OVERVIEW]: {
+      route: indexRoute,
+      enabled: true,
+    },
+    [PAGES.DEBUG]: {
+      route: debugRoute,
+      enabled: true,
+    },
+    [PAGES.FRIDA]: {
+      route: fridaRoute,
+      enabled: fridaEnabled,
+    },
+    [PAGES.FILE_BROWSER]: {
+      route: fileBrowserRoute,
+      enabled: fileBrowserEnabled,
+    },
+    [PAGES.APP_MANAGER]: {
+      route: appManagerRoute,
+      enabled: appManagerEnabled,
+    },
+    [PAGES.TERMINAL]: {
+      route: terminalRoute,
+      enabled: terminalEnabled,
+    },
+    [PAGES.LOGS]: {
+      route: logsRoute,
+      enabled: logcatEnabled,
+    },
+    [PAGES.EXPLOIT_SERVER]: {
+      route: exploitServerRoute,
+      enabled: teamModeEnabled,
+    },
+  };
 
-  if (allRoutes.length !== routesEnabled.length) {
-    throw Error("Length mismatch!");
-  }
-
-  const enabledRoutes = allRoutes.filter((_, index) => routesEnabled[index]);
+  const enabledRoutes = Object.values(routesMapping)
+    .filter(r => r.enabled)
+    .map(r => r.route);
 
   const routeTree = rootRoute.addChildren([
     defaultRoute.addChildren(enabledRoutes),
