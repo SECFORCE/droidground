@@ -149,6 +149,8 @@ echo "Install command executed"
 
 For a production deploy (in a real CTF) you may want to provision a pre-defined number of DroidGround instances beforehand or you may want to allow the users to spawn instances (with a limitation or maybe associate each team/user with a specific instance). For this reason we also added a simple [spawner example](./examples/spawner).
 
+Alternatively, as previously mentioned, you can create a challenge where the flag can be exfiltrated via a network request and leverage the `DROIDGROUND_NUM_TEAMS` env variable to avoid spawning multiple instances (which could be expensive).
+
 ## 💡 Tips
 
 Here are some suggestions for setting up your Android CTF:
