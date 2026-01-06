@@ -1,13 +1,18 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
+import toast from "react-hot-toast";
 import Logo from "@client/assets/logo.png";
 import { PAGES } from "@client/config";
 import { RESTManagerInstance } from "@client/api/rest";
-import toast from "react-hot-toast";
+import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
+import { JobStatus } from "@shared/types";
 import { ConfirmModal } from "@client/components";
 import { useAPI } from "@client/context/API";
 import { BsGithub } from "react-icons/bs";
+import { HiQueueList } from "react-icons/hi2";
+import { CiStopwatch } from "react-icons/ci";
+import { PiEmptyDuotone } from "react-icons/pi";
 
 interface INavItem {
   label: string;
@@ -21,6 +26,7 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState<string | null>(null);
   const resetCtfDialogRef = useRef<HTMLDialogElement | null>(null);
+  const [queueStatus, setQueueStatus] = useState<JobStatus[]>([]);
 
   if (!featuresConfig) {
     return <></>;
@@ -39,6 +45,33 @@ const Navbar: React.FC = () => {
     { label: "Logs", to: PAGES.LOGS, routeEnabled: logcatEnabled },
     { label: "Exploit Server", to: PAGES.EXPLOIT_SERVER, routeEnabled: teamModeEnabled },
   ];
+
+  useEffect(() => {
+    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+    const prefix = isHttps ? "wss" : "ws";
+    const suffix = featuresConfig.basePath.length > 0 ? featuresConfig.basePath : "";
+    const wsBaseUrl = `${prefix}://${window.location.host}${suffix}`;
+    const socket = new WebSocket(`${wsBaseUrl}${WEBSOCKET_ENDPOINTS.NOTIFICATIONS}`);
+
+    // When data comes from backend, write to terminal
+    socket.addEventListener("message", event => {
+      const jobs: JobStatus[] = JSON.parse(event.data);
+      setQueueStatus(prev => {
+        const jobsToKeep = prev.filter(prevJ => !jobs.some(j => prevJ.id === j.id));
+
+        return [...jobsToKeep, ...jobs.filter(j => j.status !== "completed")];
+      });
+
+      for (const j of jobs.filter(j => j.status !== "waiting")) {
+        const action = j.status === "running" ? "started" : "completed";
+        toast.success(`Exploit App ${j.packageName} correctly ${action}!`);
+      }
+    });
+
+    return () => {
+      socket.close();
+    };
+  }, []);
 
   const reset = async () => {
     try {
@@ -118,12 +151,49 @@ const Navbar: React.FC = () => {
           <div className="flex h-[1.5rem]">
             <div className="divider divider-horizontal" />
           </div>
-          <a href="https://github.com/SECFORCE/droidground" target="_blank" className="group">
-            <BsGithub
-              size={24}
-              className="text-gray-400 group-hover:text-white hover:text-white transition-all duration-300"
-            />
-          </a>
+          <div className="flex gap-4">
+            <div className="dropdown dropdown-center">
+              <HiQueueList
+                size={24}
+                tabIndex={0}
+                role="button"
+                className="cursor-pointer text-gray-400 group-hover:text-white hover:text-white transition-all duration-300"
+              />
+              <ul
+                tabIndex={-1}
+                className="dropdown-content bg-base-300 rounded-box z-1 w-80 p-2 mt-4 shadow-sm flex flex-col gap-2"
+              >
+                {queueStatus.length === 0 && (
+                  <li className="flex items-center gap-4 bg-base-100 rounded-box p-2 text-sm">
+                    <PiEmptyDuotone size={24} className="text-error" />
+                    <p>Exploit app queue is empty.</p>
+                  </li>
+                )}
+
+                {queueStatus
+                  .filter(j => j.status !== "completed")
+                  .map(jobStatus => (
+                    <li key={jobStatus.id} className="flex items-center gap-4 bg-base-100 rounded-box p-2 text-sm">
+                      {jobStatus.status === "running" ? (
+                        <span className="loading loading-spinner text-orange-400" />
+                      ) : (
+                        <CiStopwatch size={24} className="text-accent" />
+                      )}
+                      <div>
+                        <p>Exploit App '{jobStatus.packageName}' queued</p>
+                        <span className="text-xs text-gray-400">{jobStatus.createdAt}</span>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+            <a href="https://github.com/SECFORCE/droidground" target="_blank" className="group">
+              <BsGithub
+                size={24}
+                className="text-gray-400 group-hover:text-white hover:text-white transition-all duration-300"
+              />
+            </a>
+          </div>
         </div>
       </nav>
     </>

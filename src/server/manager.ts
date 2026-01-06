@@ -40,8 +40,8 @@ export class ManagerSingleton {
   // Scrcpy
   public sharedVideoMetadata: StreamMetadata | null = null;
   public sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;
-  // Device apps
-  public deviceApps: string[] = [];
+  // Exploit apps (keeping a list in order to quickly delete them on reset)
+  public exploitApps: string[] = [];
   // Exploit App Run Queue
   public queue;
 

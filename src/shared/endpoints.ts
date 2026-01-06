@@ -25,4 +25,5 @@ export const WEBSOCKET_ENDPOINTS = {
   TERMINAL: "/terminal",
   FRIDA: "/frida",
   EXPLOIT_SERVER: "/exploitServer",
+  NOTIFICATIONS: "/notifications",
 } as const;

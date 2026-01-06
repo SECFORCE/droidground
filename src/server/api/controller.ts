@@ -565,17 +565,25 @@ class APIController {
     }
   };
 
-  sendNotifications = () => {
+  sendNotification = (job: JobStatus | undefined) => {
+    if (!job) return;
+
     const singleton = ManagerSingleton.getInstance();
-    const queueStatus = singleton.queue.getQueueStatus();
     for (const wsSession of singleton.wsNotificationSessions) {
       const ws = wsSession[1];
-      ws.send(JSON.stringify(queueStatus));
+      ws.send(JSON.stringify([job])); // To avoid sending different types let's just put it in an array
     }
   };
 
-  startExploitApp = async (exploitApp: string) => {
-    this.sendNotifications();
+  startExploitApp = async (jobId: string, exploitApp: string, createdAt: number) => {
+    const job: JobStatus = {
+      id: jobId,
+      packageName: exploitApp,
+      createdAt: createdAt,
+      status: "running",
+    };
+
+    this.sendNotification(job);
 
     const singleton = ManagerSingleton.getInstance();
     const config = singleton.getConfig();
@@ -586,6 +594,7 @@ class APIController {
     Logger.info(`Exploit app ${exploitApp} correctly started. It will stay up for ${duration} seconds`);
     await sleep(duration * SECOND);
     Logger.info(`${duration} seconds have passed, restarting target app...`);
+    this.sendNotification({ ...job, status: "completed" });
     await singleton.runTargetApp();
   };
 
@@ -620,15 +629,21 @@ class APIController {
         id: jobId,
         userId: userId,
         packageName: exploitApp,
-        run: async () => {
-          await this.startExploitApp(exploitApp);
+        run: async createdAt => {
+          await this.startExploitApp(jobId, exploitApp, createdAt);
         },
       });
 
       if (!result.ok) {
         res.status(429).json({ error: result.reason }).end();
       } else {
-        this.sendNotifications();
+        const job: JobStatus = {
+          id: jobId,
+          packageName: exploitApp,
+          createdAt: result.createdAt,
+          status: "waiting",
+        };
+        this.sendNotification(job);
         res.status(202).json({ result: "Exploit App execution was correctly enqueued" }).end();
       }
     } catch (error: any) {

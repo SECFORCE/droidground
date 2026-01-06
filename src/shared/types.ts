@@ -110,16 +110,16 @@ export interface FridaFullScript extends FridaScript {
 export type FridaLibrary = FridaFullScript[];
 
 export interface JobStatus {
+  id: string;
   packageName: string;
   createdAt: number;
-  status: "waiting" | "running";
+  status: "waiting" | "running" | "completed";
 }
 
 export type QueueJob<UserId extends string> = {
   packageName: string;
   createdAt: number;
-  status: "waiting" | "running";
   id: string;
   userId: UserId;
-  run: () => Promise<void>;
+  run: (createdAt: number) => Promise<void>;
 };

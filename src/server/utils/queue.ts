@@ -24,9 +24,7 @@ export class FairQueue<UserId extends string> {
     return total;
   }
 
-  enqueue(job: Omit<QueueJob<UserId>, "createdAt" | "status">): { ok: true } | { ok: false; reason: string } {
-    console.log(this.opts);
-
+  enqueue(job: Omit<QueueJob<UserId>, "createdAt">): { ok: true; createdAt: number } | { ok: false; reason: string } {
     if (this.queuedCount >= this.opts.maxTotalQueue) {
       return { ok: false, reason: "Queue is full" };
     }
@@ -42,7 +40,8 @@ export class FairQueue<UserId extends string> {
       this.activeUsers.push(job.userId);
     }
 
-    queue.push({ ...job, createdAt: Date.now(), status: "waiting" });
+    const createdAt = Date.now();
+    queue.push({ ...job, createdAt: createdAt });
 
     Logger.info(
       `Job enqueued: ${JSON.stringify({
@@ -53,7 +52,7 @@ export class FairQueue<UserId extends string> {
     );
 
     this.pump();
-    return { ok: true };
+    return { ok: true, createdAt };
   }
 
   private pump() {
@@ -62,7 +61,6 @@ export class FairQueue<UserId extends string> {
       if (!job) return;
 
       this.running++;
-      job.status = "running";
       void this.execute(job);
     }
   }
@@ -79,7 +77,7 @@ export class FairQueue<UserId extends string> {
     );
 
     try {
-      await job.run();
+      await job.run(job.createdAt);
       Logger.info(
         `Job completed: ${JSON.stringify({
           jobId: id,
@@ -157,8 +155,9 @@ export class FairQueue<UserId extends string> {
 
   public getQueueStatus(): JobStatus[] {
     return [...this.perUser.values()].flat().map(qj => ({
+      id: qj.id,
       packageName: qj.packageName,
-      status: qj.status,
+      status: "waiting",
       createdAt: qj.createdAt,
     }));
   }
