@@ -36,6 +36,7 @@ export class ManagerSingleton {
   public wsTerminalSessions: Map<WebSocket, any> = new Map<WebSocket, { process: AdbShellProtocolPtyProcess }>();
   public wsFridaSessions: Map<WebSocket, FridaState | null> = new Map<WebSocket, FridaState | null>();
   public wsExploitServerSessions: Map<WebSocket, any> = new Map<WebSocket, { teamToken: string }>();
+  public wsNotificationSessions: Map<string, WebSocket> = new Map<string, WebSocket>();
   // Scrcpy
   public sharedVideoMetadata: StreamMetadata | null = null;
   public sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;

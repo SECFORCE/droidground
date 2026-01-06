@@ -1,14 +1,8 @@
 import Logger from "@shared/logger";
-
-type Job<UserId extends string> = {
-  id: string;
-  userId: UserId;
-  createdAt: number;
-  run: () => Promise<void>;
-};
+import { QueueJob, JobStatus } from "@shared/types";
 
 export class FairQueue<UserId extends string> {
-  private readonly perUser = new Map<UserId, Job<UserId>[]>();
+  private readonly perUser = new Map<UserId, QueueJob<UserId>[]>();
   private readonly activeUsers: UserId[] = [];
   private nextUserIndex = 0;
 
@@ -30,7 +24,7 @@ export class FairQueue<UserId extends string> {
     return total;
   }
 
-  enqueue(job: Omit<Job<UserId>, "createdAt">): { ok: true } | { ok: false; reason: string } {
+  enqueue(job: Omit<QueueJob<UserId>, "createdAt" | "status">): { ok: true } | { ok: false; reason: string } {
     console.log(this.opts);
 
     if (this.queuedCount >= this.opts.maxTotalQueue) {
@@ -48,7 +42,7 @@ export class FairQueue<UserId extends string> {
       this.activeUsers.push(job.userId);
     }
 
-    queue.push({ ...job, createdAt: Date.now() });
+    queue.push({ ...job, createdAt: Date.now(), status: "waiting" });
 
     Logger.info(
       `Job enqueued: ${JSON.stringify({
@@ -68,11 +62,12 @@ export class FairQueue<UserId extends string> {
       if (!job) return;
 
       this.running++;
+      job.status = "running";
       void this.execute(job);
     }
   }
 
-  private async execute(job: Job<UserId>) {
+  private async execute(job: QueueJob<UserId>) {
     const { id, userId } = job;
 
     Logger.info(
@@ -113,7 +108,7 @@ export class FairQueue<UserId extends string> {
    * - Take exactly one job from the first user that has pending jobs.
    * - Remove users from the ring when they become empty.
    */
-  private pickNextJob(): Job<UserId> | null {
+  private pickNextJob(): QueueJob<UserId> | null {
     if (this.activeUsers.length === 0) return null;
 
     // We will try at most once per active user
@@ -158,5 +153,13 @@ export class FairQueue<UserId extends string> {
     } else if (index < this.nextUserIndex) {
       this.nextUserIndex--;
     }
+  }
+
+  public getQueueStatus(): JobStatus[] {
+    return [...this.perUser.values()].flat().map(qj => ({
+      packageName: qj.packageName,
+      status: qj.status,
+      createdAt: qj.createdAt,
+    }));
   }
 }

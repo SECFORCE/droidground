@@ -39,6 +39,7 @@ import { CompanionAPKInfoResponse, CompanionAttackSurface, CompanionAttackSurfac
 import { loadFridaLibrary } from "@server/utils/frida";
 import { execSync } from "child_process";
 import { randomUUID } from "crypto";
+import { JobStatus } from "@shared/types";
 
 class APIController {
   features: RequestHandler = async (req: Request, res: Response<DroidGroundFeaturesResponse | IGenericErrRes>) => {
@@ -564,7 +565,18 @@ class APIController {
     }
   };
 
+  sendNotifications = () => {
+    const singleton = ManagerSingleton.getInstance();
+    const queueStatus = singleton.queue.getQueueStatus();
+    for (const wsSession of singleton.wsNotificationSessions) {
+      const ws = wsSession[1];
+      ws.send(JSON.stringify(queueStatus));
+    }
+  };
+
   startExploitApp = async (exploitApp: string) => {
+    this.sendNotifications();
+
     const singleton = ManagerSingleton.getInstance();
     const config = singleton.getConfig();
 
@@ -604,12 +616,10 @@ class APIController {
         throw new Error("This is not an exploit app!");
       }
 
-      console.log(jobId);
-      console.log(userId);
-
       const result = singleton.queue.enqueue({
         id: jobId,
-        userId,
+        userId: userId,
+        packageName: exploitApp,
         run: async () => {
           await this.startExploitApp(exploitApp);
         },
@@ -618,6 +628,7 @@ class APIController {
       if (!result.ok) {
         res.status(429).json({ error: result.reason }).end();
       } else {
+        this.sendNotifications();
         res.status(202).json({ result: "Exploit App execution was correctly enqueued" }).end();
       }
     } catch (error: any) {
