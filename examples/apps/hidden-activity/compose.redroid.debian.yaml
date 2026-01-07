@@ -17,6 +17,7 @@ services:
       - 5555:5555 # No need to expose this, but it's useful for debugging purposes
     container_name: redroid
     image: redroid/redroid:14.0.0-latest
+    command: ["ro.debuggable=0", "ro.boot.verifiedbootstate=orange"]
   droidground:
     build: ../../..
     container_name: droidground
