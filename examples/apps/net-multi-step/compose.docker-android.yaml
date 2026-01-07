@@ -1,0 +1,55 @@
+# The ./init.d folder should contain the "setup.sh" and "reset.sh" scripts
+
+services:
+  dns:
+    image: dockurr/dnsmasq:latest
+    container_name: dns
+    command: ["dnsmasq", "-k", "--log-facility=-", "-C", "/etc/dnsmasq.conf"]
+    volumes:
+      - ./dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf:ro
+      - ./dnsmasq/hosts:/etc/dnsmasq.d/hosts:ro
+    networks:
+      internal_net:
+        ipv4_address: 172.28.0.53
+    # Not strictly required for basic DNS, but harmless and sometimes useful
+    cap_add:
+      - NET_ADMIN
+  android-device:
+    image: halimqarroum/docker-android:api-33
+    devices:
+      - /dev/kvm
+    ports:
+      - 5555:5555 # No need to expose this, but it's useful for debugging purposes
+    container_name: docker-android
+    networks:
+      internal_net:
+        ipv4_address: 172.28.0.10
+    dns:
+      - 172.28.0.53
+  droidground:
+    build: ../../..
+    container_name: droidground
+    restart: unless-stopped
+    ports:
+      - 4242:4242
+    networks:
+      internal_net:
+        ipv4_address: 172.28.0.20
+      public_net: {}
+    volumes:
+      - ./init.d:/init.d
+    env_file:
+      - net-multi-step.env
+
+networks:
+  internal_net:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+
+  public_net:
+    # normal network with internet access (default behavior)
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24

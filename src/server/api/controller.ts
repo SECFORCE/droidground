@@ -532,7 +532,7 @@ class APIController {
         throw new Error("Unable to get package name for this exploit app.");
       }
 
-      Logger.debug(`Installing app with package name '${packageName}`);
+      Logger.debug(`Installing app with package name '${packageName}'`);
 
       manager.exploitApps.push(packageName);
       // Duplicate but it shouldn't be a big problem
