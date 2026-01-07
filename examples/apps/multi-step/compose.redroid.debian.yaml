@@ -7,7 +7,7 @@
 # The ./init.d folder should contain the "setup.sh" and "reset.sh" scripts
 
 services:
-  redroid:
+  android-device:
     privileged: true
     volumes:
       - /dev/binder1:/dev/binder
@@ -15,8 +15,9 @@ services:
       - /dev/binder3:/dev/vndbinder
     ports:
       - 5555:5555 # No need to expose this, but it's useful for debugging purposes
-    container_name: redroid14
+    container_name: redroid
     image: redroid/redroid:14.0.0-latest
+    command: ["ro.debuggable=0", "ro.boot.verifiedbootstate=orange"]
   droidground:
     build: ../../..
     container_name: droidground
@@ -25,18 +26,5 @@ services:
       - 4242:4242
     volumes:
       - ./init.d:/init.d
-    environment:
-      - DROIDGROUND_APP_PACKAGE_NAME=com.droidground.multistep
-      - DROIDGROUND_ADB_HOST=localhost
-      - DROIDGROUND_ADB_PORT=5037
-      - DROIDGROUND_DEVICE_TYPE=network
-      - DROIDGROUND_DEVICE_HOST=redroid
-      - DROIDGROUND_DEVICE_PORT=5555
-      - DROIDGROUND_INIT_SCRIPTS_FOLDER=/init.d
-      - DROIDGROUND_HOST=0.0.0.0
-      - DROIDGROUND_PORT=4242
-      - DROIDGROUND_APP_MANAGER_DISABLED=true
-      - DROIDGROUND_FRIDA_DISABLED=true
-      - DROIDGROUND_START_RECEIVER_DISABLED=true
-      - DROIDGROUND_START_SERVICE_DISABLED=true
-      - DROIDGROUND_TERMINAL_DISABLED=true
+    env_file:
+      - multi-step.env

@@ -13,7 +13,6 @@ import {
   startActivitySchema,
   startBroadcastSchema,
   startServiceSchema,
-  teamTokenGenericReqSchema,
 } from "@server/api/schemas";
 import { REST_API_ENDPOINTS as E } from "@shared/endpoints";
 import {
@@ -71,7 +70,7 @@ export default (app: Router) => {
     E.EXPLOIT_APP,
     checkFeatureEnabled(features.appManagerEnabled),
     validateBody<StartExploitAppRequest>(runExploitAppSchema),
-    APIController.startExploitApp,
+    APIController.enqueueStartExploitApp,
   );
   endpoint.post(E.RESET, checkFeatureEnabled(features.resetEnabled), APIController.reset);
   endpoint.get(E.FEATURES, APIController.features);

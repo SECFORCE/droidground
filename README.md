@@ -9,6 +9,7 @@
 <p align="center">
     <a href="https://github.com/SECFORCE/droidground/blob/main/README.md"><img src="https://img.shields.io/badge/Documentation-complete-green.svg?style=flat"></a>
     <a href="https://github.com/SECFORCE/droidground/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPL3-blue.svg"></a>
+    <a href="https://blackhat.com/eu-25/arsenal/schedule/index.html#droidground-a-flexible-playground-for-android-ctf-challenges-47803"><img src="./docs/blackhat-2025.svg"></a>
 </p>
 
 In traditional **CTF challenges**, it's common to hide flags in files on a system, requiring attackers to exploit vulnerabilities to retrieve them. However, in the Android world, this approach doesn't work well. APK files are easily downloadable and reversible, so **placing a flag on the device usually makes it trivial** to extract using static analysis or emulator tricks. This severely limits the ability to create realistic, runtime-focused challenges.
@@ -56,6 +57,7 @@ DroidGround provides a rich set of server-controlled features.
 - **Terminal Access**
 - **APK Management**
 - **Logcat Viewer**
+- **Exploit Server** (if team mode is enabled)
 
 Almost all features are **modular** and defined via environment variables, ensuring precise control over the challenge scope.
 
@@ -103,7 +105,10 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_EXPLOIT_APP_DURATION`    | The time (in seconds) the exploit app will be active                              | `10`        |
 | `DROIDGROUND_NUM_TEAMS`               | The number of teams playing simultaneously                                        | -           |
 | `DROIDGROUND_TEAM_TOKEN_<N>`          | The token for the nth team. Auto-generated if missing                             | -           |
-| `DROIDGROUND_IP_IFACE`                | The network interface for the displayed IP address. No IP is displayed if missing | -           |
+| `DROIDGROUND_IP_STATIC`               | The static IP address to display. It takes precedence over `DROIDGROUND_IP_IFACE` | -           |
+| `DROIDGROUND_IP_IFACE`                | The network interface for the displayed IP address                                | -           |
+
+The `DROIDGROUND_IP_IFACE` looks for an exact match first and fallbacks to the first interface that _starts with_ the provided value since Docker only allows to specify the network interface **prefix** within the container.
 
 The usage of the `DROIDGROUND_NUM_TEAMS` variable slightly changes the behaviour of the application under the hood. If this option is set:
 
@@ -146,6 +151,8 @@ echo "Install command executed"
 ```
 
 For a production deploy (in a real CTF) you may want to provision a pre-defined number of DroidGround instances beforehand or you may want to allow the users to spawn instances (with a limitation or maybe associate each team/user with a specific instance). For this reason we also added a simple [spawner example](./examples/spawner).
+
+Alternatively, as previously mentioned, you can create a challenge where the flag can be exfiltrated via a network request and leverage the `DROIDGROUND_NUM_TEAMS` env variable to avoid spawning multiple instances (which could be expensive). The [net-multi-step](./examples/apps/net-multi-step/) folder provides a good example on how to deliver this type of challenges.
 
 ## 💡 Tips
 

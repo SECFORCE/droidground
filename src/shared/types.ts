@@ -106,4 +106,26 @@ export interface FridaScript {
 export interface FridaFullScript extends FridaScript {
   content: string;
 }
+
 export type FridaLibrary = FridaFullScript[];
+
+export enum JobStatusType {
+  WAITING = "waiting",
+  RUNNIG = "running",
+  COMPLETED = "completed",
+}
+
+export interface JobInfo {
+  id: string;
+  packageName: string;
+  createdAt: number;
+  status: JobStatusType;
+}
+
+export type QueueJob<UserId extends string> = {
+  packageName: string;
+  createdAt: number;
+  id: string;
+  userId: UserId;
+  run: (createdAt: number) => Promise<void>;
+};

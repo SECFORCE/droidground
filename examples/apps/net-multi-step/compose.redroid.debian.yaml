@@ -1,0 +1,68 @@
+# This example is specific for Debian, run the following commands before starting the compose:
+# modprobe binder_linux devices=binder1,binder2,binder3,binder4,binder5,binder6
+# chmod 666 /dev/binder*
+#
+# You may find the Redroid deploy instructions for other distros here: https://github.com/remote-android/redroid-doc/tree/master/deploy
+#
+# The ./init.d folder should contain the "setup.sh" and "reset.sh" scripts
+
+services:
+  dns:
+    image: dockurr/dnsmasq:latest
+    container_name: dns
+    command: ["dnsmasq", "-k", "--log-facility=-", "-C", "/etc/dnsmasq.conf"]
+    volumes:
+      - ./dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf:ro
+      - ./dnsmasq/hosts:/etc/dnsmasq.d/hosts:ro
+    networks:
+      internal_net:
+        ipv4_address: 172.28.0.53
+    # Not strictly required for basic DNS, but harmless and sometimes useful
+    cap_add:
+      - NET_ADMIN
+  android-device:
+    privileged: true
+    volumes:
+      - /dev/binder1:/dev/binder
+      - /dev/binder2:/dev/hwbinder
+      - /dev/binder3:/dev/vndbinder
+    container_name: redroid
+    image: redroid/redroid:14.0.0-latest
+    networks:
+      internal_net:
+        ipv4_address: 172.28.0.10
+    dns:
+      - 172.28.0.53
+    command:
+      [
+        "ro.debuggable=0",
+        "ro.boot.verifiedbootstate=orange",
+        "androidboot.redroid_net_ndns=1",
+        "androidboot.redroid_net_dns1=172.28.0.53",
+      ]
+  droidground:
+    build: ../../..
+    container_name: droidground
+    restart: unless-stopped
+    ports:
+      - 4242:4242
+    networks:
+      internal_net:
+        ipv4_address: 172.28.0.20
+      public_net: {}
+    volumes:
+      - ./init.d:/init.d
+    env_file:
+      - net-multi-step.env
+
+networks:
+  internal_net:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+
+  public_net:
+    # normal network with internet access (default behavior)
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24
