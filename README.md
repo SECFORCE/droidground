@@ -105,7 +105,10 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_EXPLOIT_APP_DURATION`    | The time (in seconds) the exploit app will be active                              | `10`        |
 | `DROIDGROUND_NUM_TEAMS`               | The number of teams playing simultaneously                                        | -           |
 | `DROIDGROUND_TEAM_TOKEN_<N>`          | The token for the nth team. Auto-generated if missing                             | -           |
-| `DROIDGROUND_IP_IFACE`                | The network interface for the displayed IP address. No IP is displayed if missing | -           |
+| `DROIDGROUND_IP_STATIC`               | The static IP address to display. It takes precedence over `DROIDGROUND_IP_IFACE` | -           |
+| `DROIDGROUND_IP_IFACE`                | The network interface for the displayed IP address                                | -           |
+
+The `DROIDGROUND_IP_IFACE` looks for an exact match first and fallbacks to the first interface that _starts with_ the provided value since Docker only allows to specify the network interface **prefix** within the container.
 
 The usage of the `DROIDGROUND_NUM_TEAMS` variable slightly changes the behaviour of the application under the hood. If this option is set:
 

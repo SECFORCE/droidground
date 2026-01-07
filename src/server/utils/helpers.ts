@@ -171,11 +171,22 @@ export const getIP = (name: string) => {
   let ipAddress = "";
 
   const interfaces = networkInterfaces();
-  if (!Object.keys(interfaces).includes(name)) {
+  const ifaceKeys = Object.keys(interfaces);
+
+  // Check if there is at least one interface that starts with "name" (fallback check)
+  if (!ifaceKeys.some(i => i.startsWith(name))) {
     return ipAddress;
   }
 
-  const iface = (interfaces[name] as NetworkInterfaceInfo[]).find(i => i.family === "IPv4");
+  let iface;
+  if (ifaceKeys.includes(name)) {
+    // Exact match
+    iface = (interfaces[name] as NetworkInterfaceInfo[]).find(i => i.family === "IPv4");
+  } else {
+    // Fallback
+    const firstMatch = ifaceKeys.find(i => i.startsWith(name)) as string;
+    iface = (interfaces[firstMatch] as NetworkInterfaceInfo[]).find(i => i.family === "IPv4");
+  }
 
   if (!iface || iface.internal) {
     return ipAddress;

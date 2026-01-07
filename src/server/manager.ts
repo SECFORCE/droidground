@@ -50,8 +50,9 @@ export class ManagerSingleton {
     const port: any = process.env.DROIDGROUND_ADB_PORT ?? "";
     const exploitAppDuration: any = process.env.DROIDGROUND_EXPLOIT_APP_DURATION ?? "";
     // Check if IP address should be displayed
+    const ipStatic = process.env.DROIDGROUND_IP_STATIC ?? undefined;
     const iface = process.env.DROIDGROUND_IP_IFACE ?? "";
-    const ipAddress = getIP(iface); // Either an empty string or the IP address
+    const ipAddress = ipStatic && ipStatic.length > 0 ? ipStatic : getIP(iface); // Either an empty string or the IP address
     // Check team-mode
     const teamNumEnv: any = process.env.DROIDGROUND_NUM_TEAMS ?? "";
     const teamNum: number = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : parseInt(teamNumEnv);
