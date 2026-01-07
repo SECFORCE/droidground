@@ -9,7 +9,7 @@
 <p align="center">
     <a href="https://github.com/SECFORCE/droidground/blob/main/README.md"><img src="https://img.shields.io/badge/Documentation-complete-green.svg?style=flat"></a>
     <a href="https://github.com/SECFORCE/droidground/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPL3-blue.svg"></a>
-    <a href="https://blackhat.com/eu-25/arsenal/schedule/index.html"><img src="./docs/blackhat-2025.svg"></a>
+    <a href="https://blackhat.com/eu-25/arsenal/schedule/index.html#droidground-a-flexible-playground-for-android-ctf-challenges-47803"><img src="./docs/blackhat-2025.svg"></a>
 </p>
 
 In traditional **CTF challenges**, it's common to hide flags in files on a system, requiring attackers to exploit vulnerabilities to retrieve them. However, in the Android world, this approach doesn't work well. APK files are easily downloadable and reversible, so **placing a flag on the device usually makes it trivial** to extract using static analysis or emulator tricks. This severely limits the ability to create realistic, runtime-focused challenges.
