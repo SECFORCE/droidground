@@ -169,7 +169,7 @@ const Navbar: React.FC = () => {
           </button>
         )}
         <div className="flex h-full items-center justify-center">
-          <div className="flex h-[1.5rem]">
+          <div className="flex h-6">
             <div className="divider divider-horizontal" />
           </div>
           <div className="flex gap-4">

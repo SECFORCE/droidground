@@ -147,7 +147,7 @@ export const AppManager: React.FC = () => {
                     return (
                       <tr className="hover:bg-base-200" key={key}>
                         <th>
-                          <img src={p.icon} className="w-[3rem] h-[3rem]" />
+                          <img src={p.icon} className="w-12 h-12" />
                         </th>
                         <td>{p.label}</td>
                         <td className="flex flex-col">
