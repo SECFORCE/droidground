@@ -13,6 +13,7 @@ import { BsGithub } from "react-icons/bs";
 import { HiQueueList } from "react-icons/hi2";
 import { CiStopwatch } from "react-icons/ci";
 import { PiEmptyDuotone } from "react-icons/pi";
+import { LuMenu } from "react-icons/lu";
 
 interface INavItem {
   label: string;
@@ -124,9 +125,43 @@ const Navbar: React.FC = () => {
         onConfirm={reset}
       />
 
-      {/*************
-       *   Navbar   *
-       ***************/}
+      {/********************
+       *   Mobile Navbar   *
+       **********************/}
+      <div className="flex items-center gap-2 lg:hidden">
+        <a
+          href="https://github.com/SECFORCE/droidground"
+          target="_blank"
+          rel="noreferrer"
+          className="btn btn-ghost btn-sm px-2"
+        >
+          <BsGithub size={22} className="text-white" />
+        </a>
+
+        <div className="dropdown dropdown-end">
+          <label tabIndex={0} className="btn btn-ghost btn-sm px-2" aria-label="Open menu">
+            <LuMenu size={24} />
+          </label>
+          <ul
+            tabIndex={0}
+            className="menu dropdown-content mt-3 w-52 rounded-box bg-base-200 p-2 shadow border border-base-300"
+          >
+            {navItems
+              .filter(i => i.routeEnabled)
+              .map(item => (
+                <li key={item.to}>
+                  <button className="justify-between" onClick={() => navigate(item)}>
+                    {item.label}
+                  </button>
+                </li>
+              ))}
+          </ul>
+        </div>
+      </div>
+
+      {/*********************
+       *   Desktop Navbar   *
+       **********************/}
       <nav className="hidden lg:flex px-2 py-1 h-12 items-center">
         <ul className="relative flex space-x-8 text-sm font-medium">
           {navItems
