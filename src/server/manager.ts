@@ -252,6 +252,7 @@ export class ManagerSingleton {
       const bootCompletedProp = await (this.adb as Adb).getProp("sys.boot_completed");
       const bootCompleted = bootCompletedProp.trim() === "1";
       if (bootCompleted) {
+        Logger.info("Boot completed.");
         break;
       } else {
         Logger.error("Boot is not completed yet, waiting 5 seconds before checking again...");
