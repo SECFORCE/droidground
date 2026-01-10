@@ -93,7 +93,7 @@ const AppRoute = () => {
   return (
     <WebSocketProvider>
       <Header />
-      <main className="container m-auto h-full py-4 flex items-start gap-8">
+      <main className="container m-auto h-full p-4 flex flex-col lg:flex-row items-start gap-8">
         <VideoRenderer />
         <Outlet />
       </main>
@@ -114,9 +114,9 @@ const ErrorComponent = () => {
   return (
     <>
       <Header />
-      <div className="container m-auto h-full py-4 flex items-start gap-8">
+      <main className="container m-auto h-full py-4 flex items-start gap-8">
         <Error />
-      </div>
+      </main>
     </>
   );
 };
@@ -125,9 +125,9 @@ const NotFoundRoute = () => {
   return (
     <>
       <Header />
-      <div className="container m-auto h-full py-4 flex items-start gap-8">
+      <main className="container m-auto h-full py-4 flex items-start gap-8">
         <Outlet />
-      </div>
+      </main>
     </>
   );
 };
