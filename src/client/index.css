@@ -19,6 +19,10 @@
   canvas {
     @apply w-full h-auto;
   }
+
+  #app {
+    @apply min-h-screen flex flex-col;
+  }
 }
 
 @layer utilities {

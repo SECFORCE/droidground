@@ -127,7 +127,7 @@ const Navbar: React.FC = () => {
       {/*************
        *   Navbar   *
        ***************/}
-      <nav className="flex px-2 py-1 h-12">
+      <nav className="hidden lg:flex px-2 py-1 h-12 items-center">
         <ul className="relative flex space-x-8 text-sm font-medium">
           {navItems
             .filter(i => i.routeEnabled)
@@ -155,7 +155,7 @@ const Navbar: React.FC = () => {
                   {location.pathname === item.to && (
                     <motion.div
                       layoutId="underline"
-                      className="absolute bottom-[-20px] left-0 right-0 h-0.5 bg-info rounded z-20"
+                      className="absolute -bottom-4.5 left-0 right-0 h-0.5 bg-info rounded z-20"
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
                   )}
@@ -226,13 +226,15 @@ const Navbar: React.FC = () => {
 
 export const Header: React.FC = () => {
   return (
-    <header className="w-full bg-neutral h-18 select-none">
-      <div className="container m-auto h-full flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <img src={Logo} className="h-10" />
-          <h1 className="font-orbitron text-2xl select-none">DroidGround</h1>
+    <header className="w-full bg-neutral select-none">
+      <div className="container mx-auto h-18 px-4 sm:px-6 lg:px-8">
+        <div className="h-full flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <img src={Logo} className="h-10" />
+            <h1 className="font-orbitron text-xl sm:text-2xl truncate">DroidGround</h1>
+          </div>
+          <Navbar />
         </div>
-        <Navbar />
       </div>
     </header>
   );
