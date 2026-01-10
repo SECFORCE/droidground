@@ -183,7 +183,7 @@ export const VideoRenderer: React.FC = () => {
 
   return (
     <div
-      className={`w-1/4 min-w-1/4 rounded-2xl border-10 border-black shadow-2xl flex items-center justify-center relative overflow-hidden ${streamingPhase !== StreamingPhase.RENDER ? "aspect-[9/16] bg-gray-950" : "bg-transparent "}`}
+      className={`m-auto w-3/4 min-w-3/4 sm:w-1/2 sm:min-w-1/2 lg:w-1/4 lg:min-w-1/4 rounded-2xl border-10 border-black shadow-2xl flex items-center justify-center relative overflow-hidden ${streamingPhase !== StreamingPhase.RENDER ? "aspect-9/16 bg-gray-950" : "bg-transparent "}`}
     >
       {/* Speaker + Camera Dot */}
       <div className="absolute top-2 w-full flex justify-center items-center z-10">

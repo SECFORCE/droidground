@@ -13,6 +13,7 @@ import { BsGithub } from "react-icons/bs";
 import { HiQueueList } from "react-icons/hi2";
 import { CiStopwatch } from "react-icons/ci";
 import { PiEmptyDuotone } from "react-icons/pi";
+import { LuMenu } from "react-icons/lu";
 
 interface INavItem {
   label: string;
@@ -124,10 +125,44 @@ const Navbar: React.FC = () => {
         onConfirm={reset}
       />
 
-      {/*************
-       *   Navbar   *
-       ***************/}
-      <nav className="flex px-2 py-1 h-12">
+      {/********************
+       *   Mobile Navbar   *
+       **********************/}
+      <div className="flex items-center gap-2 lg:hidden">
+        <a
+          href="https://github.com/SECFORCE/droidground"
+          target="_blank"
+          rel="noreferrer"
+          className="btn btn-ghost btn-sm px-2"
+        >
+          <BsGithub size={22} className="text-white" />
+        </a>
+
+        <div className="dropdown dropdown-end">
+          <label tabIndex={0} className="btn btn-ghost btn-sm px-2" aria-label="Open menu">
+            <LuMenu size={24} />
+          </label>
+          <ul
+            tabIndex={0}
+            className="menu dropdown-content mt-3 w-52 rounded-box bg-base-200 p-2 shadow border border-base-300"
+          >
+            {navItems
+              .filter(i => i.routeEnabled)
+              .map(item => (
+                <li key={item.to}>
+                  <button className="justify-between" onClick={() => navigate(item)}>
+                    {item.label}
+                  </button>
+                </li>
+              ))}
+          </ul>
+        </div>
+      </div>
+
+      {/*********************
+       *   Desktop Navbar   *
+       **********************/}
+      <nav className="hidden lg:flex px-2 py-1 h-12 items-center">
         <ul className="relative flex space-x-8 text-sm font-medium">
           {navItems
             .filter(i => i.routeEnabled)
@@ -155,7 +190,7 @@ const Navbar: React.FC = () => {
                   {location.pathname === item.to && (
                     <motion.div
                       layoutId="underline"
-                      className="absolute bottom-[-20px] left-0 right-0 h-0.5 bg-info rounded z-20"
+                      className="absolute -bottom-4.5 left-0 right-0 h-0.5 bg-info rounded z-20"
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
                   )}
@@ -169,7 +204,7 @@ const Navbar: React.FC = () => {
           </button>
         )}
         <div className="flex h-full items-center justify-center">
-          <div className="flex h-[1.5rem]">
+          <div className="flex h-6">
             <div className="divider divider-horizontal" />
           </div>
           <div className="flex gap-4">
@@ -226,13 +261,15 @@ const Navbar: React.FC = () => {
 
 export const Header: React.FC = () => {
   return (
-    <header className="w-full bg-neutral h-18 select-none">
-      <div className="container m-auto h-full flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <img src={Logo} className="h-10" />
-          <h1 className="font-orbitron text-2xl select-none">DroidGround</h1>
+    <header className="w-full bg-neutral select-none">
+      <div className="container mx-auto h-18 px-4 sm:px-6 lg:px-8">
+        <div className="h-full flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <img src={Logo} className="h-10" />
+            <h1 className="font-orbitron text-xl sm:text-2xl truncate">DroidGround</h1>
+          </div>
+          <Navbar />
         </div>
-        <Navbar />
       </div>
     </header>
   );

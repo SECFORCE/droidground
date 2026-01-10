@@ -125,7 +125,7 @@ export const AppManager: React.FC = () => {
               </div>
             </div>
             <p className="mb-2">
-              If you are worried that other teams may start your exploit app (via another app thorugh an explicit
+              If you are worried that other teams may start your exploit app (via another app through an explicit
               intent) you may add the <code className="inline">android.permission.DUMP</code> permission to the launcher
               activity so that other apps won't be able to start it.
             </p>
@@ -147,7 +147,7 @@ export const AppManager: React.FC = () => {
                     return (
                       <tr className="hover:bg-base-200" key={key}>
                         <th>
-                          <img src={p.icon} className="w-[3rem] h-[3rem]" />
+                          <img src={p.icon} className="w-12 h-12" />
                         </th>
                         <td>{p.label}</td>
                         <td className="flex flex-col">

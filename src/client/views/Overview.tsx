@@ -305,7 +305,7 @@ export const Overview: React.FC = () => {
         <div className="collapse collapse-arrow bg-base-300 border border-base-300">
           <input type="checkbox" name="readme-accordion" className="peer" />
           <div className="collapse-title text-lg font-semibold peer-hover:bg-gray-600 peer-checked:mb-4">README</div>
-          <div className="collapse-content text-sm leading-[1.5]">
+          <div className="collapse-content text-sm leading-normal">
             <h3 className="text-base font-semibold my-2">What is DroidGround?</h3>
             <p>
               In traditional Capture the Flag (CTF) challenges, it's common to hide flags in files on a system,
