@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import toast from "react-hot-toast";
@@ -56,6 +56,11 @@ const Navbar: React.FC = () => {
     { label: "Exploit Server", to: PAGES.EXPLOIT_SERVER, routeEnabled: teamModeEnabled },
   ];
 
+  const suffix = useMemo(() => {
+    const suffix = featuresConfig.basePath.length > 0 ? featuresConfig.basePath : "";
+    return suffix;
+  }, [featuresConfig]);
+
   useEffect(() => {
     if (!appManagerEnabled) {
       return;
@@ -63,7 +68,6 @@ const Navbar: React.FC = () => {
 
     const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
     const prefix = isHttps ? "wss" : "ws";
-    const suffix = featuresConfig.basePath.length > 0 ? featuresConfig.basePath : "";
     const wsBaseUrl = `${prefix}://${window.location.host}${suffix}`;
     const socket = new WebSocket(`${wsBaseUrl}${WEBSOCKET_ENDPOINTS.NOTIFICATIONS}`);
 
@@ -187,7 +191,7 @@ const Navbar: React.FC = () => {
                   className="cursor-pointer relative z-10 px-3 py-2 rounded-md transition-colors text-gray-300"
                 >
                   {item.label}
-                  {location.pathname === item.to && (
+                  {location.pathname === `${suffix}${item.to}` && (
                     <motion.div
                       layoutId="underline"
                       className="absolute -bottom-4.5 left-0 right-0 h-0.5 bg-info rounded z-20"

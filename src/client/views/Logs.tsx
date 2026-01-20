@@ -34,7 +34,7 @@ export const Logs: React.FC = () => {
       </div>
       <div className="card bg-base-300 border border-base-300">
         <div className="card-body p-4">
-          <div className="card-title justify-between select-none">
+          <div className="card-title items-start justify-between mb-2 select-none flex flex-col lg:flex-row">
             <h2>Logcat</h2>
             <div className="flex gap-2">
               <button className="btn btn-info" onClick={dump}>
