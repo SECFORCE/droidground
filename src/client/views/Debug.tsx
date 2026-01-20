@@ -40,7 +40,10 @@ export const Debug: React.FC = () => {
             <h2>Attack Surface</h2>
           </div>
           <div className="flex gap-2">
-            <form onSubmit={handleSubmit(retrieveAttackSurface)} className="flex flex-1 gap-4 space-y-4">
+            <form
+              onSubmit={handleSubmit(retrieveAttackSurface)}
+              className="flex flex-1 space-y-4 flex-col lg:flex-row lg:gap-4"
+            >
               <input
                 type="text"
                 placeholder="Debug Token in server logs"
@@ -50,8 +53,8 @@ export const Debug: React.FC = () => {
               {errors.debugToken && <p className="text-error text-sm">Debug Token is required.</p>}
 
               {/* Submit */}
-              <div className="flex justify-end">
-                <input className="btn btn-primary" type="submit" value="Get Attack Surface" />
+              <div className="flex w-full lg:w-auto justify-end">
+                <input className="btn btn-primary w-full" type="submit" value="Get Attack Surface" />
               </div>
             </form>
           </div>
