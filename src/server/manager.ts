@@ -53,6 +53,7 @@ export class ManagerSingleton {
     const ipStatic = process.env.DROIDGROUND_IP_STATIC ?? undefined;
     const iface = process.env.DROIDGROUND_IP_IFACE ?? "";
     const ipAddress = ipStatic && ipStatic.length > 0 ? ipStatic : getIP(iface); // Either an empty string or the IP address
+    const backendPort = process.env.DROIDGROUND_PORT || 4242;
     // Check team-mode
     const teamNumEnv: any = process.env.DROIDGROUND_NUM_TEAMS ?? "";
     const teamNum: number = isNaN(teamNumEnv) || teamNumEnv.trim().length === 0 ? 0 : parseInt(teamNumEnv);
@@ -89,7 +90,7 @@ export class ManagerSingleton {
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
-        ipAddress: ipAddress,
+        ipAddress: `${ipAddress}:${backendPort}`,
       },
       teams: teams,
       debugToken: crypto.randomBytes(64).toString("hex"),
