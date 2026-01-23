@@ -83,7 +83,7 @@ RUN curl -o platform-tools.zip https://dl.google.com/android/repository/platform
 RUN pip3 install frida-tools==13.7.1
 RUN npm ci --only=production --ignore-scripts
 # If I don't do this the binding is missing
-RUN npm i frida
+RUN npm rebuild frida
 RUN chmod +x run.sh
 
 ENTRYPOINT ["./run.sh"]
