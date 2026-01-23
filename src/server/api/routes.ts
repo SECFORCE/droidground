@@ -73,6 +73,7 @@ export default (app: Router) => {
     APIController.enqueueStartExploitApp,
   );
   endpoint.post(E.RESET, checkFeatureEnabled(features.resetEnabled), APIController.reset);
+  endpoint.post(E.NEW_TEAM, checkFeatureEnabled(features.unlimitedTeams), APIController.newTeam);
   endpoint.get(E.FEATURES, APIController.features);
   endpoint.get(E.INFO, APIController.info);
   endpoint.post(E.RESTART, APIController.restartApp);
