@@ -154,7 +154,13 @@ const Navbar: React.FC = () => {
               .filter(i => i.routeEnabled)
               .map(item => (
                 <li key={item.to}>
-                  <button className="justify-between" onClick={() => navigate(item)}>
+                  <button
+                    className="justify-between"
+                    onClick={() => {
+                      (document.activeElement as HTMLElement | null)?.blur();
+                      navigate(item);
+                    }}
+                  >
                     {item.label}
                   </button>
                 </li>
