@@ -117,6 +117,8 @@ The usage of the `DROIDGROUND_NUM_TEAMS` variable slightly changes the behaviour
 
 This allows to share the same DroidGround instance with multiple teams in challenges where the flag can be exfiltrated via a network request. This **massively reduces deploy costs of DroidGround** for CTF competitions.
 
+Furthermore, if the value is set to `-1` it will enable the so-called **Unlimited Teams** mode. In this mode a button to generate a new **_team token_** will be available in the _Overview_ page. All the `DROIDGROUND_TEAM_TOKEN_<N>` variables are ignored if this mode is enabled.
+
 ## 🧩 Use Cases
 
 Here are some ways DroidGround can be used:
