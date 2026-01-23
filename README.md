@@ -183,10 +183,17 @@ After that you may just run the following:
 ```sh
 git clone https://github.com/SECFORCE/droidground.git
 cd droidground
-npm run install
-```
 
-There is a `postinstall` script which will also try to build it, so if something's missing you'll know pretty soon.
+# Install without running scripts
+npm install --ignore-scripts
+# Rebuild frida to get the bindings
+npm rebuild frida
+# Build companion app
+npm run companion
+# Get scrcpy
+npx fetch-scrcpy-server 3.1
+npm run scrcpy
+```
 
 After that you just need to set the **env** variables and then run `npm run dev` and you'll be good to go. Happy dev mode!
 
