@@ -86,7 +86,8 @@ export class ManagerSingleton {
         startServiceEnabled: !(process.env.DROIDGROUND_START_SERVICE_DISABLED === "true"),
         terminalEnabled: !(process.env.DROIDGROUND_TERMINAL_DISABLED === "true"),
         resetEnabled: !(process.env.DROIDGROUND_RESET_DISABLED === "true"),
-        teamModeEnabled: teamNum > 0,
+        teamModeEnabled: teamNum > 0 || teamNum === -1,
+        unlimitedTeams: teamNum === -1,
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
@@ -215,6 +216,19 @@ export class ManagerSingleton {
       tokens.push(teamToken);
     }
     return tokens;
+  }
+
+  public addTeam(): string {
+    let teamToken = "";
+    while (true) {
+      teamToken = randomString(32);
+      const el = this.config.teams.find(t => t.token === teamToken);
+      if (el === undefined) {
+        break;
+      }
+    }
+    this.config.teams.push({ token: teamToken, exploitApps: [] });
+    return teamToken;
   }
 
   private async checkPackage() {

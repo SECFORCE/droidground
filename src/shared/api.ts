@@ -100,3 +100,7 @@ export interface GetAttackSurfaceRequest {
 export interface TeamTokenGenericRequest {
   teamToken: string;
 }
+
+export interface NewTeamResponse {
+  teamToken: string;
+}

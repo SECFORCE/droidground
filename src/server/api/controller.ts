@@ -20,6 +20,7 @@ import {
   GetFilesResponse,
   IGenericErrRes,
   IGenericResultRes,
+  NewTeamResponse,
   StartActivityRequest,
   StartBroadcastRequest,
   StartExploitAppRequest,
@@ -67,6 +68,19 @@ class APIController {
     } catch (error: any) {
       Logger.error(`Error resetting the CTF: ${error}`);
       res.status(500).json({ error: "An error occurred while resetting the CTF" }).end();
+    }
+  };
+
+  newTeam: RequestHandler = async (req: Request, res: Response<NewTeamResponse | IGenericErrRes>) => {
+    Logger.info(`Received ${req.method} request on ${req.path}`);
+    try {
+      const singleton = ManagerSingleton.getInstance();
+      const teamToken = singleton.addTeam();
+
+      res.json({ teamToken }).end();
+    } catch (error: any) {
+      Logger.error(`Error generating new Team Token: ${error}`);
+      res.status(500).json({ error: "An error occurred while generating a new Team Token" }).end();
     }
   };
 

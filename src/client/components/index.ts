@@ -4,3 +4,4 @@ export { StartBroadcastModal } from "@client/components/StartBroadcastModal";
 export { StartServiceModal } from "@client/components/StartServiceModal";
 export { InstallExploitAppModal } from "@client/components/InstallExploitAppModal";
 export { StartExploitAppModal } from "@client/components/StartExploitAppModal";
+export { AddNewTeamModal } from "@client/components/AddNewTeamModal";

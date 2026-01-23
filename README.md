@@ -117,6 +117,8 @@ The usage of the `DROIDGROUND_NUM_TEAMS` variable slightly changes the behaviour
 
 This allows to share the same DroidGround instance with multiple teams in challenges where the flag can be exfiltrated via a network request. This **massively reduces deploy costs of DroidGround** for CTF competitions.
 
+Furthermore, if the value is set to `-1` it will enable the so-called **Unlimited Teams** mode. In this mode a button to generate a new **_team token_** will be available in the _Overview_ page. All the `DROIDGROUND_TEAM_TOKEN_<N>` variables are ignored if this mode is enabled.
+
 ## 🧩 Use Cases
 
 Here are some ways DroidGround can be used:
@@ -181,10 +183,17 @@ After that you may just run the following:
 ```sh
 git clone https://github.com/SECFORCE/droidground.git
 cd droidground
-npm run install
-```
 
-There is a `postinstall` script which will also try to build it, so if something's missing you'll know pretty soon.
+# Install without running scripts
+npm install --ignore-scripts
+# Rebuild frida to get the bindings
+npm rebuild frida
+# Build companion app
+npm run companion
+# Get scrcpy
+npx fetch-scrcpy-server 3.1
+npm run scrcpy
+```
 
 After that you just need to set the **env** variables and then run `npm run dev` and you'll be good to go. Happy dev mode!
 
