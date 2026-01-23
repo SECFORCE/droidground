@@ -10,6 +10,7 @@ import {
   GetFilesRequest,
   GetFilesResponse,
   IGenericResultRes,
+  NewTeamResponse,
   StartActivityRequest,
   StartBroadcastRequest,
   StartExploitAppRequest,
@@ -119,6 +120,11 @@ class RESTManager {
 
   async getFridaLibrary(): Promise<AxiosResponse<FridaLibraryResponse>> {
     const res = await http.get<FridaLibraryResponse>(E.LIBRARY);
+    return res;
+  }
+
+  async addNewTeam(): Promise<AxiosResponse<NewTeamResponse>> {
+    const res = await http.post<NewTeamResponse>(E.NEW_TEAM);
     return res;
   }
 

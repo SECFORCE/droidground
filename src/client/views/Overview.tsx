@@ -7,7 +7,7 @@ import { MdSpaceDashboard } from "react-icons/md";
 import { RESTManagerInstance } from "@client/api/rest";
 import { BugreportzStatusResponse } from "@shared/api";
 import { useAPI } from "@client/context/API";
-import { StartActivityModal, StartBroadcastModal, StartServiceModal } from "@client/components";
+import { AddNewTeamModal, StartActivityModal, StartBroadcastModal, StartServiceModal } from "@client/components";
 
 export const Overview: React.FC = () => {
   const { featuresConfig, deviceInfo } = useAPI();
@@ -17,6 +17,7 @@ export const Overview: React.FC = () => {
   });
   const isPowerMenuEnabled = featuresConfig.shutdownEnabled || featuresConfig.rebootEnabled;
   // Dialogs
+  const addNewTeamDialogRef = useRef<HTMLDialogElement | null>(null);
   const startActivityDialogRef = useRef<HTMLDialogElement | null>(null);
   const startBroadcastReceiverDialogRef = useRef<HTMLDialogElement | null>(null);
   const startServiceDialogRef = useRef<HTMLDialogElement | null>(null);
@@ -120,6 +121,9 @@ export const Overview: React.FC = () => {
        *    Modals   *
        ***************/}
 
+      {/* New Team Modal */}
+      <AddNewTeamModal dialogRef={addNewTeamDialogRef} />
+
       {/* Start Activity Modal */}
       <StartActivityModal dialogRef={startActivityDialogRef} />
 
@@ -201,6 +205,22 @@ export const Overview: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {featuresConfig.unlimitedTeams && (
+              <div className="flex w-full justify-between items-center">
+                <p>
+                  Get <b>Team Token</b>
+                </p>
+                <div className="join">
+                  <button
+                    className="btn btn-info join-item rounded-r-md"
+                    onClick={() => addNewTeamDialogRef.current?.showModal()}
+                  >
+                    Get
+                  </button>
+                </div>
+              </div>
+            )}
 
             {featuresConfig.startActivityEnabled && (
               <div className="flex w-full justify-between items-center">
