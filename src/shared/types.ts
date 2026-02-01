@@ -3,6 +3,7 @@ import { ScrcpyVideoStreamMetadata } from "@yume-chan/scrcpy";
 
 export interface DroidGroundFeatures {
   basePath: string;
+  restartAppEnabled: boolean;
   startActivityEnabled: boolean;
   startBroadcastReceiverEnabled: boolean;
   startServiceEnabled: boolean;
@@ -20,6 +21,7 @@ export interface DroidGroundFeatures {
   fridaType: "full" | "jail";
   exploitAppDuration: number;
   ipAddress: string;
+  logoLink: string | null;
 }
 
 export interface DroidGroundTeam {

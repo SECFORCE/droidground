@@ -1,6 +1,6 @@
 {
   "name": "droidground",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "type": "module",
   "author": "Angelo Delicato",
   "scripts": {
@@ -93,9 +93,9 @@
     "concurrently": "^9.1.2",
     "copyfiles": "^2.4.1",
     "daisyui": "^5.0.28",
-    "eslint": "^8.57.1",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.2",
-    "eslint-config-standard": "^17.1.0",
+    "eslint-config-standard": "^15.0.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "prettier": "^3.5.3",

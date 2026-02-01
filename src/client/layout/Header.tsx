@@ -269,15 +269,40 @@ const Navbar: React.FC = () => {
   );
 };
 
+type LogoWrapperProps = {
+  children: React.ReactNode;
+};
+
+const LogoWrapper = ({ children }: LogoWrapperProps) => {
+  const { featuresConfig } = useAPI();
+  const logoLink = featuresConfig.logoLink;
+
+  if (logoLink) {
+    return (
+      <a href={logoLink} target="_blank" className="group">
+        <div className="tooltip tooltip-bottom cursor-pointer" data-tip={`Go to ${logoLink}`}>
+          {children}
+        </div>
+      </a>
+    );
+  } else {
+    return <>{children}</>;
+  }
+};
+
 export const Header: React.FC = () => {
   return (
     <header className="w-full bg-neutral select-none">
       <div className="container mx-auto h-18 px-4 sm:px-6 lg:px-8">
         <div className="h-full flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <img src={Logo} className="h-10" />
-            <h1 className="font-orbitron text-xl sm:text-2xl truncate">DroidGround</h1>
-          </div>
+          <LogoWrapper
+            children={
+              <div className="flex items-center gap-2 min-w-0">
+                <img src={Logo} className="h-10" />
+                <h1 className="font-orbitron text-xl sm:text-2xl truncate">DroidGround</h1>
+              </div>
+            }
+          />
           <Navbar />
         </div>
       </div>

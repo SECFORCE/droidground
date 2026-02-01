@@ -194,3 +194,55 @@ export const getIP = (name: string) => {
 
   return iface.address;
 };
+
+export const parseValidUrl = (input: string): string | null => {
+  if (typeof input !== "string") return null;
+
+  const trimmed = input.trim();
+
+  // Only allow printable ASCII (0x20–0x7E) — rejects control chars, null bytes, and non-ASCII
+  if (!/^[\x20-\x7e]+$/.test(trimmed)) return null;
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return null;
+  }
+
+  // Scheme: only http or https
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+
+  // Hostname: must be non-empty and consist of valid domain characters only
+  if (!/^[a-zA-Z0-9.-]+$/.test(url.hostname)) return null;
+
+  // No credentials allowed (rejects open-redirect via @)
+  if (url.username || url.password) return null;
+
+  // Path, search, hash: only allow safe characters after deep-decoding
+  // This also defeats multi-encoded traversal (e.g. %252e%252e)
+  const deepDecode = (s: string): string => {
+    for (let i = 0, prev = ""; i < 10 && s !== prev; i++) {
+      prev = s;
+      try {
+        s = decodeURIComponent(s);
+      } catch {
+        break;
+      }
+    }
+    return s;
+  };
+
+  const safePath = /^[a-zA-Z0-9/._~!$&'()*+,;:@=-]*$/;
+  const parts = [url.pathname, url.search, url.hash];
+
+  for (const part of parts) {
+    const decoded = deepDecode(part);
+    // Reject if decoded value contains disallowed characters
+    if (!safePath.test(decoded)) return null;
+    // Reject path traversal
+    if (decoded.split("/").includes("..")) return null;
+  }
+
+  return url.toString();
+};

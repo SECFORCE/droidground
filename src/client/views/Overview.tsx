@@ -184,16 +184,18 @@ export const Overview: React.FC = () => {
         <div className="card bg-base-300 border border-base-300">
           <div className="card-body p-4">
             <div className="font-semibold text-lg peer-hover:bg-gray-600 peer-checked:mb-4">Actions</div>
-            <div className="flex w-full justify-between items-center">
-              <p>
-                Restart <b>App</b>
-              </p>
-              <div className="join">
-                <button className="btn btn-accent join-item rounded-r-md" onClick={restartApp}>
-                  Restart
-                </button>
+            {featuresConfig.restartAppEnabled && (
+              <div className="flex w-full justify-between items-center">
+                <p>
+                  Restart <b>App</b>
+                </p>
+                <div className="join">
+                  <button className="btn btn-accent join-item rounded-r-md" onClick={restartApp}>
+                    Restart
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex w-full justify-between items-center">
               <p>
