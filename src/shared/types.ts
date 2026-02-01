@@ -3,6 +3,7 @@ import { ScrcpyVideoStreamMetadata } from "@yume-chan/scrcpy";
 
 export interface DroidGroundFeatures {
   basePath: string;
+  restartAppEnabled: boolean;
   startActivityEnabled: boolean;
   startBroadcastReceiverEnabled: boolean;
   startServiceEnabled: boolean;

@@ -74,6 +74,7 @@ export class ManagerSingleton {
       },
       features: {
         basePath: process.env.DROIDGROUND_BASE_PATH ?? "",
+        restartAppEnabled: !(process.env.DROIDGROUND_RESTART_APP_DISABLED === "true"),
         appManagerEnabled: !(process.env.DROIDGROUND_APP_MANAGER_DISABLED === "true"),
         bugReportEnabled: !(process.env.DROIDGROUND_BUG_REPORT_DISABLED === "true"),
         fileBrowserEnabled: !(process.env.DROIDGROUND_FILE_BROWSER_DISABLED === "true"),
