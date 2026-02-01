@@ -89,6 +89,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_INIT_SCRIPTS_FOLDER`     | Folder containing `setup.sh` and `reset.sh`                                       | `/init.d`   |
 | `DROIDGROUND_HOST`                    | Bind address                                                                      | `0.0.0.0`   |
 | `DROIDGROUND_PORT`                    | Bind port                                                                         | `4242`      |
+| `DROIDGROUND_RESTART_APP_DISABLED`    | Disable app restart                                                               | `false`     |
 | `DROIDGROUND_APP_MANAGER_DISABLED`    | Disable app manager                                                               | `false`     |
 | `DROIDGROUND_BUG_REPORT_DISABLED`     | Disable bugreport                                                                 | `false`     |
 | `DROIDGROUND_FILE_BROWSER_DISABLED`   | Disable file browser                                                              | `false`     |
@@ -107,6 +108,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_TEAM_TOKEN_<N>`          | The token for the nth team. Auto-generated if missing                             | -           |
 | `DROIDGROUND_IP_STATIC`               | The static IP address to display. It takes precedence over `DROIDGROUND_IP_IFACE` | -           |
 | `DROIDGROUND_IP_IFACE`                | The network interface for the displayed IP address                                | -           |
+| `DROIDGROUND_LOGO_LINK`               | Optionally set the logo click-through link (e.g., your CTF main page)             | -           |
 
 The `DROIDGROUND_IP_IFACE` looks for an exact match first and fallbacks to the first interface that _starts with_ the provided value since Docker only allows to specify the network interface **prefix** within the container.
 
