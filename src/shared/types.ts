@@ -21,6 +21,7 @@ export interface DroidGroundFeatures {
   fridaType: "full" | "jail";
   exploitAppDuration: number;
   ipAddress: string;
+  logoLink: string | null;
 }
 
 export interface DroidGroundTeam {

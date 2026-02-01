@@ -15,7 +15,7 @@ import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "@server/utils/frida";
 import { setupScrcpy } from "@server/utils/scrcpy";
 import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
-import { getIP, safeFileExists } from "@server/utils/helpers";
+import { getIP, parseValidUrl, safeFileExists } from "@server/utils/helpers";
 import { FairQueue } from "@server/utils/queue";
 
 export class ManagerSingleton {
@@ -93,6 +93,7 @@ export class ManagerSingleton {
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
         ipAddress: `${ipAddress}:${backendPort}`,
+        logoLink: parseValidUrl(process.env.DROIDGROUND_LOGO_LINK ?? ""),
       },
       teams: teams,
       debugToken: crypto.randomBytes(64).toString("hex"),
