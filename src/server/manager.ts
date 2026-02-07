@@ -10,7 +10,7 @@ import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from "@shared/logger";
 import { randomString, sleep } from "@shared/helpers";
-import { DroidGroundConfig, DroidGroundTeam, FridaState, StreamMetadata } from "@shared/types";
+import { DroidGroundConfig, DroidGroundTeam, FridaState, StreamMetadata, DroidGroundFrame } from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "@server/utils/frida";
 import { setupScrcpy } from "@server/utils/scrcpy";
@@ -44,11 +44,17 @@ export class ManagerSingleton {
   public exploitApps: string[] = [];
   // Exploit App Run Queue
   public queue;
+  // Last Scrcpy keyframe
+  public lastKeyframe: DroidGroundFrame | null = null;
+  public lastFrame: DroidGroundFrame | null = null;
 
   private constructor() {
     // private constructor prevents direct instantiation
     const port: any = process.env.DROIDGROUND_ADB_PORT ?? "";
     const exploitAppDuration: any = process.env.DROIDGROUND_EXPLOIT_APP_DURATION ?? "";
+    const exploitAppmaxSizeEnv: any = process.env.DROIDGROUND_EXPLOIT_APP_MAX_SIZE ?? "";
+    const exploitAppMaxSize: number =
+      isNaN(exploitAppmaxSizeEnv) || exploitAppmaxSizeEnv.trim().length === 0 ? 50 : parseInt(exploitAppmaxSizeEnv);
     // Check if IP address should be displayed
     const ipStatic = process.env.DROIDGROUND_IP_STATIC ?? undefined;
     const iface = process.env.DROIDGROUND_IP_IFACE ?? "";
@@ -92,6 +98,7 @@ export class ManagerSingleton {
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
+        exploitAppMaxSize: exploitAppMaxSize,
         ipAddress: `${ipAddress}:${backendPort}`,
         logoLink: parseValidUrl(process.env.DROIDGROUND_LOGO_LINK ?? ""),
       },

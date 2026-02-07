@@ -20,6 +20,7 @@ export interface DroidGroundFeatures {
   unlimitedTeams: boolean;
   fridaType: "full" | "jail";
   exploitAppDuration: number;
+  exploitAppMaxSize: number;
   ipAddress: string;
   logoLink: string | null;
 }
@@ -72,6 +73,11 @@ export type WSMetadata = StreamMetadata | ConfigurationMetadata | DataMetadata;
 
 export interface WSMessage {
   type: WSMessageType;
+  metadata: WSMetadata;
+  data: Uint8Array;
+}
+
+export interface DroidGroundFrame {
   metadata: WSMetadata;
   data: Uint8Array;
 }
