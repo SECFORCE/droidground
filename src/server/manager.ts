@@ -52,6 +52,9 @@ export class ManagerSingleton {
     // private constructor prevents direct instantiation
     const port: any = process.env.DROIDGROUND_ADB_PORT ?? "";
     const exploitAppDuration: any = process.env.DROIDGROUND_EXPLOIT_APP_DURATION ?? "";
+    const exploitAppmaxSizeEnv: any = process.env.DROIDGROUND_EXPLOIT_APP_MAX_SIZE ?? "";
+    const exploitAppMaxSize: number =
+      isNaN(exploitAppmaxSizeEnv) || exploitAppmaxSizeEnv.trim().length === 0 ? 50 : parseInt(exploitAppmaxSizeEnv);
     // Check if IP address should be displayed
     const ipStatic = process.env.DROIDGROUND_IP_STATIC ?? undefined;
     const iface = process.env.DROIDGROUND_IP_IFACE ?? "";
@@ -95,6 +98,7 @@ export class ManagerSingleton {
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
+        exploitAppMaxSize: exploitAppMaxSize,
         ipAddress: `${ipAddress}:${backendPort}`,
         logoLink: parseValidUrl(process.env.DROIDGROUND_LOGO_LINK ?? ""),
       },

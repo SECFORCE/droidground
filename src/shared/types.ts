@@ -20,6 +20,7 @@ export interface DroidGroundFeatures {
   unlimitedTeams: boolean;
   fridaType: "full" | "jail";
   exploitAppDuration: number;
+  exploitAppMaxSize: number;
   ipAddress: string;
   logoLink: string | null;
 }

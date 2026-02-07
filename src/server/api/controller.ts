@@ -508,10 +508,16 @@ class APIController {
       }
 
       const manager = ManagerSingleton.getInstance();
+      const features = manager.getConfig().features;
+
+      // Check if file size exceeds max size
+      if (req.file.size > features.exploitAppMaxSize * 1024 * 1024) {
+        throw new Error(`Exploit App size exceeds the limit of ${features.exploitAppMaxSize} MB.`);
+      }
 
       // Check if teamToken is needed and valid
       if (
-        manager.getConfig().features.teamModeEnabled &&
+        features.teamModeEnabled &&
         (!Object.keys(req.body).includes("teamToken") || !manager.isTeamTokenValid(req.body.teamToken))
       ) {
         throw new Error("Missing or invalid Team Token.");
@@ -550,7 +556,7 @@ class APIController {
 
       manager.exploitApps.push(packageName);
       // Duplicate but it shouldn't be a big problem
-      if (manager.getConfig().features.teamModeEnabled) {
+      if (features.teamModeEnabled) {
         manager.linkExploitAppToTeam(req.body.teamToken, packageName);
       }
 
