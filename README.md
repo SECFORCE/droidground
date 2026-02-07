@@ -10,6 +10,9 @@
     <a href="https://github.com/SECFORCE/droidground/blob/main/README.md"><img src="https://img.shields.io/badge/Documentation-complete-green.svg?style=flat"></a>
     <a href="https://github.com/SECFORCE/droidground/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPL3-blue.svg"></a>
     <a href="https://blackhat.com/eu-25/arsenal/schedule/index.html#droidground-a-flexible-playground-for-android-ctf-challenges-47803"><img src="./docs/blackhat-2025.svg"></a>
+    <br />
+    <a href="https://droidground.com" target="_blank">Website</a> |
+    <a href="https://droidground.com/demo" target="_blank">Demo</a>
 </p>
 
 In traditional **CTF challenges**, it's common to hide flags in files on a system, requiring attackers to exploit vulnerabilities to retrieve them. However, in the Android world, this approach doesn't work well. APK files are easily downloadable and reversible, so **placing a flag on the device usually makes it trivial** to extract using static analysis or emulator tricks. This severely limits the ability to create realistic, runtime-focused challenges.
@@ -104,6 +107,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal                                                                  | `false`     |
 | `DROIDGROUND_RESET_DISABLED`          | Disable reset                                                                     | `false`     |
 | `DROIDGROUND_EXPLOIT_APP_DURATION`    | The time (in seconds) the exploit app will be active                              | `10`        |
+| `DROIDGROUND_EXPLOIT_APP_MAX_SIZE`    | The max size (in MB) of the exploit app                                           | `50`        |
 | `DROIDGROUND_NUM_TEAMS`               | The number of teams playing simultaneously                                        | -           |
 | `DROIDGROUND_TEAM_TOKEN_<N>`          | The token for the nth team. Auto-generated if missing                             | -           |
 | `DROIDGROUND_IP_STATIC`               | The static IP address to display. It takes precedence over `DROIDGROUND_IP_IFACE` | -           |
