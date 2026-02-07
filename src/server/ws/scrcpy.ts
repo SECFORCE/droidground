@@ -35,10 +35,17 @@ export const setupScrcpyWss = (wssStreaming: WebSocketServer) => {
           }
           break;
         case WSMessageType.CONFIGURATION_ACK:
-          const nextState: StreamingPhase =
+          let nextState: StreamingPhase =
             singleton.sharedVideoMetadata?.hardwareType === "hardware"
               ? StreamingPhase.KEYFRAME
               : StreamingPhase.RENDER;
+          // Send last frames if available
+          if (nextState == StreamingPhase.RENDER && singleton.lastFrame) {
+            sendStructuredMessage(ws, WSMessageType.DATA, singleton.lastFrame.metadata, singleton.lastFrame.data);
+          } else if (nextState == StreamingPhase.KEYFRAME && singleton.lastKeyframe) {
+            sendStructuredMessage(ws, WSMessageType.DATA, singleton.lastKeyframe.metadata, singleton.lastKeyframe.data);
+            nextState = StreamingPhase.RENDER;
+          }
           wsStreamingClients.set(id, { ...(currentClientData as WebsocketClient), state: nextState });
           break;
         default:

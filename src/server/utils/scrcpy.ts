@@ -105,6 +105,11 @@ export const setupScrcpy = async () => {
                   keyframe: packet.keyframe,
                   pts: packet.pts ? packet.pts.toString() : null,
                 };
+                // Store frame
+                singleton.lastFrame = { metadata: metadata, data: packet.data };
+                if (metadata.keyframe) {
+                  singleton.lastKeyframe = { metadata: metadata, data: packet.data };
+                }
                 broadcastForPhase(wsStreamingClients, StreamingPhase.RENDER, {
                   type: WSMessageType.DATA,
                   metadata: metadata,

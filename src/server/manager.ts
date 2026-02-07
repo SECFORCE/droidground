@@ -10,7 +10,7 @@ import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from "@shared/logger";
 import { randomString, sleep } from "@shared/helpers";
-import { DroidGroundConfig, DroidGroundTeam, FridaState, StreamMetadata } from "@shared/types";
+import { DroidGroundConfig, DroidGroundTeam, FridaState, StreamMetadata, DroidGroundFrame } from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "@server/utils/frida";
 import { setupScrcpy } from "@server/utils/scrcpy";
@@ -44,6 +44,9 @@ export class ManagerSingleton {
   public exploitApps: string[] = [];
   // Exploit App Run Queue
   public queue;
+  // Last Scrcpy keyframe
+  public lastKeyframe: DroidGroundFrame | null = null;
+  public lastFrame: DroidGroundFrame | null = null;
 
   private constructor() {
     // private constructor prevents direct instantiation

@@ -76,6 +76,11 @@ export interface WSMessage {
   data: Uint8Array;
 }
 
+export interface DroidGroundFrame {
+  metadata: WSMetadata;
+  data: Uint8Array;
+}
+
 export type WSCallback = (metadata: WSMetadata, binaryBuf: Uint8Array<ArrayBuffer>) => void;
 
 // ADB types
