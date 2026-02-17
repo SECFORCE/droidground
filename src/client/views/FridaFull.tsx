@@ -4,6 +4,7 @@ import { FaCode } from "react-icons/fa";
 import { PiWarningBold } from "react-icons/pi";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
 import { useAPI } from "@client/context/API";
+import { StartFridaFullScriptRequest } from "@shared/api";
 
 const fridaScriptPlaceholder = `// Dummy Frida script
 setImmediate(function() {
@@ -16,6 +17,7 @@ export const FridaFull: React.FC = () => {
   const [isStopDisabled, setIsStopDisabled] = useState<boolean>(true);
   const [code, setCode] = useState<string>(fridaScriptPlaceholder);
   const [fridaOutput, setFridaOutput] = useState<string[]>([]);
+  const [scriptLanguage, setScriptLanguage] = useState<"js" | "ts">("ts");
   const socketRef = useRef<WebSocket | null>(null);
   const lines = code ? code.split("\n") : [];
 
@@ -34,7 +36,8 @@ export const FridaFull: React.FC = () => {
 
     socket.addEventListener("open", async () => {
       setIsRunDisabled(true);
-      socket.send(code);
+      const data: StartFridaFullScriptRequest = { code: code, language: scriptLanguage };
+      socket.send(JSON.stringify(data));
       await sleep(1000);
       setIsRunDisabled(false);
       setIsStopDisabled(false);
@@ -70,14 +73,31 @@ export const FridaFull: React.FC = () => {
       </div>
       <div className="card bg-base-300 border border-base-300">
         <div className="card-body p-4">
-          <div role="alert" className="alert alert-warning select-none">
+          <div role="alert" className="alert alert-warning select-non mb-2">
             <PiWarningBold size={20} />
             <span>
               To get the output you <b>have to use</b> the <pre className="inline">send</pre> function in your{" "}
-              <i>Frida</i> script.
+              <i>Frida</i> script. <br />
+              Furthermore, since <pre className="inline">Frida 17.x</pre> is used. You also have to import{" "}
+              <pre className="inline">frida-java-bridge</pre> in order to use the <pre className="inline">Java</pre>{" "}
+              class.
             </span>
           </div>
-          <p className="select-none">Write your script in the editor below and run it!</p>
+          <div className="flex">
+            <p className="select-none">
+              Write your script in the editor below and run it. Select the appropriate language via the toggle.
+            </p>
+            <div className="flex items-center gap-2">
+              <pre className="inline">Typescript</pre>
+              <input
+                type="checkbox"
+                defaultChecked
+                className="toggle toggle-lg toggle-info"
+                onChange={e => setScriptLanguage(e.target.checked ? "ts" : "js")}
+              />
+            </div>
+          </div>
+
           <div className="bg-neutral relative p-0 overflow-hidden">
             {/* Line Numbers */}
             <div className="absolute top-0 left-0 h-full w-10 bg-base-200 text-base-content opacity-50 text-right pr-2 pt-4 text-xs select-none leading-[1.25rem]">

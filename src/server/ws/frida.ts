@@ -1,17 +1,31 @@
 import fs from "fs/promises";
 import { WebSocketServer, WebSocket, RawData } from "ws";
+import path from "path";
 import frida, { FileDescriptor, ProcessID } from "frida";
 import Ajv from "ajv";
 import { ManagerSingleton } from "@server/manager";
 import Logger from "@shared/logger";
 import { IFridaRPC } from "@server/utils/types";
-import { libraryFile } from "@server/utils/helpers";
-import { StartFridaLibraryScriptRequest } from "@shared/api";
-import { startFridaLibraryScriptSchema } from "@server/ws/schemas";
+import { fridaScriptsDir, libraryFile, rootDir } from "@server/utils/helpers";
+import { StartFridaFullScriptRequest, StartFridaLibraryScriptRequest } from "@shared/api";
+import { startFridaFullScriptSchema, startFridaLibraryScriptSchema } from "@server/ws/schemas";
 
 const ajv = new Ajv();
 
-const parseWsMessage = (msg: RawData): StartFridaLibraryScriptRequest | undefined => {
+const parseFullWsMessage = (msg: RawData): StartFridaFullScriptRequest | undefined => {
+  try {
+    const msgObject = JSON.parse(msg.toString());
+    const isValid = ajv.validate(startFridaFullScriptSchema, msgObject);
+    if (!isValid) {
+      throw new Error("Object content is not valid");
+    }
+    return msgObject as StartFridaFullScriptRequest;
+  } catch (e) {
+    Logger.error(`Unable to parse WebSocket message: ${e}`);
+  }
+};
+
+const parseJailedWsMessage = (msg: RawData): StartFridaLibraryScriptRequest | undefined => {
   try {
     const msgObject = JSON.parse(msg.toString());
     const isValid = ajv.validate(startFridaLibraryScriptSchema, msgObject);
@@ -31,6 +45,7 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
 
   wssFrida.on("connection", (ws: WebSocket) => {
     ws.once("message", async msg => {
+      let entryAbs = "";
       try {
         const onOutput = (pid: ProcessID, fd: FileDescriptor, data: Buffer) => {
           if (pid !== wsFridaSessions.get(ws)?.pid) return;
@@ -66,7 +81,12 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
           /*
            * Frida full
            */
-          const scriptContent = msg.toString();
+          const wsObj = parseFullWsMessage(msg);
+          if (!wsObj) {
+            return;
+          }
+
+          const { code, language } = wsObj;
           const device = await frida.getUsbDevice();
 
           wsFridaSessions.set(ws, { device: device, pid: null, script: null });
@@ -78,7 +98,16 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
           wsFridaSessions.set(ws, { device: device, pid: pid, script: null });
 
           session.detached.connect(onDetached);
-          const script = await session.createScript(scriptContent);
+
+          const compiler = new frida.Compiler();
+
+          const filename = `agent-${crypto.randomUUID()}.${language}`;
+          entryAbs = path.resolve(fridaScriptsDir(), filename);
+          await fs.writeFile(entryAbs, code, "utf8");
+
+          const bundle = await compiler.build(entryAbs);
+
+          const script = await session.createScript(bundle);
           wsFridaSessions.set(ws, { device: device, pid: pid, script: script });
           script.message.connect(onMessage);
 
@@ -87,14 +116,16 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
           /*
            * Frida jailed
            */
-          const wsObj = parseWsMessage(msg);
+          const wsObj = parseJailedWsMessage(msg);
           if (!wsObj) {
             return;
           }
 
           const { scriptName, args } = wsObj;
           const filename = libraryFile(scriptName);
-          const scriptContent = await fs.readFile(filename, "utf-8");
+          const compiler = new frida.Compiler();
+          const bundle = await compiler.build(filename);
+
           const device = await frida.getUsbDevice();
 
           wsFridaSessions.set(ws, { device: device, pid: null, script: null });
@@ -106,7 +137,7 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
 
           session.detached.connect(onDetached);
 
-          const script = await session.createScript(scriptContent);
+          const script = await session.createScript(bundle);
           wsFridaSessions.set(ws, { device: device, pid: pid, script: script });
 
           script.message.connect(onMessage);
@@ -138,6 +169,7 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
           Logger.info(`Resuming (${pid})`);
           await device.resume(pid);
         }
+        await fs.rm(entryAbs, { force: true }).catch(() => {});
       }
     });
 
