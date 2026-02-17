@@ -34,7 +34,7 @@ RUN cd ./companion && ./gradlew assembleRelease
 #################################################################
 # Step 2: Build everything using the `npm build` command        #
 #################################################################
-FROM node:20.17.0-bullseye-slim AS main-builder
+FROM node:24.13-trixie-slim AS main-builder
 WORKDIR /usr/src/app
 COPY . .
 RUN npm install --ignore-scripts && \
@@ -52,8 +52,8 @@ COPY --from=companion-builder /usr/src/app/companion/droidground-companion.dex d
 #################################################################
 # Step 3: Pack everything together                              #
 #################################################################
-FROM node:20.17.0-bullseye-slim
-WORKDIR /usr/src/app
+FROM node:24.13-trixie-slim
+WORKDIR /droidground
 ENV NODE_ENV=production
 COPY --from=main-builder /usr/src/app/dist .
 COPY run.sh ./
@@ -61,8 +61,6 @@ COPY package*.json ./
 
 RUN apt-get update && \
   apt-get install -y \
-    python3 \
-    python3-pip \
     build-essential \
     curl \
     wget \
@@ -79,10 +77,8 @@ RUN curl -o platform-tools.zip https://dl.google.com/android/repository/platform
  && mv platform-tools /opt/platform-tools \
  && ln -s /opt/platform-tools/adb /usr/local/bin/adb
 
-# IMPORTANT! The version of 'frida-tools' has to be compatible with the one in the package.json
-RUN pip3 install frida-tools==13.7.1
-RUN npm ci --only=production --ignore-scripts
-# If I don't do this the binding is missing
+RUN npm ci --omit=dev --ignore-scripts
+# Running with "--ignore-scripts" skips the frida post-install script as well, rebuild is required
 RUN npm rebuild frida
 RUN chmod +x run.sh
 
