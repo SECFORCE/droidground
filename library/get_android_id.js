@@ -1,9 +1,12 @@
+/**
+ * Get the unique ANDROID_ID for the target app
+ *
+ * @returns {void}
+ */
+
+import Java from "frida-java-bridge";
+
 rpc.exports = {
-  /**
-   * Get the unique ANDROID_ID for the target app
-   *
-   * @returns {void}
-   */
   run: function () {
     Java.perform(function () {
       function getContext() {

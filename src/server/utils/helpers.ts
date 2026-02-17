@@ -1,5 +1,5 @@
 // Package imports
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { NetworkInterfaceInfo, networkInterfaces } from "os";
 import { LsEntry } from "@server/utils/types";
 import { fileURLToPath } from "url";

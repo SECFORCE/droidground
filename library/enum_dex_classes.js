@@ -3,6 +3,9 @@
  *
  * @returns {void}
  */
+
+import Java from "frida-java-bridge";
+
 rpc.exports = {
   run: function () {
     Java.perform(function () {

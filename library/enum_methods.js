@@ -4,6 +4,9 @@
  * @param {string} targetClass - Fully qualified Java class name.
  * @returns {string[]} Array of method signatures.
  */
+
+import Java from "frida-java-bridge";
+
 function enumMethods(targetClass) {
   var hook = Java.use(targetClass);
   var ownMethods = hook.class.getDeclaredMethods();

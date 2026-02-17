@@ -1,4 +1,4 @@
-import { StartFridaLibraryScriptRequest } from "@shared/api";
+import { StartFridaFullScriptRequest, StartFridaLibraryScriptRequest } from "@shared/api";
 import { JSONSchemaType } from "ajv";
 
 export const startFridaLibraryScriptSchema: JSONSchemaType<StartFridaLibraryScriptRequest> = {
@@ -14,5 +14,20 @@ export const startFridaLibraryScriptSchema: JSONSchemaType<StartFridaLibraryScri
     },
   },
   required: ["scriptName"],
+  additionalProperties: false,
+};
+
+export const startFridaFullScriptSchema: JSONSchemaType<StartFridaFullScriptRequest> = {
+  type: "object",
+  properties: {
+    code: {
+      type: "string",
+    },
+    language: {
+      type: "string",
+      enum: ["js", "ts"],
+    },
+  },
+  required: ["code", "language"],
   additionalProperties: false,
 };

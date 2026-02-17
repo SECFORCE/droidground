@@ -175,6 +175,15 @@ While testing the setup before going in production it could be useful to get the
 
 Therefore, a `GET` endpoint reachable at `/attackSurface` is provided and protected with a token (that needs to be used as the value of the `Authorization` header) that is randomly generated during the boot and printed in the logs (therefore accessible only by sysadmins).
 
+If you want to use your own Frida scripts in jailed mode, you just need to bind-mount the folder that contains them into the Docker container:
+
+```yaml
+volumes:
+  - <Frida library folder>:/droidground/library
+```
+
+A `library.json` file (like the one in the [library](./library/library.json)) is required to instruct the application on the list of available scripts.
+
 ## 🛠 Development
 
 Getting it up & running shouldn't be too difficult, but before starting you should have the following tools installed:

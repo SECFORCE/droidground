@@ -1,9 +1,12 @@
+/**
+ * This Frida script intercepts and logs all calls to Android's logging functions at both the Java and native layers
+ *
+ * @returns {void}
+ */
+
+import Java from "frida-java-bridge";
+
 rpc.exports = {
-  /**
-   * This Frida script intercepts and logs all calls to Android's logging functions at both the Java and native layers
-   *
-   * @returns {void}
-   */
   run: function () {
     Java.performNow(function () {
       let Log = Java.use("android.util.Log");

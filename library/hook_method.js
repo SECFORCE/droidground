@@ -1,14 +1,17 @@
+/**
+ * Dynamically hooks all overloads of a specified Java method in an Android app,
+ * logs its invocation and arguments, and replaces its arguments with user-specified ones.
+ *
+ * @param {Object} args - The input arguments for the hook.
+ * @param {string} args.className - Fully-qualified name of the Java class to hook (e.g., "com.example.MyClass").
+ * @param {string} args.methodName - Name of the method in the class to hook.
+ * @param {Array<any>} args.fnArgs - Array of values to overwrite the original method arguments with.
+ *
+ */
+
+import Java from "frida-java-bridge";
+
 rpc.exports = {
-  /**
-   * Dynamically hooks all overloads of a specified Java method in an Android app,
-   * logs its invocation and arguments, and replaces its arguments with user-specified ones.
-   *
-   * @param {Object} args - The input arguments for the hook.
-   * @param {string} args.className - Fully-qualified name of the Java class to hook (e.g., "com.example.MyClass").
-   * @param {string} args.methodName - Name of the method in the class to hook.
-   * @param {Array<any>} args.fnArgs - Array of values to overwrite the original method arguments with.
-   *
-   */
   run: function (args) {
     const { className, methodName, fnArgs } = args;
     Java.perform(function () {

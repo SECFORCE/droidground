@@ -1,6 +1,7 @@
 import { execSync } from "child_process";
 import path from "path";
-import fs from "fs";
+import { createRequire } from "node:module";
+import fs from "node:fs";
 import { readFile } from "fs/promises";
 import followRedirects from "follow-redirects";
 import Ajv from "ajv";
@@ -11,8 +12,13 @@ import Logger from "@shared/logger";
 import { DEFAULT_UPLOAD_FOLDER, RESOURCES } from "@server/config";
 import { ManagerSingleton } from "@server/manager";
 
-export const getFridaVersion = async () => {
-  return execSync("frida --version").toString().trim();
+const require = createRequire(import.meta.url);
+
+export const getFridaVersion = () => {
+  const entry = require.resolve("frida"); // .../node_modules/frida/build/src/frida.js
+  const pkgJsonPath = path.join(entry, "..", "..", "..", "package.json");
+  const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
+  return pkg.version;
 };
 
 export const mapAbiToFridaArch = (abi: string): string => {
@@ -105,7 +111,7 @@ export const setupFrida = async () => {
   Logger.info("Downloading Frida Server for the attached device");
   const singleton = ManagerSingleton.getInstance();
   const adb = await singleton.getAdb();
-  const fridaVersion = await getFridaVersion();
+  const fridaVersion = getFridaVersion();
   const abi = (await adb.subprocess.noneProtocol.spawnWaitText("getprop ro.product.cpu.abi")).trim();
   const arch = mapAbiToFridaArch(abi);
 

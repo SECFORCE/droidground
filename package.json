@@ -1,6 +1,6 @@
 {
   "name": "droidground",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "author": "Angelo Delicato",
   "scripts": {
@@ -44,7 +44,8 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "follow-redirects": "^1.15.9",
-    "frida": "^16.7.14",
+    "frida": "^17.7.3",
+    "frida-java-bridge": "^7.0.12",
     "lottie-react": "^2.4.1",
     "motion": "^12.10.4",
     "multer": "^2.0.0",

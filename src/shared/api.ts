@@ -83,6 +83,11 @@ export interface FridaLibraryResponse {
   library: FridaLibrary;
 }
 
+export interface StartFridaFullScriptRequest {
+  code: string;
+  language: "js" | "ts";
+}
+
 export interface StartFridaLibraryScriptRequest {
   scriptName: string;
   args: Record<string, any>;
