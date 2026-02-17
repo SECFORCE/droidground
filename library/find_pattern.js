@@ -3,6 +3,9 @@
  *
  * @returns {string[]} Class names in dot notation (e.g., java.lang.String).
  */
+
+import Java from "frida-java-bridge";
+
 function enumAllClasses() {
   var allClasses = [];
   var classes = Java.enumerateLoadedClassesSync();

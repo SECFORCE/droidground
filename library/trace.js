@@ -140,6 +140,9 @@ function uniqBy(array, key) {
  *                                Supports exact names or regex (e.g., "com.example.Class", /decrypt/i, or "exports:*!open*").
  * @returns {void}
  */
+
+import Java from "frida-java-bridge";
+
 rpc.exports = {
   run: function (args) {
     const { pattern } = args;
