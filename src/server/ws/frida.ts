@@ -9,6 +9,7 @@ import { IFridaRPC } from "@server/utils/types";
 import { fridaScriptsDir, libraryFile } from "@server/utils/helpers";
 import { StartFridaFullScriptRequest, StartFridaLibraryScriptRequest } from "@shared/api";
 import { startFridaFullScriptSchema, startFridaLibraryScriptSchema } from "@server/ws/schemas";
+import { sleep } from "@shared/helpers";
 
 type WsFridaSessionState = {
   device: frida.Device;
@@ -129,6 +130,28 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
 
     const getSessionState = () => (wsFridaSessions.get(ws) ?? null) as WsFridaSessionState | null;
 
+    const spawnApp = async (device: frida.Device): Promise<{ session: frida.Session; pid: ProcessID }> => {
+      let session: frida.Session;
+      let pid: ProcessID;
+      if (config.features.fridaInjection === "server") {
+        pid = await device.spawn(packageName);
+        session = await device.attach(pid);
+      } else {
+        const singleton = ManagerSingleton.getInstance();
+        await singleton.runTargetApp();
+        await sleep(1000); // Give the app some time to start and be detected by Frida
+        const frontmost = await device.getFrontmostApplication();
+
+        if (!frontmost || frontmost.identifier !== packageName) {
+          throw new Error("Target app is not running or in foreground");
+        }
+
+        pid = frontmost.pid;
+        session = await device.attach(pid);
+      }
+      return { session, pid };
+    };
+
     const prepareDeviceSession = async (): Promise<{
       device: frida.Device;
       pid: ProcessID;
@@ -139,8 +162,7 @@ export const setupFridaWss = (wssFrida: WebSocketServer) => {
       setSessionState({ device, pid: null, script: null });
       device.output.connect(onOutput);
 
-      const pid = await device.spawn(packageName);
-      const session = await device.attach(pid);
+      const { pid, session } = await spawnApp(device);
 
       setSessionState({ pid });
       session.detached.connect(onDetached);
