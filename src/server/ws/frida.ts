@@ -6,7 +6,7 @@ import Ajv from "ajv";
 import { ManagerSingleton } from "@server/manager";
 import Logger from "@shared/logger";
 import { IFridaRPC } from "@server/utils/types";
-import { fridaScriptsDir, libraryFile, rootDir } from "@server/utils/helpers";
+import { fridaScriptsDir, libraryFile } from "@server/utils/helpers";
 import { StartFridaFullScriptRequest, StartFridaLibraryScriptRequest } from "@shared/api";
 import { startFridaFullScriptSchema, startFridaLibraryScriptSchema } from "@server/ws/schemas";
 
