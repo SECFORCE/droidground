@@ -21,7 +21,7 @@ export const setupWs = async (httpServer: HTTPServer, basePath: string) => {
 
   // Handle upgrade requests
   httpServer.on("upgrade", (request, socket, head) => {
-    const { pathname } = parse(request.url ?? "", true);
+    const { pathname } = new URL(request.url ?? "", `http://droidground`); // We don't really care about the host
     if (pathname === `${basePath}${WEBSOCKET_ENDPOINTS.STREAMING}`) {
       wssScrcpy.handleUpgrade(request, socket, head, ws => {
         wssScrcpy.emit("connection", ws, request);

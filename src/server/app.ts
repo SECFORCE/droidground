@@ -63,7 +63,7 @@ export const serverApp = async (app: ExpressApplication, httpServer: HTTPServer)
   await manager.setCtf();
   const droidGroundConfig = manager.getConfig();
 
-  if (droidGroundConfig.features.fridaEnabled) {
+  if (droidGroundConfig.features.fridaEnabled && droidGroundConfig.features.fridaInjection === "server") {
     await setupFrida();
   }
 

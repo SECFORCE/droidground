@@ -2,7 +2,7 @@ import os from "os";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { WebSocket } from "ws";
 import { Server as HTTPServer } from "http";
 import { Adb, AdbServerClient, AdbShellProtocolPtyProcess, AdbTransport } from "@yume-chan/adb";
@@ -96,6 +96,7 @@ export class ManagerSingleton {
         teamModeEnabled: teamNum > 0 || teamNum === -1,
         unlimitedTeams: teamNum === -1,
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
+        fridaInjection: process.env.DROIDGROUND_FRIDA_INJECTION === "gadget" ? "gadget" : "server",
         exploitAppDuration:
           isNaN(exploitAppDuration) || exploitAppDuration.trim().length === 0 ? 10 : parseInt(exploitAppDuration),
         exploitAppMaxSize: exploitAppMaxSize,
@@ -336,8 +337,14 @@ export class ManagerSingleton {
     }
 
     Logger.info("Running setup.sh script...");
-    execSync(setupScript, { cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER }).toString().trim();
-
+    const scriptOutput = execFileSync(setupScript, {
+      cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER,
+      stdio: "pipe",
+      encoding: "utf-8",
+    })
+      .toString()
+      .trim();
+    Logger.info(`setup.sh output: ${scriptOutput}`);
     // Check if the app is installed, otherwise stop DroidGround
     await this.checkPackage();
 
@@ -359,7 +366,14 @@ export class ManagerSingleton {
     const initDFolder = process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const resetScript = path.resolve(initDFolder, "reset.sh");
     if (safeFileExists(resetScript)) {
-      execSync(resetScript, { cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER }).toString().trim();
+      const scriptOutput = execFileSync(resetScript, {
+        cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER,
+        stdio: "pipe",
+        encoding: "utf-8",
+      })
+        .toString()
+        .trim();
+      Logger.info(`reset.sh output: ${scriptOutput}`);
       return true;
     } else {
       Logger.error(`reset.sh script missing in the ${initDFolder}`);

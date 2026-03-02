@@ -98,6 +98,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_FILE_BROWSER_DISABLED`   | Disable file browser                                                              | `false`     |
 | `DROIDGROUND_FRIDA_DISABLED`          | Disable Frida support                                                             | `false`     |
 | `DROIDGROUND_FRIDA_TYPE`              | `jail` or `full`                                                                  | `jail`      |
+| `DROIDGROUND_FRIDA_INJECTION`         | `server` or `gadget`                                                              | `server`    |
 | `DROIDGROUND_LOGCAT_DISABLED`         | Disable logcat                                                                    | `false`     |
 | `DROIDGROUND_REBOOT_ENABLED`          | Enable reboot                                                                     | `false`     |
 | `DROIDGROUND_SHUTDOWN_ENABLED`        | Enable shutdown                                                                   | `false`     |
