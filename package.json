@@ -106,5 +106,9 @@
     "vite": "^6.3.3",
     "vite-tsconfig-paths": "^5.1.4",
     "zx": "^8.5.4"
+  },
+  "overrides": {
+    "file-type": "^21.3.2",
+    "yauzl": "^3.2.1"
   }
 }
