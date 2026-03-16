@@ -11,6 +11,7 @@ import { libraryFile, resourceFile, resourcesDir, safeFileExists } from "@server
 import Logger from "@shared/logger";
 import { DEFAULT_UPLOAD_FOLDER, RESOURCES } from "@server/config";
 import { ManagerSingleton } from "@server/manager";
+import { sleep } from "@shared/helpers";
 
 const require = createRequire(import.meta.url);
 
@@ -108,6 +109,17 @@ export const loadFridaLibrary = async (): Promise<FridaLibrary> => {
 };
 
 export const setupFrida = async () => {
+  Logger.warn(`
+  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  ┃ Frida Server mode is enabled                                     ┃
+  ┃                                                                  ┃
+  ┃ This mode is powerful, but less isolated than Gadget mode.       ┃
+  ┃ Make sure you understand the security implications before        ┃
+  ┃ continuing. Use it only on devices and environments you trust.   ┃
+  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+  `);
+  await sleep(5000);
+
   Logger.info("Downloading Frida Server for the attached device");
   const singleton = ManagerSingleton.getInstance();
   const adb = await singleton.getAdb();
