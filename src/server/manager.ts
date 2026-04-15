@@ -361,7 +361,8 @@ export class ManagerSingleton {
     }
 
     Logger.info("Running setup.sh script...");
-    const scriptOutput = execFileSync(setupScript, {
+    const setupArgs = this.config.adb.serial ? [this.config.adb.serial] : [];
+    const scriptOutput = execFileSync(setupScript, setupArgs, {
       cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER,
       stdio: "pipe",
       encoding: "utf-8",
@@ -390,7 +391,8 @@ export class ManagerSingleton {
     const initDFolder = process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const resetScript = path.resolve(initDFolder, "reset.sh");
     if (safeFileExists(resetScript)) {
-      const scriptOutput = execFileSync(resetScript, {
+      const resetArgs = this.config.adb.serial ? [this.config.adb.serial] : [];
+      const scriptOutput = execFileSync(resetScript, resetArgs, {
         cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER,
         stdio: "pipe",
         encoding: "utf-8",
