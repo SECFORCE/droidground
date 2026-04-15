@@ -51,6 +51,8 @@ export class ManagerSingleton {
   private constructor() {
     // private constructor prevents direct instantiation
     const port: any = process.env.DROIDGROUND_ADB_PORT ?? "";
+    const serialEnv: any = process.env.DROIDGROUND_ADB_SERIAL ?? "";
+    const adbSerial = serialEnv.trim().length === 0 ? undefined : serialEnv.trim();
     const exploitAppDuration: any = process.env.DROIDGROUND_EXPLOIT_APP_DURATION ?? "";
     const exploitAppmaxSizeEnv: any = process.env.DROIDGROUND_EXPLOIT_APP_MAX_SIZE ?? "";
     const exploitAppMaxSize: number =
@@ -77,6 +79,7 @@ export class ManagerSingleton {
       adb: {
         host: process.env.DROIDGROUND_ADB_HOST ?? "localhost",
         port: isNaN(port) || port.trim().length === 0 ? 5037 : parseInt(port),
+        serial: adbSerial,
       },
       features: {
         basePath: process.env.DROIDGROUND_BASE_PATH ?? "",
@@ -147,6 +150,15 @@ export class ManagerSingleton {
           return;
         }
 
+        const requestedSerial = this.config.adb.serial;
+        if (requestedSerial) {
+          const addedSerials = _devices.map(device => device.serial);
+          if (!addedSerials.includes(requestedSerial)) {
+            Logger.debug(`Ignoring added devices because serial '${requestedSerial}' was not included.`);
+            return;
+          }
+        }
+
         await this.setupAdb();
         await this.setCtf();
 
@@ -204,9 +216,21 @@ export class ManagerSingleton {
       throw new Error("No device connected");
     }
 
-    Logger.debug("Listing devices (and using the first one)");
-    Logger.debug(devices);
-    const device = devices[0];
+    const serial = this.config.adb.serial;
+    let device: AdbServerClient.Device | undefined;
+    if (serial) {
+      Logger.debug(`Looking for device with serial '${serial}'`);
+      device = devices.find(d => d.serial === serial);
+      if (!device) {
+        Logger.error(`ADB device with serial '${serial}' not found`);
+        Logger.debug(`Connected devices: ${JSON.stringify(devices)}`);
+        throw new Error(`ADB device with serial '${serial}' not found`);
+      }
+    } else {
+      Logger.debug("Listing devices (and using the first one)");
+      Logger.debug(devices);
+      device = devices[0];
+    }
 
     this.device = device;
 
@@ -337,7 +361,8 @@ export class ManagerSingleton {
     }
 
     Logger.info("Running setup.sh script...");
-    const scriptOutput = execFileSync(setupScript, {
+    const setupArgs = this.config.adb.serial ? [this.config.adb.serial] : [];
+    const scriptOutput = execFileSync(setupScript, setupArgs, {
       cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER,
       stdio: "pipe",
       encoding: "utf-8",
@@ -366,7 +391,8 @@ export class ManagerSingleton {
     const initDFolder = process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER ?? "/init.d";
     const resetScript = path.resolve(initDFolder, "reset.sh");
     if (safeFileExists(resetScript)) {
-      const scriptOutput = execFileSync(resetScript, {
+      const resetArgs = this.config.adb.serial ? [this.config.adb.serial] : [];
+      const scriptOutput = execFileSync(resetScript, resetArgs, {
         cwd: process.env.DROIDGROUND_INIT_SCRIPTS_FOLDER,
         stdio: "pipe",
         encoding: "utf-8",

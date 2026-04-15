@@ -36,6 +36,7 @@ export interface DroidGroundConfig {
   adb: {
     host: string;
     port: number;
+    serial?: string;
   };
   features: DroidGroundFeatures;
   teams: DroidGroundTeam[];
