@@ -86,6 +86,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_APP_PACKAGE_NAME`        | Package name of target app                                                        | -           |
 | `DROIDGROUND_ADB_HOST`                | ADB host                                                                          | `localhost` |
 | `DROIDGROUND_ADB_PORT`                | ADB port                                                                          | `5037`      |
+| `DROIDGROUND_ADB_SERIAL`              | Optional ADB device serial to connect to                                           | -           |
 | `DROIDGROUND_DEVICE_TYPE`             | `usb` or `network`                                                                | `usb`       |
 | `DROIDGROUND_DEVICE_HOST`             | IP of Android device (`adb`) (network mode only)                                  | -           |
 | `DROIDGROUND_DEVICE_PORT`             | port of Android device (`adb`) (network mode only)                                | -           |
