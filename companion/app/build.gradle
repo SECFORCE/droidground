@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation 'com.google.protobuf:protobuf-java:3.22.3'
+    implementation 'com.google.protobuf:protobuf-java:3.25.5'
 }
 
 android {
@@ -61,7 +61,7 @@ android.applicationVariants.all { variant ->
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.22.3'
+        artifact = 'com.google.protobuf:protoc:3.25.5'
     }
     generateProtoTasks {
         all().each { task ->
