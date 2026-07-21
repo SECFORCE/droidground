@@ -100,14 +100,31 @@ const ssrLoader = async (app: express.Application, isProd: boolean) => {
 const createServer = async (isProd = process.env.NODE_ENV === "production") => {
   const app = express();
   const httpServer = http.createServer(app);
-  await serverApp(app, httpServer);
-  await ssrLoader(app, isProd);
 
-  const host = process.env.DROIDGROUND_HOST || "0.0.0.0";
-  const port = process.env.DROIDGROUND_PORT || 4242;
-  httpServer.listen(Number(port), host, () => {
-    Logger.info(`DroidGround is running on http://${host}:${port} in ${isProd ? "production" : "development"} mode.`);
-  });
+  /*
+   * Keep the Node.js event loop alive during startup.
+   * The ADB device observer (@yume-chan/adb) connects to the ADB server using an
+   * unref'd socket and only installs its own keep-alive timer *after* the initial
+   * device list is received. Until the HTTP server starts listening there is no
+   * other ref'd handle, so a slow ADB reply (common with `network` devices reached
+   * across containers) lets the event loop drain and the process exits cleanly with
+   * code 0 before setup finishes. This timer guarantees the process survives startup
+   * and is cleared once the server is listening.
+   */
+  const startupKeepAlive = setInterval(() => {}, 1 << 30);
+
+  try {
+    await serverApp(app, httpServer);
+    await ssrLoader(app, isProd);
+
+    const host = process.env.DROIDGROUND_HOST || "0.0.0.0";
+    const port = process.env.DROIDGROUND_PORT || 4242;
+    httpServer.listen(Number(port), host, () => {
+      Logger.info(`DroidGround is running on http://${host}:${port} in ${isProd ? "production" : "development"} mode.`);
+    });
+  } finally {
+    clearInterval(startupKeepAlive);
+  }
 };
 
 createServer();
