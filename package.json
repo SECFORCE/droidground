@@ -37,7 +37,7 @@
     "@yume-chan/scrcpy-decoder-tinyh264": "2.0.1",
     "@yume-chan/scrcpy-decoder-webcodecs": "2.0.1",
     "ajv": "8.18.0",
-    "axios": "1.16.0",
+    "axios": "1.18.1",
     "compression": "1.8.1",
     "cors": "2.8.5",
     "cross-env": "7.0.3",
