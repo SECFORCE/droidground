@@ -5,13 +5,16 @@ plugins {
 }
 
 dependencies {
-    implementation 'com.google.protobuf:protobuf-java:3.25.5'
+    implementation 'com.google.protobuf:protobuf-java:4.33.6'
 }
 
 android {
     namespace 'com.secforce.droidground'
 
     compileSdk = 33
+    buildFeatures {
+        buildConfig = true
+    }
 
     def pkgFilePath = "$rootDir/../package.json"
     def pkgFile = new File(pkgFilePath)
@@ -61,7 +64,7 @@ android.applicationVariants.all { variant ->
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.25.5'
+        artifact = 'com.google.protobuf:protoc:4.33.6'
     }
     generateProtoTasks {
         all().each { task ->
