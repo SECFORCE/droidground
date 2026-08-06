@@ -11,7 +11,7 @@ export default defineConfig({
     minify: false,
   },
   optimizeDeps: {
-    exclude: ["@yume-chan/fetch-scrcpy-server", "@yume-chan/scrcpy-decoder-tinyh264"],
+    exclude: ["@yume-chan/scrcpy-decoder-tinyh264"],
     include: ["@yume-chan/scrcpy-decoder-tinyh264 > yuv-buffer", "@yume-chan/scrcpy-decoder-tinyh264 > yuv-canvas"],
   },
   envPrefix: "DROIDGROUND",
