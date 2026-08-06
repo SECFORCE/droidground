@@ -38,7 +38,6 @@ FROM node:24.13-trixie-slim AS main-builder
 WORKDIR /usr/src/app
 COPY . .
 RUN npm install --ignore-scripts && \
-  npx fetch-scrcpy-server 3.1 && \
   npm run scrcpy && \ 
   npm run build:setup && \ 
   npm run build:client && \ 

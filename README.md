@@ -208,7 +208,6 @@ npm rebuild frida
 # Build companion app
 npm run companion
 # Get scrcpy
-npx fetch-scrcpy-server 3.1
 npm run scrcpy
 ```
 
