@@ -14,6 +14,7 @@ import Logger from "@shared/logger";
 import { broadcastForPhase } from "@server/utils/ws";
 import { resourceFile } from "@server/utils/helpers";
 import { RESOURCES } from "@server/config";
+import { getScrcpyVideoSettings, selectVideoEncoder } from "@server/config/scrcpy";
 
 const H264Capabilities = TinyH264Decoder.capabilities.h264;
 
@@ -48,8 +49,9 @@ export const setupScrcpy = async () => {
     }),
   );
 
-  // Choose first encoder for now
-  const encoder = encoders.filter(e => e.type === "video")[0];
+  const encoder = selectVideoEncoder(encoders);
+  const videoSettings = getScrcpyVideoSettings();
+  Logger.info({ encoder: encoder.name, ...videoSettings }, "Starting screen stream");
   const scrcpyClient = await AdbScrcpyClient.start(
     adb,
     DefaultServerPath,
@@ -58,11 +60,10 @@ export const setupScrcpy = async () => {
       control: singleton.getConfig().features.scrcpyControlEnabled,
       clipboardAutosync: false,
       videoCodec: "h264",
-      videoBitRate: 10000000,
+      ...videoSettings,
       videoEncoder: encoder.name,
       videoCodecOptions: new ScrcpyCodecOptions({
         iFrameInterval: 1,
-        intraRefreshPeriod: 1,
         profile: H264Capabilities.maxProfile,
         level: H264Capabilities.maxLevel,
       }),
@@ -100,23 +101,19 @@ export const setupScrcpy = async () => {
                   data: packet.data,
                 });
                 break;
-              case "data":
+              case "data": {
                 // Handle data packet
                 const metadata: DataMetadata = {
                   keyframe: packet.keyframe,
-                  pts: packet.pts ? packet.pts.toString() : null,
+                  pts: packet.pts?.toString() ?? null,
                 };
-                // Store frame
-                singleton.lastFrame = { metadata: metadata, data: packet.data };
-                if (metadata.keyframe) {
-                  singleton.lastKeyframe = { metadata: metadata, data: packet.data };
-                }
                 broadcastForPhase(wsStreamingClients, StreamingPhase.RENDER, {
                   type: WSMessageType.DATA,
                   metadata: metadata,
                   data: packet.data,
                 });
                 break;
+              }
             }
           },
         }),

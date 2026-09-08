@@ -41,18 +41,9 @@ export const setupScrcpyWss = (wssStreaming: WebSocketServer) => {
           }
           break;
         case WSMessageType.CONFIGURATION_ACK: {
-          let nextState: StreamingPhase =
-            singleton.sharedVideoMetadata?.hardwareType === "hardware"
-              ? StreamingPhase.KEYFRAME
-              : StreamingPhase.RENDER;
-          // Send last frames if available
-          if (nextState == StreamingPhase.RENDER && singleton.lastFrame) {
-            sendStructuredMessage(ws, WSMessageType.DATA, singleton.lastFrame.metadata, singleton.lastFrame.data);
-          } else if (nextState == StreamingPhase.KEYFRAME && singleton.lastKeyframe) {
-            sendStructuredMessage(ws, WSMessageType.DATA, singleton.lastKeyframe.metadata, singleton.lastKeyframe.data);
-            nextState = StreamingPhase.RENDER;
-          }
-          wsStreamingClients.set(id, { ...(currentClientData as WebsocketClient), state: nextState });
+          // Both decoders need a fresh keyframe, followed by its dependent frames.
+          // An old cached keyframe plus the current delta frame is not a valid sequence.
+          wsStreamingClients.set(id, { ...currentClientData, state: StreamingPhase.KEYFRAME });
           break;
         }
         default:

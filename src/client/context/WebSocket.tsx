@@ -1,8 +1,9 @@
-import { createContext, useEffect, useRef, useContext, ReactNode, useCallback, useState } from "react";
+import { createContext, useEffect, useRef, useContext, ReactNode, useCallback, useState, useMemo } from "react";
 import { StreamingPhase, WSCallback, WSMessageType } from "@shared/types";
 import toast from "react-hot-toast";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
 import { useAPI } from "@client/context/API";
+import { parseVideoMessage } from "@client/utils/video-stream";
 
 type WebSocketContextType = {
   sendMessage: (message: string) => void;
@@ -16,8 +17,14 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { featuresConfig } = useAPI();
   const [streamingPhase, setStreamingPhase] = useState<StreamingPhase>(StreamingPhase.INIT);
+  const phaseRef = useRef(StreamingPhase.INIT);
   const socketRef = useRef<WebSocket | null>(null);
   const listeners = useRef<Map<WSMessageType, Set<WSCallback>>>(new Map());
+  const updatePhase = useCallback((phase: StreamingPhase) => {
+    if (phaseRef.current === phase) return;
+    phaseRef.current = phase;
+    setStreamingPhase(phase);
+  }, []);
 
   useEffect(() => {
     const connect = async () => {
@@ -38,25 +45,19 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
             return;
           }
 
-          const view = new DataView(event.data);
-          const metaLen = view.getUint32(0);
-          const full = new Uint8Array(event.data);
-          const metaBuf = full.slice(4, 4 + metaLen);
-          const binaryBuf = full.slice(4 + metaLen);
-
-          const { type, ...metadata } = JSON.parse(new TextDecoder().decode(metaBuf));
+          const { type, metadata, data } = parseVideoMessage(event.data);
 
           switch (type) {
             case WSMessageType.CONFIGURATION:
-              setStreamingPhase(StreamingPhase.METADATA);
+              updatePhase(StreamingPhase.METADATA);
               break;
             case WSMessageType.DATA:
-              setStreamingPhase(StreamingPhase.RENDER);
+              updatePhase(StreamingPhase.RENDER);
               break;
           }
 
           // Notify specific topic listeners
-          listeners.current.get(type)?.forEach(callback => callback(metadata, binaryBuf));
+          listeners.current.get(type)?.forEach(callback => callback(metadata, data));
         } catch (error) {
           toast.error("WebSocket message parsing error");
           console.error(`WebSocket message parsing error: ${error}`);
@@ -65,7 +66,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
 
       socket.onerror = error => console.error(`WebSocket error: ${error}`);
       socket.onclose = () => {
-        setStreamingPhase(StreamingPhase.INIT);
+        updatePhase(StreamingPhase.INIT);
         console.error("WebSocket Disconnected");
       };
     };
@@ -75,7 +76,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [featuresConfig.basePath]);
+  }, [featuresConfig.basePath, updatePhase]);
 
   const sendMessage = useCallback((message: string) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
@@ -99,18 +100,11 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   }, []);
 
-  return (
-    <WebSocketContext.Provider
-      value={{
-        sendMessage,
-        subscribe,
-        unsubscribe,
-        streamingPhase,
-      }}
-    >
-      {children}
-    </WebSocketContext.Provider>
+  const value = useMemo(
+    () => ({ sendMessage, subscribe, unsubscribe, streamingPhase }),
+    [sendMessage, subscribe, unsubscribe, streamingPhase],
   );
+  return <WebSocketContext.Provider value={value}>{children}</WebSocketContext.Provider>;
 };
 
 export const useWebSocket = () => {

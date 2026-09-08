@@ -1,7 +1,5 @@
 import { DataMetadata, StreamingPhase, WSCallback, WSMessageType } from "@shared/types";
-import { ScrcpyVideoCodecId, ScrcpyVideoStreamMetadata } from "@yume-chan/scrcpy";
-import type { ScrcpyMediaStreamPacket } from "@yume-chan/scrcpy";
-import type { VideoFrameRenderer } from "@yume-chan/scrcpy-decoder-webcodecs";
+import { ScrcpyVideoCodecId } from "@yume-chan/scrcpy";
 import { TinyH264Decoder } from "@yume-chan/scrcpy-decoder-tinyh264";
 import {
   WebGLVideoFrameRenderer,
@@ -18,152 +16,77 @@ import { useWebSocket } from "@client/context/WebSocket";
 import toast from "react-hot-toast";
 import { useAPI } from "@client/context/API";
 import { bindScrcpyControls } from "@client/utils/scrcpy-control";
+import { LiveVideoDecoder } from "@client/utils/video-stream";
 
-interface EnhancedStreamMetadata extends ScrcpyVideoStreamMetadata {
-  hardwareType: "hardware" | "software" | "hybrid";
-  encoder: string;
-}
-
-enum Renderer {
-  TinyH264,
-  WebCodecs,
-}
-
-const TinyH264Renderer: React.FC = () => {
-  const { sendMessage, subscribe, unsubscribe, streamingPhase } = useWebSocket();
-  // Store latest state in a ref to avoid stale closures
-  const controllerRef = useRef<ReadableStreamDefaultController<ScrcpyMediaStreamPacket> | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    const configListener: WSCallback = async (_metadata, binaryData) => {
-      if (!binaryData) return;
-      controllerRef.current?.enqueue({ type: "configuration", data: binaryData });
-      sendMessage(WSMessageType.CONFIGURATION_ACK);
-    };
-
-    const dataListener: WSCallback = async (m, binaryData) => {
-      const metadata = m as DataMetadata;
-      if (!binaryData) return;
-      controllerRef.current?.enqueue({
-        type: "data",
-        keyframe: metadata.keyframe,
-        pts: metadata.pts ? BigInt(metadata.pts) : undefined,
-        data: binaryData,
-      });
-    };
-
-    const start = () => {
-      try {
-        const stream = new ReadableStream<ScrcpyMediaStreamPacket>({
-          start(controller) {
-            controllerRef.current = controller;
-          },
-        });
-
-        subscribe(WSMessageType.CONFIGURATION, configListener);
-        subscribe(WSMessageType.DATA, dataListener);
-
-        const decoder = new TinyH264Decoder({ canvas: canvasRef.current as HTMLCanvasElement });
-        void stream.pipeTo(decoder.writable);
-        sendMessage(WSMessageType.STREAM_METADATA_ACK);
-      } catch (err) {
-        console.error(err);
-        toast.error("Error while starting rendering");
-      }
-    };
-
-    if (canvasRef.current) {
-      start();
-    }
-
-    return () => {
-      unsubscribe(WSMessageType.CONFIGURATION, configListener);
-      unsubscribe(WSMessageType.DATA, dataListener);
-    };
-  }, [sendMessage, subscribe, unsubscribe]);
-
-  return (
-    <div className={streamingPhase !== StreamingPhase.RENDER ? "hidden" : "block"}>
-      <canvas ref={canvasRef} />
-    </div>
-  );
-};
-
-const WebCodecsRenderer: React.FC = () => {
+const DeviceVideoRenderer: React.FC = () => {
   const { sendMessage, subscribe, unsubscribe, streamingPhase } = useWebSocket();
   const containerRef = useRef<HTMLDivElement>(null);
-  const controllerRef = useRef<ReadableStreamDefaultController<ScrcpyMediaStreamPacket> | null>(null);
-
-  const createVideoFrameRenderer = (): {
-    renderer: VideoFrameRenderer;
-    element: HTMLVideoElement | HTMLCanvasElement;
-  } => {
-    // Uncomment following lines to enable InsertableStreamVideoFrameRenderer, see quirks above
-    // if (InsertableStreamVideoFrameRenderer.isSupported) {
-    //   const renderer = new InsertableStreamVideoFrameRenderer();
-    //   return { renderer, element: renderer.element };
-    // }
-
-    if (WebGLVideoFrameRenderer.isSupported) {
-      const renderer = new WebGLVideoFrameRenderer();
-      return { renderer, element: renderer.canvas as HTMLCanvasElement };
-    }
-
-    const renderer = new BitmapVideoFrameRenderer();
-    return { renderer, element: renderer.canvas as HTMLCanvasElement };
-  };
 
   useEffect(() => {
-    const configListener: WSCallback = async (_metadata, binaryData) => {
-      if (!binaryData) return;
-      controllerRef.current?.enqueue({ type: "configuration", data: binaryData });
+    const container = containerRef.current;
+    if (!container) return;
+    // Android's encoder and the browser's decoder are independent capabilities.
+    let useWebCodecs = WebCodecsVideoDecoder.isSupported;
+    let stopped = false;
+    const live = new LiveVideoDecoder(
+      () => {
+        const canvas = document.createElement("canvas");
+        const previousCanvas = container.querySelector("canvas");
+        if (previousCanvas) {
+          canvas.width = previousCanvas.width;
+          canvas.height = previousCanvas.height;
+        }
+        const decoder = useWebCodecs
+          ? new WebCodecsVideoDecoder({
+              codec: ScrcpyVideoCodecId.H264,
+              renderer: WebGLVideoFrameRenderer.isSupported
+                ? new WebGLVideoFrameRenderer(canvas)
+                : new BitmapVideoFrameRenderer(canvas),
+            })
+          : new TinyH264Decoder({ canvas });
+        container.replaceChildren(canvas);
+        return decoder;
+      },
+      error => {
+        if (stopped) return;
+        console.error("Video decoder error", error);
+        if (useWebCodecs) {
+          useWebCodecs = false;
+          console.info("Falling back to the software video decoder");
+        } else {
+          toast.error("Error decoding the device screen", { id: "video-decoder-error" });
+        }
+      },
+    );
+
+    const configListener: WSCallback = (_metadata, data) => {
+      if (!data.length) return;
+      live.configure(data);
       sendMessage(WSMessageType.CONFIGURATION_ACK);
     };
-
-    const dataListener: WSCallback = async (m, binaryData) => {
+    const dataListener: WSCallback = (m, data) => {
+      if (!data.length) return;
       const metadata = m as DataMetadata;
-      if (!binaryData) return;
-      controllerRef.current?.enqueue({
-        type: "data",
-        keyframe: metadata.keyframe,
-        pts: metadata.pts ? BigInt(metadata.pts) : undefined,
-        data: binaryData,
-      });
+      live.push(
+        {
+          type: "data",
+          keyframe: metadata.keyframe,
+          pts: metadata.pts !== null ? BigInt(metadata.pts) : undefined,
+          data,
+        },
+        !document.hidden,
+      );
     };
-
-    const start = () => {
-      try {
-        const stream = new ReadableStream<ScrcpyMediaStreamPacket>({
-          start(controller) {
-            controllerRef.current = controller;
-          },
-        });
-
-        subscribe(WSMessageType.CONFIGURATION, configListener);
-        subscribe(WSMessageType.DATA, dataListener);
-
-        const { renderer, element } = createVideoFrameRenderer();
-        (containerRef.current as HTMLDivElement).appendChild(element);
-        const decoder = new WebCodecsVideoDecoder({
-          codec: ScrcpyVideoCodecId.H264,
-          renderer: renderer as VideoFrameRenderer,
-        });
-        void stream.pipeTo(decoder.writable);
-        sendMessage(WSMessageType.STREAM_METADATA_ACK);
-      } catch (err) {
-        console.error(err);
-        toast.error("Error while starting rendering");
-      }
-    };
-
-    if (containerRef.current) {
-      start();
-    }
+    subscribe(WSMessageType.CONFIGURATION, configListener);
+    subscribe(WSMessageType.DATA, dataListener);
+    sendMessage(WSMessageType.STREAM_METADATA_ACK);
 
     return () => {
+      stopped = true;
       unsubscribe(WSMessageType.CONFIGURATION, configListener);
       unsubscribe(WSMessageType.DATA, dataListener);
+      live.dispose();
+      container.replaceChildren();
     };
   }, [sendMessage, subscribe, unsubscribe]);
 
@@ -171,13 +94,17 @@ const WebCodecsRenderer: React.FC = () => {
 };
 
 export const VideoRenderer: React.FC = () => {
-  const [rendererType, setRendererType] = useState<Renderer | null>();
+  const [streamReady, setStreamReady] = useState(false);
   const { subscribe, unsubscribe, streamingPhase, sendMessage } = useWebSocket();
   const { featuresConfig } = useAPI();
   const screenRef = useRef<HTMLDivElement>(null);
   const [disabledNotice, setDisabledNotice] = useState<{ x: number; y: number } | null>(null);
   const reduceMotion = useReducedMotion();
   const controlEnabled = featuresConfig.scrcpyControlEnabled && streamingPhase === StreamingPhase.RENDER;
+
+  useEffect(() => {
+    if (streamingPhase === StreamingPhase.INIT) setStreamReady(false);
+  }, [streamingPhase]);
 
   useEffect(() => {
     if (!disabledNotice) return;
@@ -191,10 +118,7 @@ export const VideoRenderer: React.FC = () => {
   }, [controlEnabled, sendMessage]);
 
   useEffect(() => {
-    const metadataListener: WSCallback = m => {
-      const metadata = m as EnhancedStreamMetadata;
-      setRendererType(metadata.hardwareType === "hardware" ? Renderer.WebCodecs : Renderer.TinyH264);
-    };
+    const metadataListener: WSCallback = () => setStreamReady(true);
     subscribe(WSMessageType.STREAM_METADATA, metadataListener);
 
     return () => {
@@ -238,8 +162,7 @@ export const VideoRenderer: React.FC = () => {
           <Lottie animationData={bootData} loop={true} />
         </div>
       )}
-      {rendererType === Renderer.TinyH264 && <TinyH264Renderer />}
-      {rendererType === Renderer.WebCodecs && <WebCodecsRenderer />}
+      {streamReady && <DeviceVideoRenderer />}
       {typeof document !== "undefined" &&
         createPortal(
           <AnimatePresence>

@@ -199,14 +199,14 @@ test("streaming ACKs work with control disabled; enabled control forwards text a
       }) as any,
   );
   const wss = new EventEmitter();
-  const ws = Object.assign(new EventEmitter(), { send: () => {} });
+  const ws = Object.assign(new EventEmitter(), { send: () => {}, readyState: 1 });
   setupScrcpyWss(wss as any);
   wss.emit("connection", ws);
   const send = (message: string, binary = false) => ws.emit("message", Buffer.from(message), binary);
   send(WSMessageType.STREAM_METADATA_ACK);
   assert.equal([...clients.values()][0].state, StreamingPhase.METADATA);
   send(WSMessageType.CONFIGURATION_ACK);
-  assert.equal([...clients.values()][0].state, StreamingPhase.RENDER);
+  assert.equal([...clients.values()][0].state, StreamingPhase.KEYFRAME);
   const text = JSON.stringify({ type: "control", event: "text", text: "hello" });
   send(text);
   await tick();

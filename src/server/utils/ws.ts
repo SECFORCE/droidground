@@ -2,17 +2,15 @@ import { DataMetadata, StreamingPhase, WSMessage, WSMessageType, WSMetadata } fr
 import { WebsocketClient } from "@server/utils/types";
 import { WebSocket } from "ws";
 
-export const sendStructuredMessage = (
-  ws: WebSocket,
-  type: WSMessageType,
-  metadata: WSMetadata,
-  binaryData?: Uint8Array,
-) => {
+const textEncoder = new TextEncoder();
+export const MAX_VIDEO_BUFFER_BYTES = 256 * 1024;
+
+export const serializeStructuredMessage = (type: WSMessageType, metadata: WSMetadata, binaryData?: Uint8Array) => {
   const typedMetadata = {
     ...metadata,
     type,
   };
-  const metaBuf = new TextEncoder().encode(JSON.stringify(typedMetadata));
+  const metaBuf = textEncoder.encode(JSON.stringify(typedMetadata));
   const metaLenBuf = new Uint8Array(4);
   new DataView(metaLenBuf.buffer).setUint32(0, metaBuf.length);
 
@@ -25,7 +23,16 @@ export const sendStructuredMessage = (
     fullPayload.set(binaryData, 4 + metaBuf.length);
   }
 
-  ws.send(fullPayload);
+  return fullPayload;
+};
+
+export const sendStructuredMessage = (
+  ws: WebSocket,
+  type: WSMessageType,
+  metadata: WSMetadata,
+  binaryData?: Uint8Array,
+) => {
+  if (ws.readyState === WebSocket.OPEN) ws.send(serializeStructuredMessage(type, metadata, binaryData));
 };
 
 export const broadcastForPhase = (
@@ -33,16 +40,26 @@ export const broadcastForPhase = (
   state: StreamingPhase,
   message: WSMessage,
 ) => {
-  for (const [wsClientId, client] of websocketClients) {
-    // To avoid issues always send a keyframe first
-    if (state === StreamingPhase.RENDER && client.state === StreamingPhase.KEYFRAME) {
-      const metadata = message.metadata as DataMetadata;
-      if (metadata.keyframe) {
-        sendStructuredMessage(client.ws, WSMessageType.DATA, message.metadata, message.data);
-        websocketClients.set(wsClientId, { ...client, state: StreamingPhase.RENDER });
+  let payload: Uint8Array | undefined;
+  for (const client of websocketClients.values()) {
+    if (client.ws.readyState !== WebSocket.OPEN) continue;
+    if (message.type === WSMessageType.CONFIGURATION) {
+      if (client.state === StreamingPhase.INIT) continue;
+      // Configuration changes (e.g. rotation) also apply to viewers already rendering.
+      client.state = StreamingPhase.METADATA;
+    } else if (state === StreamingPhase.RENDER) {
+      if (client.state !== StreamingPhase.RENDER && client.state !== StreamingPhase.KEYFRAME) continue;
+      if (client.ws.bufferedAmount > MAX_VIDEO_BUFFER_BYTES) {
+        // Discard a dependent sequence together, then resume at a fresh keyframe.
+        client.state = StreamingPhase.KEYFRAME;
+        continue;
       }
-    } else if (client.state === state) {
-      sendStructuredMessage(client.ws, WSMessageType.DATA, message.metadata, message.data);
-    }
+      if (client.state === StreamingPhase.KEYFRAME && !(message.metadata as DataMetadata).keyframe) continue;
+      client.state = StreamingPhase.RENDER;
+    } else if (client.state !== state) continue;
+
+    // Package once per frame, even when many teams are watching the same device.
+    payload ??= serializeStructuredMessage(message.type, message.metadata, message.data);
+    client.ws.send(payload);
   }
 };
