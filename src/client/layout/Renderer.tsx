@@ -9,6 +9,9 @@ import {
   WebCodecsVideoDecoder,
 } from "@yume-chan/scrcpy-decoder-webcodecs";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { LuLockKeyhole } from "react-icons/lu";
 import Lottie from "lottie-react";
 import bootData from "@client/assets/boot.json";
 import { useWebSocket } from "@client/context/WebSocket";
@@ -172,7 +175,15 @@ export const VideoRenderer: React.FC = () => {
   const { subscribe, unsubscribe, streamingPhase, sendMessage } = useWebSocket();
   const { featuresConfig } = useAPI();
   const screenRef = useRef<HTMLDivElement>(null);
+  const [disabledNotice, setDisabledNotice] = useState<{ x: number; y: number } | null>(null);
+  const reduceMotion = useReducedMotion();
   const controlEnabled = featuresConfig.scrcpyControlEnabled && streamingPhase === StreamingPhase.RENDER;
+
+  useEffect(() => {
+    if (!disabledNotice) return;
+    const timeout = window.setTimeout(() => setDisabledNotice(null), 2000);
+    return () => window.clearTimeout(timeout);
+  }, [disabledNotice]);
 
   useEffect(() => {
     if (!controlEnabled || !screenRef.current) return;
@@ -194,6 +205,14 @@ export const VideoRenderer: React.FC = () => {
   return (
     <div
       ref={screenRef}
+      onClick={event => {
+        if (featuresConfig.scrcpyControlEnabled) return;
+        const halfWidth = Math.min(112, (window.innerWidth - 24) / 2);
+        setDisabledNotice({
+          x: Math.max(halfWidth + 12, Math.min(window.innerWidth - halfWidth - 12, event.clientX)),
+          y: Math.max(80, event.clientY - 14),
+        });
+      }}
       tabIndex={controlEnabled ? 0 : undefined}
       role={controlEnabled ? "application" : undefined}
       aria-label={
@@ -221,6 +240,34 @@ export const VideoRenderer: React.FC = () => {
       )}
       {rendererType === Renderer.TinyH264 && <TinyH264Renderer />}
       {rendererType === Renderer.WebCodecs && <WebCodecsRenderer />}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {disabledNotice && !featuresConfig.scrcpyControlEnabled && (
+              <div
+                className="pointer-events-none fixed z-50 w-56 max-w-[calc(100vw-24px)] -translate-x-1/2 -translate-y-full"
+                style={{ left: disabledNotice.x, top: disabledNotice.y }}
+              >
+                <motion.div
+                  role="status"
+                  initial={{ opacity: 0, y: reduceMotion ? 0 : 6, scale: reduceMotion ? 1 : 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: reduceMotion ? 0 : -4 }}
+                  transition={{ duration: 0.18 }}
+                  className="relative flex items-center gap-3 rounded-xl border border-white/15 bg-gray-950/95 px-4 py-3 text-white shadow-xl shadow-black/30 backdrop-blur-md"
+                >
+                  <LuLockKeyhole className="size-5 shrink-0 text-amber-300" aria-hidden="true" />
+                  <div>
+                    <p className="text-sm font-medium">View-only mode</p>
+                    <p className="text-xs text-gray-400">Device control is disabled.</p>
+                  </div>
+                  <span className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 border-r border-b border-white/15 bg-gray-950" />
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
     </div>
   );
 };
