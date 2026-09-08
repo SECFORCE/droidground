@@ -48,14 +48,10 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
 
           switch (type) {
             case WSMessageType.CONFIGURATION:
-              if (streamingPhase !== StreamingPhase.METADATA) {
-                setStreamingPhase(StreamingPhase.METADATA);
-              }
+              setStreamingPhase(StreamingPhase.METADATA);
               break;
             case WSMessageType.DATA:
-              if (streamingPhase !== StreamingPhase.RENDER) {
-                setStreamingPhase(StreamingPhase.RENDER);
-              }
+              setStreamingPhase(StreamingPhase.RENDER);
               break;
           }
 
@@ -68,19 +64,26 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
       };
 
       socket.onerror = error => console.error(`WebSocket error: ${error}`);
-      socket.onclose = () => console.error("WebSocket Disconnected");
+      socket.onclose = () => {
+        setStreamingPhase(StreamingPhase.INIT);
+        console.error("WebSocket Disconnected");
+      };
     };
 
     connect();
-  }, []);
+    return () => {
+      socketRef.current?.close();
+      socketRef.current = null;
+    };
+  }, [featuresConfig.basePath]);
 
-  const sendMessage = (message: string) => {
+  const sendMessage = useCallback((message: string) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(message);
     } else {
-      console.warn("WebSocket is not open. Message not sent:", message);
+      console.warn("WebSocket is not open. Message not sent.");
     }
-  };
+  }, []);
 
   const subscribe = useCallback((topic: WSMessageType, callback: WSCallback) => {
     if (!listeners.current.has(topic)) {

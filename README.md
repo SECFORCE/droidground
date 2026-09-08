@@ -47,7 +47,7 @@ With real-time device streaming, fine-grained control over features, Frida integ
 
 DroidGround provides a rich set of server-controlled features.
 
-- **Real-Time Device Screen** (via `scrcpy`)
+- **Real-Time Device Screen** (via `scrcpy`), with optional mouse, touch, and keyboard control
 - **Reset Challenge State**
 - **Restart App / Start Activity / Start Service**
 - **Send Broadcast Intent**
@@ -108,6 +108,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService                                                              | `false`     |
 | `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal                                                                  | `false`     |
 | `DROIDGROUND_RESET_DISABLED`          | Disable reset                                                                     | `false`     |
+| `DROIDGROUND_SCRCPY_CONTROL_ENABLED` | Enable mouse, touch, and keyboard input through the device screen                  | `false`     |
 | `DROIDGROUND_EXPLOIT_APP_DURATION`    | The time (in seconds) the exploit app will be active                              | `10`        |
 | `DROIDGROUND_EXPLOIT_APP_MAX_SIZE`    | The max size (in MB) of the exploit app                                           | `50`        |
 | `DROIDGROUND_NUM_TEAMS`               | The number of teams playing simultaneously                                        | -           |
@@ -115,6 +116,8 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_IP_STATIC`               | The static IP address to display. It takes precedence over `DROIDGROUND_IP_IFACE` | -           |
 | `DROIDGROUND_IP_IFACE`                | The network interface for the displayed IP address                                | -           |
 | `DROIDGROUND_LOGO_LINK`               | Optionally set the logo click-through link (e.g., your CTF main page)             | -           |
+
+Set `DROIDGROUND_SCRCPY_CONTROL_ENABLED=true` and restart DroidGround to make the device screen interactive. Click or tap the screen to focus it, then click, drag, swipe, use multiple touch points, scroll with the mouse wheel, or type. Right-click or press Escape for Android Back. Tab and Shift+Tab move focus out of the screen. Input is shared by everyone viewing the device, including in team mode. The default remains a view-only screen. Text input uses scrcpy's Android key injection, so character support depends on the device's keyboard mapping.
 
 The `DROIDGROUND_IP_IFACE` looks for an exact match first and fallbacks to the first interface that _starts with_ the provided value since Docker only allows to specify the network interface **prefix** within the container.
 

@@ -96,6 +96,7 @@ export class ManagerSingleton {
         startServiceEnabled: !(process.env.DROIDGROUND_START_SERVICE_DISABLED === "true"),
         terminalEnabled: !(process.env.DROIDGROUND_TERMINAL_DISABLED === "true"),
         resetEnabled: !(process.env.DROIDGROUND_RESET_DISABLED === "true"),
+        scrcpyControlEnabled: process.env.DROIDGROUND_SCRCPY_CONTROL_ENABLED === "true",
         teamModeEnabled: teamNum > 0 || teamNum === -1,
         unlimitedTeams: teamNum === -1,
         fridaType: process.env.DROIDGROUND_FRIDA_TYPE === "full" ? "full" : "jail",
@@ -190,6 +191,7 @@ export class ManagerSingleton {
             this.appStatus = AppStatus.DISCONNECTED_PHASE;
             this.adb = null;
             await this.scrcpyClient?.close();
+            this.scrcpyClient = null;
           }
         }
       });
@@ -312,6 +314,10 @@ export class ManagerSingleton {
 
   public setScrcpyClient(scrcpyClient: AdbScrcpyClient<any>) {
     this.scrcpyClient = scrcpyClient;
+  }
+
+  public getScrcpyController() {
+    return this.config.features.scrcpyControlEnabled ? this.scrcpyClient?.controller : undefined;
   }
 
   public async getAdb(): Promise<Adb> {

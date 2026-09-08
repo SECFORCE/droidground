@@ -13,6 +13,8 @@ import Lottie from "lottie-react";
 import bootData from "@client/assets/boot.json";
 import { useWebSocket } from "@client/context/WebSocket";
 import toast from "react-hot-toast";
+import { useAPI } from "@client/context/API";
+import { bindScrcpyControls } from "@client/utils/scrcpy-control";
 
 interface EnhancedStreamMetadata extends ScrcpyVideoStreamMetadata {
   hardwareType: "hardware" | "software" | "hybrid";
@@ -76,7 +78,7 @@ const TinyH264Renderer: React.FC = () => {
       unsubscribe(WSMessageType.CONFIGURATION, configListener);
       unsubscribe(WSMessageType.DATA, dataListener);
     };
-  }, [canvasRef]);
+  }, [sendMessage, subscribe, unsubscribe]);
 
   return (
     <div className={streamingPhase !== StreamingPhase.RENDER ? "hidden" : "block"}>
@@ -160,14 +162,22 @@ const WebCodecsRenderer: React.FC = () => {
       unsubscribe(WSMessageType.CONFIGURATION, configListener);
       unsubscribe(WSMessageType.DATA, dataListener);
     };
-  }, [containerRef]);
+  }, [sendMessage, subscribe, unsubscribe]);
 
   return <div className={streamingPhase !== StreamingPhase.RENDER ? "hidden" : "block"} ref={containerRef} />;
 };
 
 export const VideoRenderer: React.FC = () => {
   const [rendererType, setRendererType] = useState<Renderer | null>();
-  const { subscribe, unsubscribe, streamingPhase } = useWebSocket();
+  const { subscribe, unsubscribe, streamingPhase, sendMessage } = useWebSocket();
+  const { featuresConfig } = useAPI();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const controlEnabled = featuresConfig.scrcpyControlEnabled && streamingPhase === StreamingPhase.RENDER;
+
+  useEffect(() => {
+    if (!controlEnabled || !screenRef.current) return;
+    return bindScrcpyControls(screenRef.current, message => sendMessage(JSON.stringify(message)));
+  }, [controlEnabled, sendMessage]);
 
   useEffect(() => {
     const metadataListener: WSCallback = m => {
@@ -183,10 +193,24 @@ export const VideoRenderer: React.FC = () => {
 
   return (
     <div
-      className={`mx-auto w-3/4 min-w-3/4 sm:w-1/2 sm:min-w-1/2 lg:w-1/4 lg:min-w-1/4 rounded-2xl border-10 border-black shadow-2xl flex items-center justify-center relative overflow-hidden ${streamingPhase !== StreamingPhase.RENDER ? "aspect-9/16 bg-gray-950" : "bg-transparent "}`}
+      ref={screenRef}
+      tabIndex={controlEnabled ? 0 : undefined}
+      role={controlEnabled ? "application" : undefined}
+      aria-label={
+        controlEnabled
+          ? "Device screen. Click or tap to control, then type. Escape goes back. Tab leaves the screen."
+          : "Device screen"
+      }
+      title={
+        controlEnabled
+          ? "Click or tap to control · Type when focused · Escape or right-click: Back · Tab: leave screen"
+          : undefined
+      }
+      style={controlEnabled ? { touchAction: "none", userSelect: "none" } : undefined}
+      className={`mx-auto w-3/4 min-w-3/4 sm:w-1/2 sm:min-w-1/2 lg:w-1/4 lg:min-w-1/4 rounded-2xl border-10 border-black shadow-2xl flex items-center justify-center relative overflow-hidden ${controlEnabled ? "cursor-pointer focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4" : ""} ${streamingPhase !== StreamingPhase.RENDER ? "aspect-9/16 bg-gray-950" : "bg-transparent "}`}
     >
       {/* Speaker + Camera Dot */}
-      <div className="absolute top-2 w-full flex justify-center items-center z-10">
+      <div className="absolute top-2 w-full flex justify-center items-center z-10 pointer-events-none">
         <div className="w-20 h-2 bg-black rounded-full"></div>
         <div className="w-2 h-2 bg-black rounded-full ml-2"></div>
       </div>

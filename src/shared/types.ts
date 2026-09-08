@@ -16,6 +16,7 @@ export interface DroidGroundFeatures {
   terminalEnabled: boolean;
   logcatEnabled: boolean;
   resetEnabled: boolean;
+  scrcpyControlEnabled: boolean;
   teamModeEnabled: boolean;
   unlimitedTeams: boolean;
   fridaType: "full" | "jail";

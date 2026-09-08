@@ -55,7 +55,8 @@ export const setupScrcpy = async () => {
     DefaultServerPath,
     new AdbScrcpyOptions3_1({
       audio: false,
-      control: false,
+      control: singleton.getConfig().features.scrcpyControlEnabled,
+      clipboardAutosync: false,
       videoCodec: "h264",
       videoBitRate: 10000000,
       videoEncoder: encoder.name,
