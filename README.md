@@ -47,7 +47,7 @@ With real-time device streaming, fine-grained control over features, Frida integ
 
 DroidGround provides a rich set of server-controlled features.
 
-- **Real-Time Device Screen** (via `scrcpy`)
+- **Real-Time Device Screen** (via `scrcpy`), with optional mouse, touch, and keyboard control
 - **Reset Challenge State**
 - **Restart App / Start Activity / Start Service**
 - **Send Broadcast Intent**
@@ -108,6 +108,10 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_START_SERVICE_DISABLED`  | Disable startService                                                              | `false`     |
 | `DROIDGROUND_TERMINAL_DISABLED`       | Disable terminal                                                                  | `false`     |
 | `DROIDGROUND_RESET_DISABLED`          | Disable reset                                                                     | `false`     |
+| `DROIDGROUND_SCRCPY_CONTROL_ENABLED` | Enable mouse, touch, and keyboard input through the device screen                  | `false`     |
+| `DROIDGROUND_SCRCPY_MAX_SIZE`        | Maximum video dimension in pixels; `0` keeps full device resolution                | `1280`      |
+| `DROIDGROUND_SCRCPY_MAX_FPS`         | Maximum video frame rate; `0` leaves it uncapped                                    | `60`        |
+| `DROIDGROUND_SCRCPY_VIDEO_BIT_RATE`  | Video bitrate in bits per second                                                   | `4000000`   |
 | `DROIDGROUND_EXPLOIT_APP_DURATION`    | The time (in seconds) the exploit app will be active                              | `10`        |
 | `DROIDGROUND_EXPLOIT_APP_MAX_SIZE`    | The max size (in MB) of the exploit app                                           | `50`        |
 | `DROIDGROUND_NUM_TEAMS`               | The number of teams playing simultaneously                                        | -           |
@@ -116,7 +120,13 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_IP_IFACE`                | The network interface for the displayed IP address                                | -           |
 | `DROIDGROUND_LOGO_LINK`               | Optionally set the logo click-through link (e.g., your CTF main page)             | -           |
 
+Set `DROIDGROUND_SCRCPY_CONTROL_ENABLED=true` and restart DroidGround to make the device screen interactive. Click or tap the screen to focus it, then click, drag, swipe, use multiple touch points, scroll with the mouse wheel, or type. Right-click or press Escape for Android Back. Tab and Shift+Tab move focus out of the screen. Input is shared by everyone viewing the device, including in team mode. The default remains a view-only screen. Text input uses scrcpy's Android key injection, so character support depends on the device's keyboard mapping.
+
 The `DROIDGROUND_IP_IFACE` looks for an exact match first and fallbacks to the first interface that _starts with_ the provided value since Docker only allows to specify the network interface **prefix** within the container.
+
+Screen streaming defaults to a maximum dimension of 1280 pixels, up to 60 fps, and 4 Mbps to reduce encoding, network, and browser work. This trades some fine detail for responsiveness in the embedded device view. Set `DROIDGROUND_SCRCPY_MAX_SIZE=0` and `DROIDGROUND_SCRCPY_VIDEO_BIT_RATE=10000000` to restore the previous full-resolution quality settings. For slower connections or browsers, try a maximum size of `1024`, `30` fps, and `2000000` bits per second. Restart DroidGround after changing these settings.
+
+The browser uses WebCodecs when available and falls back to the software H.264 decoder otherwise. WebCodecs requires a secure context: use HTTPS for remote deployments (localhost also works). Plain HTTP on a remote IP or hostname uses software decoding. Slow viewers skip to a fresh keyframe instead of accumulating a video backlog; joining or recovering can take about one keyframe interval (one second). See the [WebCodecs specification](https://www.w3.org/TR/webcodecs/#videodecoder-interface) and [scrcpy video documentation](https://github.com/Genymobile/scrcpy/blob/master/doc/video.md) for the underlying browser and video settings.
 
 The usage of the `DROIDGROUND_NUM_TEAMS` variable slightly changes the behaviour of the application under the hood. If this option is set:
 

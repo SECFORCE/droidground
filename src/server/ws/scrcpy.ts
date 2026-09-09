@@ -5,6 +5,7 @@ import { StreamingPhase, WSMessageType } from "@shared/types";
 import Logger from "@shared/logger";
 import { WebsocketClient } from "@server/utils/types";
 import { sendStructuredMessage } from "@server/utils/ws";
+import { ScrcpyControlSession } from "@server/utils/scrcpy-control";
 
 export const setupScrcpyWss = (wssStreaming: WebSocketServer) => {
   const singleton = ManagerSingleton.getInstance();
@@ -12,6 +13,10 @@ export const setupScrcpyWss = (wssStreaming: WebSocketServer) => {
 
   wssStreaming.on("connection", (ws: WebSocket) => {
     const id = uuidv4();
+    const control = new ScrcpyControlSession(
+      () => singleton.getScrcpyController(),
+      error => Logger.error({ err: error }, "Scrcpy input failed"),
+    );
     wsStreamingClients.set(id, {
       state: StreamingPhase.INIT,
       ws: ws,
@@ -23,7 +28,8 @@ export const setupScrcpyWss = (wssStreaming: WebSocketServer) => {
       sendStructuredMessage(ws, WSMessageType.STREAM_METADATA, singleton.sharedVideoMetadata);
     }
 
-    ws.on("message", (clientMessage: any) => {
+    ws.on("message", (clientMessage, isBinary) => {
+      if (isBinary) return;
       const singleton = ManagerSingleton.getInstance();
       let message = clientMessage.toString();
       const currentClientData = wsStreamingClients.get(id) as WebsocketClient;
@@ -34,29 +40,28 @@ export const setupScrcpyWss = (wssStreaming: WebSocketServer) => {
             sendStructuredMessage(ws, WSMessageType.CONFIGURATION, {}, singleton.sharedConfiguration.data);
           }
           break;
-        case WSMessageType.CONFIGURATION_ACK:
-          let nextState: StreamingPhase =
-            singleton.sharedVideoMetadata?.hardwareType === "hardware"
-              ? StreamingPhase.KEYFRAME
-              : StreamingPhase.RENDER;
-          // Send last frames if available
-          if (nextState == StreamingPhase.RENDER && singleton.lastFrame) {
-            sendStructuredMessage(ws, WSMessageType.DATA, singleton.lastFrame.metadata, singleton.lastFrame.data);
-          } else if (nextState == StreamingPhase.KEYFRAME && singleton.lastKeyframe) {
-            sendStructuredMessage(ws, WSMessageType.DATA, singleton.lastKeyframe.metadata, singleton.lastKeyframe.data);
-            nextState = StreamingPhase.RENDER;
-          }
-          wsStreamingClients.set(id, { ...(currentClientData as WebsocketClient), state: nextState });
+        case WSMessageType.CONFIGURATION_ACK: {
+          // Both decoders need a fresh keyframe, followed by its dependent frames.
+          // An old cached keyframe plus the current delta frame is not a valid sequence.
+          wsStreamingClients.set(id, { ...currentClientData, state: StreamingPhase.KEYFRAME });
           break;
+        }
         default:
-          Logger.error(`Unknown message type: ${message}`);
+          if (singleton.getConfig().features.scrcpyControlEnabled && !control.accept(message)) {
+            ws.close(1013, "Too many pending inputs");
+            void control.close();
+          }
           break;
       }
     });
 
     ws.on("close", () => {
+      void control.close();
       wsStreamingClients.delete(id);
       Logger.info(`WebSocket client with id '${id}' disconnected`);
+    });
+    ws.on("error", () => {
+      void control.close();
     });
   });
 };

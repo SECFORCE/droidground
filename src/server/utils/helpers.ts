@@ -200,7 +200,7 @@ export const parseValidUrl = (input: string): string | null => {
 
   const trimmed = input.trim();
 
-  // Only allow printable ASCII (0x20–0x7E) — rejects control chars, null bytes, and non-ASCII
+  // Only allow printable ASCII (0x20–0x7E) - rejects control chars, null bytes, and non-ASCII
   if (!/^[\x20-\x7e]+$/.test(trimmed)) return null;
 
   let url: URL;

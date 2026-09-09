@@ -16,6 +16,7 @@ export interface DroidGroundFeatures {
   terminalEnabled: boolean;
   logcatEnabled: boolean;
   resetEnabled: boolean;
+  scrcpyControlEnabled: boolean;
   teamModeEnabled: boolean;
   unlimitedTeams: boolean;
   fridaType: "full" | "jail";
@@ -75,11 +76,6 @@ export type WSMetadata = StreamMetadata | ConfigurationMetadata | DataMetadata;
 
 export interface WSMessage {
   type: WSMessageType;
-  metadata: WSMetadata;
-  data: Uint8Array;
-}
-
-export interface DroidGroundFrame {
   metadata: WSMetadata;
   data: Uint8Array;
 }

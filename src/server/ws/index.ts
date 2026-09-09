@@ -13,7 +13,7 @@ export const setupWs = async (httpServer: HTTPServer, basePath: string) => {
   const singleton = ManagerSingleton.getInstance();
   const features = singleton.getConfig().features;
 
-  const wssScrcpy = new WebSocketServer({ noServer: true });
+  const wssScrcpy = new WebSocketServer({ noServer: true, maxPayload: 4096 });
   const wssTerminal = new WebSocketServer({ noServer: true });
   const wssFrida = new WebSocketServer({ noServer: true });
   const wssExploitServer = new WebSocketServer({ noServer: true });
