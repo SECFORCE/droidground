@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test:scrcpy-control": "node --import tsx --test tests/scrcpy-control.test.ts",
     "test:streaming": "node --import tsx --test tests/streaming.test.ts tests/video-refresh.test.ts",
+    "test:team-access": "node --import tsx --test tests/team-access.test.ts",
     "serve": "npm run build && cross-env NODE_ENV=production node ./dist/server",
     "serve:local": "vite serve",
     "spawner": "tsx examples/spawner/spawner.ts",
