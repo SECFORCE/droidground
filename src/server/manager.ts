@@ -10,13 +10,14 @@ import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from "@shared/logger";
 import { randomString, sleep } from "@shared/helpers";
-import { DroidGroundConfig, DroidGroundTeam, FridaState, StreamMetadata } from "@shared/types";
+import { DroidGroundConfig, DroidGroundTeam, FridaState, StreamMetadata, StreamingPhase } from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "@server/utils/frida";
 import { setupScrcpy } from "@server/utils/scrcpy";
 import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
 import { getIP, parseValidUrl, safeFileExists } from "@server/utils/helpers";
 import { FairQueue } from "@server/utils/queue";
+import { VideoRefreshScheduler } from "@server/utils/video-refresh";
 
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
@@ -40,6 +41,17 @@ export class ManagerSingleton {
   // Scrcpy
   public sharedVideoMetadata: StreamMetadata | null = null;
   public sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;
+  private videoRefresh = new VideoRefreshScheduler(
+    () =>
+      [...this.wsStreamingClients.values()].some(
+        client => client.ws.readyState === WebSocket.OPEN && client.state === StreamingPhase.KEYFRAME,
+      ),
+    async () => {
+      // Video refresh is internal stream maintenance; input access remains feature-gated.
+      await this.scrcpyClient?.controller?.resetVideo();
+    },
+    error => Logger.error({ err: error }, "Failed to refresh the video stream"),
+  );
   // Exploit apps (keeping a list in order to quickly delete them on reset)
   public exploitApps: string[] = [];
   // Exploit App Run Queue
@@ -315,6 +327,10 @@ export class ManagerSingleton {
 
   public getScrcpyController() {
     return this.config.features.scrcpyControlEnabled ? this.scrcpyClient?.controller : undefined;
+  }
+
+  public requestVideoRefresh() {
+    this.videoRefresh.request();
   }
 
   public async getAdb(): Promise<Adb> {

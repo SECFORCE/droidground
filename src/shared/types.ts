@@ -50,13 +50,14 @@ export enum WSMessageType {
   STREAM_METADATA_ACK = "metadataAck",
   CONFIGURATION = "configuration",
   CONFIGURATION_ACK = "configurationAck",
+  STREAM_RESYNC = "streamResync",
   DATA = "data",
 }
 
 export enum StreamingPhase {
   INIT = "init", // the client just connected to the websocket, need to send the metadata and wait for the ack
-  METADATA = "config", // the client received the metadata and sent back the ack for it, need to send the config packet and wait for the ack
-  KEYFRAME = "keyframe", // the client received the config packet and sent back the ack for it, send a packet with a keyframe first
+  METADATA = "config", // the browser received the configuration and is waiting for video data
+  KEYFRAME = "keyframe", // configuration was sent; begin video with the next independently decodable frame
   RENDER = "render", // the client received the config packet and sent back the ack for it, the first keyframe has also been sent. Data packets can be sent
 }
 

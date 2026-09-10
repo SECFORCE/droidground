@@ -35,15 +35,21 @@ export const setupScrcpyWss = (wssStreaming: WebSocketServer) => {
       const currentClientData = wsStreamingClients.get(id) as WebsocketClient;
       switch (message) {
         case WSMessageType.STREAM_METADATA_ACK:
-          wsStreamingClients.set(id, { ...(currentClientData as WebsocketClient), state: StreamingPhase.METADATA });
+          wsStreamingClients.set(id, { ...currentClientData, state: StreamingPhase.KEYFRAME });
           if (singleton.sharedConfiguration) {
             sendStructuredMessage(ws, WSMessageType.CONFIGURATION, {}, singleton.sharedConfiguration.data);
           }
+          singleton.requestVideoRefresh();
           break;
         case WSMessageType.CONFIGURATION_ACK: {
-          // Both decoders need a fresh keyframe, followed by its dependent frames.
-          // An old cached keyframe plus the current delta frame is not a valid sequence.
+          // Configuration precedes frames on the same ordered connection. A late
+          // ACK must not put an already playing viewer back into KEYFRAME state.
+          break;
+        }
+        case WSMessageType.STREAM_RESYNC: {
+          if (currentClientData.state === StreamingPhase.INIT) break;
           wsStreamingClients.set(id, { ...currentClientData, state: StreamingPhase.KEYFRAME });
+          singleton.requestVideoRefresh();
           break;
         }
         default:
