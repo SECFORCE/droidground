@@ -57,6 +57,7 @@ const DeviceVideoRenderer: React.FC = () => {
           toast.error("Error decoding the device screen", { id: "video-decoder-error" });
         }
       },
+      () => sendMessage(WSMessageType.STREAM_RESYNC),
     );
 
     const configListener: WSCallback = (_metadata, data) => {
@@ -79,12 +80,16 @@ const DeviceVideoRenderer: React.FC = () => {
     };
     subscribe(WSMessageType.CONFIGURATION, configListener);
     subscribe(WSMessageType.DATA, dataListener);
+    const visibilityListener = () => live.setVisible(!document.hidden);
+    document.addEventListener("visibilitychange", visibilityListener);
+    visibilityListener();
     sendMessage(WSMessageType.STREAM_METADATA_ACK);
 
     return () => {
       stopped = true;
       unsubscribe(WSMessageType.CONFIGURATION, configListener);
       unsubscribe(WSMessageType.DATA, dataListener);
+      document.removeEventListener("visibilitychange", visibilityListener);
       live.dispose();
       container.replaceChildren();
     };

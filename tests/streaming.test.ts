@@ -125,7 +125,7 @@ test("rotation sends a configuration message to every initialized viewer before 
   broadcastForPhase(viewers, StreamingPhase.METADATA, { type: WSMessageType.CONFIGURATION, metadata: {}, data });
   assert.equal(initial.sent.length, 0);
   for (const client of [waiting, playing]) {
-    assert.equal(client.client.state, StreamingPhase.METADATA);
+    assert.equal(client.client.state, StreamingPhase.KEYFRAME);
     assert.equal(parseVideoMessage(client.sent[0].buffer as ArrayBuffer).type, WSMessageType.CONFIGURATION);
   }
   broadcastForPhase(viewers, StreamingPhase.RENDER, {
@@ -133,7 +133,8 @@ test("rotation sends a configuration message to every initialized viewer before 
     metadata: { keyframe: true, pts: "0" },
     data,
   });
-  assert.equal(playing.sent.length, 1);
+  assert.equal(playing.sent.length, 2);
+  assert.equal(parseVideoMessage(playing.sent[1].buffer as ArrayBuffer).type, WSMessageType.DATA);
 });
 
 test("video parsing rejects truncated headers and metadata", () => {
@@ -190,7 +191,10 @@ test("browser decoding starts with configuration and a keyframe, then keeps depe
 
 test("a stalled browser decoder has a bounded queue and resumes on the next live keyframe", async () => {
   const { create, decoders } = decoderFactory();
-  const live = new LiveVideoDecoder(create, assert.fail);
+  let requests = 0;
+  const live = new LiveVideoDecoder(create, assert.fail, () => {
+    requests++;
+  });
   live.configure(data);
   live.push(frame(true));
   for (let i = 1; i < MAX_PENDING_VIDEO_FRAMES; i++) live.push(frame());
@@ -199,6 +203,7 @@ test("a stalled browser decoder has a bounded queue and resumes on the next live
   live.push(frame());
   await tick();
   assert.equal(decoders[0].disposed, true);
+  assert.equal(requests, 1);
   live.push(frame());
   assert.equal(decoders.length, 1);
   live.push(frame(true));
@@ -246,6 +251,7 @@ test("hidden tabs stop decoding and resume from a fresh keyframe", async () => {
 test("decoder initialization failure allows a fallback to consume the cached configuration", async () => {
   const { create, decoders } = decoderFactory();
   let fallback = false;
+  let requests = 0;
   const live = new LiveVideoDecoder(
     () => {
       if (!fallback) throw new Error("WebCodecs unavailable");
@@ -254,15 +260,42 @@ test("decoder initialization failure allows a fallback to consume the cached con
     () => {
       fallback = true;
     },
+    () => {
+      requests++;
+    },
   );
   live.configure(data);
   assert.equal(fallback, true);
+  assert.equal(requests, 1);
   live.push(frame(true));
   await tick();
   assert.deepEqual(
     decoders[0].packets.map(p => p.type),
     ["configuration", "data"],
   );
+  live.dispose();
+});
+
+test("returning to an idle tab requests a keyframe without waiting for a new incoming frame", async () => {
+  const { create, decoders } = decoderFactory();
+  let requests = 0;
+  const live = new LiveVideoDecoder(create, assert.fail, () => {
+    requests++;
+  });
+  live.configure(data);
+  live.push(frame(true));
+  await tick();
+  live.setVisible(false);
+  await tick();
+  assert.equal(decoders[0].disposed, true);
+  assert.equal(requests, 0);
+  live.setVisible(true);
+  assert.equal(requests, 1);
+  live.setVisible(true);
+  assert.equal(requests, 1);
+  live.push(frame(true));
+  await tick();
+  assert.equal(decoders.length, 2);
   live.dispose();
 });
 

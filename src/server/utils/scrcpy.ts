@@ -57,7 +57,10 @@ export const setupScrcpy = async () => {
     DefaultServerPath,
     new AdbScrcpyOptions3_1({
       audio: false,
-      control: singleton.getConfig().features.scrcpyControlEnabled,
+      // Keep an internal channel for resetVideo on encoders with infrequent IDRs.
+      // Browser input is still gated in the WebSocket handler and manager accessor.
+      control: true,
+      powerOn: singleton.getConfig().features.scrcpyControlEnabled,
       clipboardAutosync: false,
       videoCodec: "h264",
       ...videoSettings,
@@ -100,6 +103,7 @@ export const setupScrcpy = async () => {
                   metadata: {},
                   data: packet.data,
                 });
+                singleton.requestVideoRefresh();
                 break;
               case "data": {
                 // Handle data packet
@@ -107,11 +111,16 @@ export const setupScrcpy = async () => {
                   keyframe: packet.keyframe,
                   pts: packet.pts?.toString() ?? null,
                 };
-                broadcastForPhase(wsStreamingClients, StreamingPhase.RENDER, {
-                  type: WSMessageType.DATA,
-                  metadata: metadata,
-                  data: packet.data,
-                });
+                broadcastForPhase(
+                  wsStreamingClients,
+                  StreamingPhase.RENDER,
+                  {
+                    type: WSMessageType.DATA,
+                    metadata: metadata,
+                    data: packet.data,
+                  },
+                  () => singleton.requestVideoRefresh(),
+                );
                 break;
               }
             }

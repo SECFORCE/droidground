@@ -39,6 +39,7 @@ export const broadcastForPhase = (
   websocketClients: Map<string, WebsocketClient>,
   state: StreamingPhase,
   message: WSMessage,
+  onWaitingForKeyframe?: () => void,
 ) => {
   let payload: Uint8Array | undefined;
   for (const client of websocketClients.values()) {
@@ -46,12 +47,15 @@ export const broadcastForPhase = (
     if (message.type === WSMessageType.CONFIGURATION) {
       if (client.state === StreamingPhase.INIT) continue;
       // Configuration changes (e.g. rotation) also apply to viewers already rendering.
-      client.state = StreamingPhase.METADATA;
+      // WebSocket ordering delivers this configuration before the next frame.
+      // Waiting for its ACK would drop an IDR emitted immediately after it.
+      client.state = StreamingPhase.KEYFRAME;
     } else if (state === StreamingPhase.RENDER) {
       if (client.state !== StreamingPhase.RENDER && client.state !== StreamingPhase.KEYFRAME) continue;
       if (client.ws.bufferedAmount > MAX_VIDEO_BUFFER_BYTES) {
         // Discard a dependent sequence together, then resume at a fresh keyframe.
         client.state = StreamingPhase.KEYFRAME;
+        onWaitingForKeyframe?.();
         continue;
       }
       if (client.state === StreamingPhase.KEYFRAME && !(message.metadata as DataMetadata).keyframe) continue;

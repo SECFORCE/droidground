@@ -196,6 +196,7 @@ test("streaming ACKs work with control disabled; enabled control forwards text a
         sharedVideoMetadata: { hardwareType: "software" },
         getConfig: () => ({ features }),
         getScrcpyController: () => writer,
+        requestVideoRefresh: () => {},
       }) as any,
   );
   const wss = new EventEmitter();
@@ -204,7 +205,7 @@ test("streaming ACKs work with control disabled; enabled control forwards text a
   wss.emit("connection", ws);
   const send = (message: string, binary = false) => ws.emit("message", Buffer.from(message), binary);
   send(WSMessageType.STREAM_METADATA_ACK);
-  assert.equal([...clients.values()][0].state, StreamingPhase.METADATA);
+  assert.equal([...clients.values()][0].state, StreamingPhase.KEYFRAME);
   send(WSMessageType.CONFIGURATION_ACK);
   assert.equal([...clients.values()][0].state, StreamingPhase.KEYFRAME);
   const text = JSON.stringify({ type: "control", event: "text", text: "hello" });

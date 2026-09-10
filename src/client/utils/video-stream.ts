@@ -24,10 +24,12 @@ export class LiveVideoDecoder {
   private submitted = 0;
   private waitingForKeyframe = true;
   private disposed = false;
+  private suspended = false;
 
   constructor(
     private createDecoder: () => Decoder,
     private onError: (error: unknown) => void,
+    private requestKeyframe: () => void = () => {},
   ) {}
 
   private reset() {
@@ -56,6 +58,7 @@ export class LiveVideoDecoder {
     } catch (error) {
       this.reset();
       this.onError(error);
+      this.requestKeyframe();
     }
   }
 
@@ -63,6 +66,7 @@ export class LiveVideoDecoder {
     if (!decoder || decoder !== this.decoder || this.disposed) return;
     this.reset();
     this.onError(error);
+    this.requestKeyframe();
   }
 
   private write(packet: ScrcpyMediaStreamPacket) {
@@ -74,21 +78,33 @@ export class LiveVideoDecoder {
     if (this.disposed) return;
     this.configuration = data;
     this.reset();
-    this.start();
+    if (!this.suspended) this.start();
+  }
+
+  setVisible(visible: boolean) {
+    if (this.disposed) return;
+    if (!visible) {
+      this.suspended = true;
+      if (this.decoder) this.reset();
+      return;
+    }
+    if (this.suspended) {
+      this.suspended = false;
+      this.requestKeyframe();
+    }
   }
 
   push(packet: ScrcpyMediaStreamPacket, visible = true) {
     if (this.disposed || packet.type !== "data") return;
-    if (!visible) {
-      if (this.decoder) this.reset();
-      return;
-    }
+    this.setVisible(visible);
+    if (!visible) return;
     if (
       this.decoder &&
       this.submitted - this.decoder.framesRendered - this.decoder.framesSkipped >= MAX_PENDING_VIDEO_FRAMES
     ) {
       // A slow decoder must catch up to the live stream, not replay a growing backlog.
       this.reset();
+      this.requestKeyframe();
     }
     if (this.waitingForKeyframe && !packet.keyframe) return;
     if (!this.decoder) this.start();
