@@ -19,6 +19,16 @@ import { getIP, parseValidUrl, safeFileExists } from "@server/utils/helpers";
 import { FairQueue } from "@server/utils/queue";
 import { VideoRefreshScheduler } from "@server/utils/video-refresh";
 
+export class TeamAccessError extends Error {
+  constructor(
+    public readonly status: 401 | 403 | 409,
+    message: string,
+  ) {
+    super(message);
+    this.name = "TeamAccessError";
+  }
+}
+
 export class ManagerSingleton {
   private static instance: ManagerSingleton;
 
@@ -54,6 +64,7 @@ export class ManagerSingleton {
   );
   // Exploit apps (keeping a list in order to quickly delete them on reset)
   public exploitApps: string[] = [];
+  private installingPackages = new Set<string>();
   // Exploit App Run Queue
   public queue;
 
@@ -258,6 +269,7 @@ export class ManagerSingleton {
     for (let i = 0; i < numTeams; i++) {
       const teamTokenEnv: any = process.env[`DROIDGROUND_TEAM_TOKEN_${i + 1}`] ?? "";
       const teamToken = teamTokenEnv.trim().length === 0 ? randomString(32) : teamTokenEnv.trim();
+      if (tokens.includes(teamToken)) throw new Error("Each team must have a unique Team Token.");
       tokens.push(teamToken);
     }
     return tokens;
@@ -430,16 +442,58 @@ export class ManagerSingleton {
     return this.config.teams.map(t => t.token);
   }
 
-  public isTeamTokenValid(teamToken: string): boolean {
-    return this.getTeamTokens().includes(teamToken);
+  public isTeamTokenValid(teamToken: unknown): teamToken is string {
+    return typeof teamToken === "string" && teamToken.length > 0 && this.getTeamTokens().includes(teamToken);
+  }
+
+  private assertPackageOwner(packageName: string, teamToken?: string) {
+    if (!this.config.features.teamModeEnabled) return;
+    if (!this.isTeamTokenValid(teamToken)) {
+      throw new TeamAccessError(401, "Missing or invalid Team Token.");
+    }
+    if (this.config.teams.some(team => team.token !== teamToken && team.exploitApps.includes(packageName))) {
+      throw new TeamAccessError(403, "This app is not available to your team.");
+    }
+  }
+
+  public assertAppAccess(packageName: string, teamToken?: string) {
+    this.assertPackageOwner(packageName, teamToken);
+    if (
+      !this.exploitApps.includes(packageName) ||
+      (this.config.features.teamModeEnabled && !this.getExploitAppsLinkedToTeam(teamToken!).includes(packageName))
+    ) {
+      throw new TeamAccessError(403, "This app is not available to your team.");
+    }
+  }
+
+  public reserveAppInstallation(packageName: string, teamToken?: string): () => void {
+    this.assertPackageOwner(packageName, teamToken);
+    if (packageName === this.config.packageName) {
+      throw new TeamAccessError(403, "The target app cannot be registered as a team app.");
+    }
+    if (this.installingPackages.has(packageName)) {
+      throw new TeamAccessError(409, "An installation for this package is already in progress.");
+    }
+    this.installingPackages.add(packageName);
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.installingPackages.delete(packageName);
+    };
+  }
+
+  public registerInstalledApp(packageName: string, teamToken?: string) {
+    this.assertPackageOwner(packageName, teamToken);
+    if (this.config.features.teamModeEnabled) this.linkExploitAppToTeam(teamToken!, packageName);
+    if (!this.exploitApps.includes(packageName)) this.exploitApps.push(packageName);
   }
 
   public linkExploitAppToTeam(teamToken: string, exploitApp: string) {
-    for (const team of this.config.teams) {
-      if (team.token === teamToken) {
-        team.exploitApps.push(exploitApp);
-      }
-    }
+    this.assertPackageOwner(exploitApp, teamToken);
+    const team = this.config.teams.find(team => team.token === teamToken);
+    if (!team) throw new TeamAccessError(401, "Missing or invalid Team Token.");
+    if (!team.exploitApps.includes(exploitApp)) team.exploitApps.push(exploitApp);
   }
 
   public getExploitAppsLinkedToTeam(teamToken: string): string[] {

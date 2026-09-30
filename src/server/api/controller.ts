@@ -8,7 +8,7 @@ import { ReadableStream } from "@yume-chan/stream-extra";
 
 // Local imports
 import Logger from "@shared/logger";
-import { ManagerSingleton } from "@server/manager";
+import { ManagerSingleton, TeamAccessError } from "@server/manager";
 import {
   ActionResponse,
   BugreportzStatusResponse,
@@ -501,6 +501,9 @@ class APIController {
 
   apk: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
     Logger.info(`Received ${req.method} request on ${req.path}`);
+    let releaseInstallation: (() => void) | undefined;
+    let uploadedFilePath: string | undefined;
+    let uploadAdb: Awaited<ReturnType<ManagerSingleton["getAdb"]>> | undefined;
     try {
       if (!req.file) {
         res.status(400).json({ error: "No file uploaded." }).end();
@@ -516,30 +519,32 @@ class APIController {
       }
 
       // Check if teamToken is needed and valid
-      if (
-        features.teamModeEnabled &&
-        (!Object.keys(req.body).includes("teamToken") || !manager.isTeamTokenValid(req.body.teamToken))
-      ) {
-        throw new Error("Missing or invalid Team Token.");
+      if (features.teamModeEnabled && !manager.isTeamTokenValid(req.body?.teamToken)) {
+        throw new TeamAccessError(401, "Missing or invalid Team Token.");
       }
 
       const adb = await manager.getAdb();
-      const sync = await adb.sync();
+      uploadAdb = adb;
       const file = req.file as Express.Multer.File;
       const apkFilePath = file.path;
 
       const apkBuffer: Buffer = await fs.readFile(apkFilePath);
-      const uploadedFilePath = path.resolve(DEFAULT_UPLOAD_FOLDER, file.filename);
+      uploadedFilePath = path.resolve(DEFAULT_UPLOAD_FOLDER, file.filename);
 
-      await sync.write({
-        filename: uploadedFilePath,
-        file: new ReadableStream({
-          start(controller) {
-            controller.enqueue(new Uint8Array(apkBuffer));
-            controller.close();
-          },
-        }),
-      });
+      const sync = await adb.sync();
+      try {
+        await sync.write({
+          filename: uploadedFilePath,
+          file: new ReadableStream({
+            start(controller) {
+              controller.enqueue(new Uint8Array(apkBuffer));
+              controller.close();
+            },
+          }),
+        });
+      } finally {
+        await sync.dispose();
+      }
 
       // Get the file package name before installation
       const client = CompanionClient.getInstance();
@@ -554,24 +559,32 @@ class APIController {
 
       Logger.debug(`Installing app with package name '${packageName}'`);
 
-      manager.exploitApps.push(packageName);
-      // Duplicate but it shouldn't be a big problem
-      if (features.teamModeEnabled) {
-        manager.linkExploitAppToTeam(req.body.teamToken, packageName);
-      }
+      // Reserve the package before installation so concurrent teams cannot claim it.
+      releaseInstallation = manager.reserveAppInstallation(packageName, req.body?.teamToken);
 
       const installRes = await adb.subprocess.noneProtocol.spawnWaitText(`pm install ${uploadedFilePath}`);
-      await adb.rm(uploadedFilePath);
-      await fs.unlink(apkFilePath); // Clean up the uploaded file
 
       if (installRes.trim() !== "Success") {
         res.status(500).json({ error: "An error occurred while installing the APK." }).end();
       } else {
+        manager.registerInstalledApp(packageName, req.body?.teamToken);
         res.json({ result: "APK correctly installed." }).end();
       }
     } catch (error) {
+      if (error instanceof TeamAccessError) {
+        res.status(error.status).json({ error: error.message }).end();
+        return;
+      }
       Logger.error(`An error occurred while installing the APK: ${error}`);
       res.status(500).json({ error: "An error occurred while installing the APK." }).end();
+    } finally {
+      releaseInstallation?.();
+      if (uploadedFilePath && uploadAdb) {
+        await uploadAdb.rm(uploadedFilePath).catch(() => Logger.warn("Unable to clean up uploaded device APK"));
+      }
+      if (req.file?.path) {
+        await fs.unlink(req.file.path).catch(() => Logger.warn("Unable to clean up uploaded APK"));
+      }
     }
   };
 
@@ -626,15 +639,8 @@ class APIController {
       const singleton = ManagerSingleton.getInstance();
       const config = singleton.getConfig();
 
-      // Check if teamToken is needed and valid
-      if (
-        config.features.teamModeEnabled &&
-        (!body.teamToken ||
-          !singleton.isTeamTokenValid(body.teamToken) ||
-          !singleton.getExploitAppsLinkedToTeam(body.teamToken).includes(body.packageName))
-      ) {
-        throw new Error("Missing or invalid Team Token.");
-      }
+      const teamToken = body.teamToken;
+      singleton.assertAppAccess(body.packageName, teamToken);
 
       // If teams behaviour is enabled use the teamToken as userId, otherwise generate a random value for each request
       const userId = config.features.teamModeEnabled ? (body.teamToken as string) : randomUUID();
@@ -642,15 +648,13 @@ class APIController {
 
       const { packageName: exploitApp } = body;
 
-      if (!singleton.exploitApps.includes(exploitApp)) {
-        throw new Error("This is not an exploit app!");
-      }
-
       const result = singleton.queue.enqueue({
         id: jobId,
         userId: userId,
         packageName: exploitApp,
         run: async createdAt => {
+          // Access may have been revoked by a reset while this job was waiting.
+          singleton.assertAppAccess(exploitApp, teamToken);
           await this.startExploitApp(jobId, exploitApp, createdAt);
         },
       });
@@ -668,6 +672,10 @@ class APIController {
         res.status(202).json({ result: "Exploit App execution was correctly enqueued" }).end();
       }
     } catch (error: any) {
+      if (error instanceof TeamAccessError) {
+        res.status(error.status).json({ error: error.message }).end();
+        return;
+      }
       Logger.error(`Error enqueueing exploit app: ${error}`);
       res.status(500).json({ error: "An error occurred while trying to run the exploit app." }).end();
     }

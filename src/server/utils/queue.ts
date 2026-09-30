@@ -46,7 +46,6 @@ export class FairQueue<UserId extends string> {
     Logger.info(
       `Job enqueued: ${JSON.stringify({
         jobId: job.id,
-        userId: job.userId,
         queued: this.queuedCount,
       })}`,
     );
@@ -66,12 +65,11 @@ export class FairQueue<UserId extends string> {
   }
 
   private async execute(job: QueueJob<UserId>) {
-    const { id, userId } = job;
+    const { id } = job;
 
     Logger.info(
       `Job started: ${JSON.stringify({
         jobId: id,
-        userId,
         running: this.running,
       })}`,
     );
@@ -81,7 +79,6 @@ export class FairQueue<UserId extends string> {
       Logger.info(
         `Job completed: ${JSON.stringify({
           jobId: id,
-          userId,
         })}`,
       );
     } catch (err) {
@@ -90,7 +87,6 @@ export class FairQueue<UserId extends string> {
       Logger.error(
         `Job failed: ${JSON.stringify({
           jobId: id,
-          userId,
           error: message,
         })}`,
       );
