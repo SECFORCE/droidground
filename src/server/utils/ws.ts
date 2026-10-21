@@ -43,7 +43,7 @@ export const broadcastForPhase = (
 ) => {
   let payload: Uint8Array | undefined;
   for (const client of websocketClients.values()) {
-    if (client.ws.readyState !== WebSocket.OPEN) continue;
+    if (client.hidden || client.ws.readyState !== WebSocket.OPEN) continue;
     if (message.type === WSMessageType.CONFIGURATION) {
       if (client.state === StreamingPhase.INIT) continue;
       // Configuration changes (e.g. rotation) also apply to viewers already rendering.

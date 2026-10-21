@@ -120,7 +120,7 @@ The `.env.sample` file in the root directory is a good starting point. This is t
 | `DROIDGROUND_IP_IFACE`                | The network interface for the displayed IP address                                | -           |
 | `DROIDGROUND_LOGO_LINK`               | Optionally set the logo click-through link (e.g., your CTF main page)             | -           |
 
-Set `DROIDGROUND_SCRCPY_CONTROL_ENABLED=true` and restart DroidGround to make the device screen interactive. Click or tap the screen to focus it, then click, drag, swipe, use multiple touch points, scroll with the mouse wheel, or type. Right-click or press Escape for Android Back. Tab and Shift+Tab move focus out of the screen. Input is shared by everyone viewing the device, including in team mode. The default remains a view-only screen. Text input uses scrcpy's Android key injection, so character support depends on the device's keyboard mapping.
+Set `DROIDGROUND_SCRCPY_CONTROL_ENABLED=true` and restart DroidGround to make the device screen interactive. Click or tap the screen to focus it, then click, drag, swipe, use multiple touch points, scroll with the mouse wheel, or type. Right-click or press Escape for Android Back. Tab and Shift+Tab move focus out of the screen. Input is shared by everyone viewing the device; during a team exploit run, only viewers authenticated as that team can view or control it. The default remains a view-only screen. Text input uses scrcpy's Android key injection, so character support depends on the device's keyboard mapping.
 
 The `DROIDGROUND_IP_IFACE` looks for an exact match first and fallbacks to the first interface that _starts with_ the provided value since Docker only allows to specify the network interface **prefix** within the container.
 
@@ -132,6 +132,7 @@ The usage of the `DROIDGROUND_NUM_TEAMS` variable slightly changes the behaviour
 
 1. The exploit server feature is enabled, allowing each team to be able to use their own (very simple) exploit server via their **_team token_**.
 2. The team token will be **required** to install and run exploit apps. Each installed app will be tied to a team and other teams won't be able to run it.
+3. While a team's exploit app runs, other teams and viewers without a token see a black display explaining that another team's exploit is running. The server withholds video and rejects their device input. The shared display resumes after the target app restarts. Enter your token in **Team token for display** below the device to watch your team's runs; starting an exploit from the UI also authenticates that browser's display automatically. Tokens are sent over the WebSocket rather than in its URL and are kept in memory for the current page. This also applies in Unlimited Teams mode. Without team mode, the display stays shared.
 
 This allows to share the same DroidGround instance with multiple teams in challenges where the flag can be exfiltrated via a network request. This **massively reduces deploy costs of DroidGround** for CTF competitions.
 

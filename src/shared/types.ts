@@ -51,6 +51,8 @@ export enum WSMessageType {
   CONFIGURATION = "configuration",
   CONFIGURATION_ACK = "configurationAck",
   STREAM_RESYNC = "streamResync",
+  STREAM_TEAM = "streamTeam",
+  STREAM_VISIBILITY = "streamVisibility",
   DATA = "data",
 }
 
@@ -73,7 +75,13 @@ export interface DataMetadata {
   pts: string | null;
 }
 
-export type WSMetadata = StreamMetadata | ConfigurationMetadata | DataMetadata;
+export interface StreamVisibilityMetadata {
+  hidden: boolean;
+  teamAuthenticated: boolean;
+  invalidTeamToken: boolean;
+}
+
+export type WSMetadata = StreamMetadata | ConfigurationMetadata | DataMetadata | StreamVisibilityMetadata;
 
 export interface WSMessage {
   type: WSMessageType;

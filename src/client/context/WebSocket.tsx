@@ -1,5 +1,5 @@
 import { createContext, useEffect, useRef, useContext, ReactNode, useCallback, useState, useMemo } from "react";
-import { StreamingPhase, WSCallback, WSMessageType } from "@shared/types";
+import { StreamingPhase, StreamVisibilityMetadata, WSCallback, WSMessageType } from "@shared/types";
 import toast from "react-hot-toast";
 import { WEBSOCKET_ENDPOINTS } from "@shared/endpoints";
 import { useAPI } from "@client/context/API";
@@ -10,6 +10,8 @@ type WebSocketContextType = {
   subscribe: (topic: WSMessageType, callback: WSCallback) => void;
   unsubscribe: (topic: WSMessageType, callback: WSCallback) => void;
   streamingPhase: StreamingPhase;
+  streamVisibility: StreamVisibilityMetadata;
+  authenticateTeam: (teamToken: string) => void;
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -19,6 +21,13 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [streamingPhase, setStreamingPhase] = useState<StreamingPhase>(StreamingPhase.INIT);
   const phaseRef = useRef(StreamingPhase.INIT);
   const socketRef = useRef<WebSocket | null>(null);
+  const teamTokenRef = useRef("");
+  const visibilityRef = useRef<StreamVisibilityMetadata>({
+    hidden: false,
+    teamAuthenticated: false,
+    invalidTeamToken: false,
+  });
+  const [streamVisibility, setStreamVisibility] = useState(visibilityRef.current);
   const listeners = useRef<Map<WSMessageType, Set<WSCallback>>>(new Map());
   const updatePhase = useCallback((phase: StreamingPhase) => {
     if (phaseRef.current === phase) return;
@@ -37,7 +46,12 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
       socket.binaryType = "arraybuffer";
       socketRef.current = socket;
 
-      socket.onopen = () => console.log("WebSocket Connected");
+      socket.onopen = () => {
+        console.log("WebSocket Connected");
+        if (featuresConfig.teamModeEnabled && teamTokenRef.current) {
+          socket.send(JSON.stringify({ type: WSMessageType.STREAM_TEAM, teamToken: teamTokenRef.current }));
+        }
+      };
       socket.onmessage = event => {
         try {
           if (!(event.data instanceof ArrayBuffer)) {
@@ -46,6 +60,14 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
           }
 
           const { type, metadata, data } = parseVideoMessage(event.data);
+
+          if (type === WSMessageType.STREAM_VISIBILITY) {
+            visibilityRef.current = metadata as StreamVisibilityMetadata;
+            setStreamVisibility(visibilityRef.current);
+            if (visibilityRef.current.hidden) updatePhase(StreamingPhase.INIT);
+          }
+          if (visibilityRef.current.hidden && (type === WSMessageType.CONFIGURATION || type === WSMessageType.DATA))
+            return;
 
           switch (type) {
             case WSMessageType.CONFIGURATION:
@@ -76,13 +98,20 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [featuresConfig.basePath, updatePhase]);
+  }, [featuresConfig.basePath, featuresConfig.teamModeEnabled, updatePhase]);
 
   const sendMessage = useCallback((message: string) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(message);
     } else {
       console.warn("WebSocket is not open. Message not sent.");
+    }
+  }, []);
+
+  const authenticateTeam = useCallback((teamToken: string) => {
+    teamTokenRef.current = teamToken;
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({ type: WSMessageType.STREAM_TEAM, teamToken }));
     }
   }, []);
 
@@ -101,8 +130,8 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
   }, []);
 
   const value = useMemo(
-    () => ({ sendMessage, subscribe, unsubscribe, streamingPhase }),
-    [sendMessage, subscribe, unsubscribe, streamingPhase],
+    () => ({ sendMessage, subscribe, unsubscribe, streamingPhase, streamVisibility, authenticateTeam }),
+    [sendMessage, subscribe, unsubscribe, streamingPhase, streamVisibility, authenticateTeam],
   );
   return <WebSocketContext.Provider value={value}>{children}</WebSocketContext.Provider>;
 };

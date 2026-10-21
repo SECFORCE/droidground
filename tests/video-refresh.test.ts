@@ -107,6 +107,9 @@ test("a late ReDroid viewer recovers without waiting for an IDR interval or losi
         sharedConfiguration: { data },
         getConfig: () => ({ features: { scrcpyControlEnabled: false } }),
         getScrcpyController: () => undefined,
+        updateStreamVisibility: (client: any) => {
+          client.hidden = false;
+        },
         requestVideoRefresh: () => refresh.request(),
       }) as any,
   );

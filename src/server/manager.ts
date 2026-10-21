@@ -10,7 +10,14 @@ import { ScrcpyMediaStreamConfigurationPacket } from "@yume-chan/scrcpy";
 import { AdbServerNodeTcpConnector } from "@yume-chan/adb-server-node-tcp";
 import Logger from "@shared/logger";
 import { randomString, sleep } from "@shared/helpers";
-import { DroidGroundConfig, DroidGroundTeam, FridaState, StreamMetadata, StreamingPhase } from "@shared/types";
+import {
+  DroidGroundConfig,
+  DroidGroundTeam,
+  FridaState,
+  StreamMetadata,
+  StreamingPhase,
+  WSMessageType,
+} from "@shared/types";
 import { AppStatus, WebsocketClient } from "@server/utils/types";
 import { setupFrida } from "@server/utils/frida";
 import { setupScrcpy } from "@server/utils/scrcpy";
@@ -18,6 +25,7 @@ import { AdbScrcpyClient } from "@yume-chan/adb-scrcpy";
 import { getIP, parseValidUrl, safeFileExists } from "@server/utils/helpers";
 import { FairQueue } from "@server/utils/queue";
 import { VideoRefreshScheduler } from "@server/utils/video-refresh";
+import { sendStructuredMessage } from "@server/utils/ws";
 
 export class TeamAccessError extends Error {
   constructor(
@@ -51,10 +59,11 @@ export class ManagerSingleton {
   // Scrcpy
   public sharedVideoMetadata: StreamMetadata | null = null;
   public sharedConfiguration: ScrcpyMediaStreamConfigurationPacket | null = null;
+  private activeExploitTeam: string | null = null;
   private videoRefresh = new VideoRefreshScheduler(
     () =>
       [...this.wsStreamingClients.values()].some(
-        client => client.ws.readyState === WebSocket.OPEN && client.state === StreamingPhase.KEYFRAME,
+        client => !client.hidden && client.ws.readyState === WebSocket.OPEN && client.state === StreamingPhase.KEYFRAME,
       ),
     async () => {
       // Video refresh is internal stream maintenance; input access remains feature-gated.
@@ -444,6 +453,38 @@ export class ManagerSingleton {
 
   public isTeamTokenValid(teamToken: unknown): teamToken is string {
     return typeof teamToken === "string" && teamToken.length > 0 && this.getTeamTokens().includes(teamToken);
+  }
+
+  public canViewStream(teamToken?: string): boolean {
+    return (
+      !this.config.features.teamModeEnabled || this.activeExploitTeam === null || this.activeExploitTeam === teamToken
+    );
+  }
+
+  public updateStreamVisibility(client: WebsocketClient, invalidTeamToken = false) {
+    const wasHidden = client.hidden;
+    client.hidden = !this.canViewStream(client.teamToken);
+    sendStructuredMessage(client.ws, WSMessageType.STREAM_VISIBILITY, {
+      hidden: client.hidden,
+      teamAuthenticated: this.isTeamTokenValid(client.teamToken),
+      invalidTeamToken,
+    });
+    if (client.hidden === wasHidden) return;
+
+    // Resume with a new decoder/configuration handshake, never stale private frames.
+    client.state = StreamingPhase.INIT;
+    if (client.hidden) client.onHidden?.();
+    else if (this.sharedVideoMetadata) {
+      sendStructuredMessage(client.ws, WSMessageType.STREAM_METADATA, this.sharedVideoMetadata);
+    }
+  }
+
+  public setActiveExploitTeam(teamToken: string | null) {
+    if (this.config.features.teamModeEnabled && teamToken !== null && !this.isTeamTokenValid(teamToken)) {
+      throw new TeamAccessError(401, "Missing or invalid Team Token.");
+    }
+    this.activeExploitTeam = this.config.features.teamModeEnabled ? teamToken : null;
+    for (const client of this.wsStreamingClients.values()) this.updateStreamVisibility(client);
   }
 
   private assertPackageOwner(packageName: string, teamToken?: string) {
