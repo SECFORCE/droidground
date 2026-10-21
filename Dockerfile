@@ -1,7 +1,7 @@
 #################################################################
 # Step 1: Build the companion app                               #
 #################################################################
-FROM gradle:8.5-jdk17 AS companion-builder
+FROM gradle:8.14.6-jdk17 AS companion-builder
 WORKDIR /usr/src/app
 
 # Install Android SDK
@@ -34,10 +34,10 @@ RUN cd ./companion && ./gradlew assembleRelease
 #################################################################
 # Step 2: Build everything using the `npm build` command        #
 #################################################################
-FROM node:24.13-trixie-slim AS main-builder
+FROM node:24.22.1-trixie-slim AS main-builder
 WORKDIR /usr/src/app
 COPY . .
-RUN npm install --ignore-scripts && \
+RUN npm ci --ignore-scripts && \
   npm run scrcpy && \ 
   npm run build:setup && \ 
   npm run build:client && \ 
@@ -51,7 +51,7 @@ COPY --from=companion-builder /usr/src/app/companion/droidground-companion.dex d
 #################################################################
 # Step 3: Pack everything together                              #
 #################################################################
-FROM node:24.13-trixie-slim
+FROM node:24.22.1-trixie-slim
 WORKDIR /droidground
 ENV NODE_ENV=production
 COPY --from=main-builder /usr/src/app/dist .
