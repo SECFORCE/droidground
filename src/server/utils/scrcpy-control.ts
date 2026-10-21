@@ -65,6 +65,7 @@ export class ScrcpyControlSession {
   private queue = Promise.resolve();
   private pending = 0;
   private closed = false;
+  private discardPending = false;
   private writer?: ControlWriter;
   private pointers = new Map<number, { id: bigint; input: ScrcpyTouchInput }>();
   private keys = new Set<number>();
@@ -82,7 +83,7 @@ export class ScrcpyControlSession {
     if (this.pending >= 256) return false;
     this.enqueue(async () => {
       // Don't deliver queued inputs to a replacement device connection.
-      if (writer !== this.getWriter()) return;
+      if (this.discardPending || writer !== this.getWriter()) return;
       if (this.writer !== writer) {
         this.pointers.clear();
         this.keys.clear();
@@ -189,7 +190,8 @@ export class ScrcpyControlSession {
     }
   }
 
-  close(): Promise<void> {
+  close(discardPending = false): Promise<void> {
+    if (discardPending) this.discardPending = true;
     if (!this.closed) {
       this.closed = true;
       this.enqueue(async () => {

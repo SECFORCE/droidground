@@ -196,6 +196,9 @@ test("streaming ACKs work with control disabled; enabled control forwards text a
         sharedVideoMetadata: { hardwareType: "software" },
         getConfig: () => ({ features }),
         getScrcpyController: () => writer,
+        updateStreamVisibility: (client: any) => {
+          client.hidden = false;
+        },
         requestVideoRefresh: () => {},
       }) as any,
   );

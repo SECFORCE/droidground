@@ -13,26 +13,46 @@ export const setupScrcpyWss = (wssStreaming: WebSocketServer) => {
 
   wssStreaming.on("connection", (ws: WebSocket) => {
     const id = uuidv4();
-    const control = new ScrcpyControlSession(
-      () => singleton.getScrcpyController(),
-      error => Logger.error({ err: error }, "Scrcpy input failed"),
-    );
-    wsStreamingClients.set(id, {
+    const createControl = () =>
+      new ScrcpyControlSession(
+        () => singleton.getScrcpyController(),
+        error => Logger.error({ err: error }, "Scrcpy input failed"),
+      );
+    let control = createControl();
+    const client: WebsocketClient = {
       state: StreamingPhase.INIT,
       ws: ws,
-    });
+      onHidden: () => {
+        void control.close(true);
+        control = createControl();
+      },
+    };
+    wsStreamingClients.set(id, client);
 
     Logger.info(`WebSocket Streaming client connected with id '${id}', sending Metadata message (if available)`);
 
-    if (singleton.sharedVideoMetadata) {
-      sendStructuredMessage(ws, WSMessageType.STREAM_METADATA, singleton.sharedVideoMetadata);
-    }
+    singleton.updateStreamVisibility(client);
 
     ws.on("message", (clientMessage, isBinary) => {
       if (isBinary) return;
       const singleton = ManagerSingleton.getInstance();
       let message = clientMessage.toString();
       const currentClientData = wsStreamingClients.get(id) as WebsocketClient;
+      if (message.startsWith("{")) {
+        try {
+          const request = JSON.parse(message);
+          if (request?.type === WSMessageType.STREAM_TEAM && singleton.getConfig().features.teamModeEnabled) {
+            const valid = singleton.isTeamTokenValid(request.teamToken);
+            currentClientData.teamToken = valid ? request.teamToken : undefined;
+            singleton.updateStreamVisibility(currentClientData, !valid && request.teamToken !== "");
+            return;
+          }
+        } catch {
+          return;
+        }
+      }
+      // A hidden viewer cannot bypass privacy with ACKs, refreshes, or device input.
+      if (currentClientData.hidden) return;
       switch (message) {
         case WSMessageType.STREAM_METADATA_ACK:
           wsStreamingClients.set(id, { ...currentClientData, state: StreamingPhase.KEYFRAME });

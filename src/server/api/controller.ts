@@ -609,7 +609,7 @@ class APIController {
     }
   };
 
-  startExploitApp = async (jobId: string, exploitApp: string, createdAt: number) => {
+  startExploitApp = async (jobId: string, exploitApp: string, createdAt: number, teamToken?: string) => {
     const job: JobInfo = {
       id: jobId,
       packageName: exploitApp,
@@ -624,12 +624,22 @@ class APIController {
 
     const duration = config.features.exploitAppDuration;
 
-    await singleton.runAppByPackageName(exploitApp);
-    Logger.info(`Exploit app ${exploitApp} correctly started. It will stay up for ${duration} seconds`);
-    await sleep(duration * SECOND);
-    Logger.info(`${duration} seconds have passed, restarting target app...`);
+    if (config.features.teamModeEnabled) {
+      if (!singleton.isTeamTokenValid(teamToken)) throw new TeamAccessError(401, "Missing or invalid Team Token.");
+      singleton.setActiveExploitTeam(teamToken);
+    }
+    try {
+      await singleton.runAppByPackageName(exploitApp);
+      Logger.info(`Exploit app ${exploitApp} correctly started. It will stay up for ${duration} seconds`);
+      await sleep(duration * SECOND);
+      Logger.info(`${duration} seconds have passed, restarting target app...`);
+    } finally {
+      // Keep other teams hidden through recovery, including a failed exploit launch.
+      // If recovery itself fails, retain privacy until a target restart succeeds.
+      await singleton.runTargetApp();
+      singleton.setActiveExploitTeam(null);
+    }
     this.sendNotification({ ...job, status: JobStatusType.COMPLETED });
-    await singleton.runTargetApp();
   };
 
   enqueueStartExploitApp: RequestHandler = async (req: Request, res: Response<IGenericResultRes | IGenericErrRes>) => {
@@ -655,7 +665,7 @@ class APIController {
         run: async createdAt => {
           // Access may have been revoked by a reset while this job was waiting.
           singleton.assertAppAccess(exploitApp, teamToken);
-          await this.startExploitApp(jobId, exploitApp, createdAt);
+          await this.startExploitApp(jobId, exploitApp, createdAt, teamToken);
         },
       });
 

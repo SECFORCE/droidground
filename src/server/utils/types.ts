@@ -12,6 +12,9 @@ export enum AppStatus {
 export interface WebsocketClient {
   state: StreamingPhase;
   ws: WebSocket;
+  teamToken?: string;
+  hidden?: boolean;
+  onHidden?: () => void;
 }
 
 export type LsEntry = {
