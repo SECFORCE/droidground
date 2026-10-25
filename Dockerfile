@@ -67,6 +67,7 @@ RUN apt-get update && \
     unzip \
     libglib2.0-dev \
     libssl-dev \
+    'libbrotli1=1.1.0-2+deb13u1' \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install platform-tools (ADB)
